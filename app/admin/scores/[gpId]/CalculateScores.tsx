@@ -6,6 +6,8 @@ import { createClient } from '@/lib/supabase/client'
 import { calculatePlayScore } from '@/lib/scoring'
 import type { GpCalendar, GpAnswers, Prediction, ScorePlay } from '@/lib/supabase/types'
 
+type PreviewRow = ReturnType<typeof calculatePlayScore> & { email: string }
+
 export default function CalculateScores({
   gp, answers, predictions, existingScores, adminEmail
 }: {
@@ -19,15 +21,20 @@ export default function CalculateScores({
   const supabase = createClient()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [preview, setPreview] = useState<ReturnType<typeof calculatePlayScore> & { email: string }[]>([])
+  const [preview, setPreview] = useState<PreviewRow[]>([])
   const [calculated, setCalculated] = useState(false)
 
   function doPreview() {
-    if (!answers) { setError('Insere primeiro as respostas correctas.'); return }
-    const results = predictions.map(pred => ({
+    if (!answers) {
+      setError('Insere primeiro as respostas correctas.')
+      return
+    }
+
+    const results: PreviewRow[] = predictions.map(pred => ({
       email: pred.member_email,
-      ...calculatePlayScore(pred, answers)
+      ...calculatePlayScore(pred, answers),
     }))
+
     results.sort((a, b) => b.total - a.total)
     setPreview(results)
     setCalculated(true)
@@ -35,31 +42,52 @@ export default function CalculateScores({
 
   async function doSave() {
     if (!answers || preview.length === 0) return
-    setLoading(true); setError('')
+    setLoading(true)
+    setError('')
 
     const scores = preview.map(r => ({
       member_email: r.email,
       gp_id: gp.id,
-      pts_p1a: r.pts_p1a, pts_p1b: r.pts_p1b, pts_p1c: r.pts_p1c,
-      pts_p2: r.pts_p2, pts_p3: r.pts_p3,
-      pts_p4a: r.pts_p4a, pts_p4b: r.pts_p4b, pts_p4c: r.pts_p4c,
-      pts_p5: r.pts_p5, pts_p6: r.pts_p6, pts_p7: r.pts_p7,
-      pts_p8: r.pts_p8, pts_p9: r.pts_p9, pts_p10: r.pts_p10,
-      pts_p11: r.pts_p11, pts_p12: r.pts_p12,
-      pts_p13: r.pts_p13, pts_p14: r.pts_p14, pts_p15: r.pts_p15,
+      pts_p1a: r.pts_p1a,
+      pts_p1b: r.pts_p1b,
+      pts_p1c: r.pts_p1c,
+      pts_p2: r.pts_p2,
+      pts_p3: r.pts_p3,
+      pts_p4a: r.pts_p4a,
+      pts_p4b: r.pts_p4b,
+      pts_p4c: r.pts_p4c,
+      pts_p5: r.pts_p5,
+      pts_p6: r.pts_p6,
+      pts_p7: r.pts_p7,
+      pts_p8: r.pts_p8,
+      pts_p9: r.pts_p9,
+      pts_p10: r.pts_p10,
+      pts_p11: r.pts_p11,
+      pts_p12: r.pts_p12,
+      pts_p13: r.pts_p13,
+      pts_p14: r.pts_p14,
+      pts_p15: r.pts_p15,
       total: r.total,
       participou: true,
       calculado_em: new Date().toISOString(),
     }))
 
-    const { error: scoresErr } = await supabase.from('scores_play').upsert(scores)
-    if (scoresErr) { setError(scoresErr.message); setLoading(false); return }
+    const { error: scoresErr } = await (supabase as any)
+      .from('scores_play')
+      .upsert(scores)
 
-    // Update GP status to scored
-    await supabase.from('gp_calendar').update({ status: 'scored' }).eq('id', gp.id)
+    if (scoresErr) {
+      setError(scoresErr.message)
+      setLoading(false)
+      return
+    }
 
-    // Audit log
-    await supabase.from('audit_log').insert({
+    await (supabase as any)
+      .from('gp_calendar')
+      .update({ status: 'scored' })
+      .eq('id', gp.id)
+
+    await (supabase as any).from('audit_log').insert({
       admin_email: adminEmail,
       accao: 'calculate_scores',
       gp_id: gp.id,
