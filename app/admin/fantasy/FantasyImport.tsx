@@ -21,11 +21,19 @@ export default function FantasyImport({
   const [error, setError] = useState('')
 
   async function handleSave() {
-    if (!selectedGp) { setError('Selecciona o GP.'); return }
-    const valid = rows.filter(r => r.pontos_acum !== '' && r.equipa_nome)
-    if (valid.length === 0) { setError('Nenhum dado para guardar.'); return }
+    if (!selectedGp) {
+      setError('Selecciona o GP.')
+      return
+    }
 
-    setLoading(true); setError('')
+    const valid = rows.filter(r => r.pontos_acum !== '' && r.equipa_nome)
+    if (valid.length === 0) {
+      setError('Nenhum dado para guardar.')
+      return
+    }
+
+    setLoading(true)
+    setError('')
 
     const gp = gps.find(g => g.id === selectedGp)!
     const toInsert = valid.map(r => ({
@@ -36,10 +44,17 @@ export default function FantasyImport({
       pontos_gp: null,
     }))
 
-    const { error: err } = await supabase.from('scores_fantasy').upsert(toInsert)
-    if (err) { setError(err.message); setLoading(false); return }
+    const { error: err } = await (supabase as any)
+      .from('scores_fantasy')
+      .upsert(toInsert)
 
-    await supabase.from('audit_log').insert({
+    if (err) {
+      setError(err.message)
+      setLoading(false)
+      return
+    }
+
+    await (supabase as any).from('audit_log').insert({
       admin_email: adminEmail,
       accao: 'import_fantasy',
       gp_id: selectedGp as number,
@@ -60,17 +75,25 @@ export default function FantasyImport({
 
       <div className="card mb-6">
         <label className="label">GP *</label>
-        <select className="select" value={selectedGp}
-          onChange={e => setSelectedGp(e.target.value ? parseInt(e.target.value) : '')}>
+        <select
+          className="select"
+          value={selectedGp}
+          onChange={e => setSelectedGp(e.target.value ? parseInt(e.target.value) : '')}
+        >
           <option value="">Selecciona GP...</option>
-          {gps.map(g => <option key={g.id} value={g.id}>{g.emoji_bandeira} {g.nome}</option>)}
+          {gps.map(g => (
+            <option key={g.id} value={g.id}>
+              {g.emoji_bandeira} {g.nome}
+            </option>
+          ))}
         </select>
       </div>
 
       {success ? (
         <div className="card text-center text-green-400 py-8">
           ✅ Fantasy importado com sucesso!
-          <br /><a href="/admin" className="text-f1red underline mt-2 block">← Voltar ao admin</a>
+          <br />
+          <a href="/admin" className="text-f1red underline mt-2 block">← Voltar ao admin</a>
         </div>
       ) : (
         <div className="card">
@@ -83,21 +106,27 @@ export default function FantasyImport({
               return (
                 <div key={row.email} className="grid grid-cols-3 gap-2 items-center">
                   <span className="text-sm text-gray-300">{member?.nickname}</span>
-                  <input className="input text-sm py-2"
+                  <input
+                    className="input text-sm py-2"
                     placeholder="Nome equipa"
                     value={row.equipa_nome}
                     onChange={e => {
-                      const copy = [...rows]; copy[i] = { ...copy[i], equipa_nome: e.target.value }
+                      const copy = [...rows]
+                      copy[i] = { ...copy[i], equipa_nome: e.target.value }
                       setRows(copy)
-                    }} />
-                  <input className="input text-sm py-2"
+                    }}
+                  />
+                  <input
+                    className="input text-sm py-2"
                     type="number"
                     placeholder="Pontos acum."
                     value={row.pontos_acum}
                     onChange={e => {
-                      const copy = [...rows]; copy[i] = { ...copy[i], pontos_acum: e.target.value }
+                      const copy = [...rows]
+                      copy[i] = { ...copy[i], pontos_acum: e.target.value }
                       setRows(copy)
-                    }} />
+                    }}
+                  />
                 </div>
               )
             })}
