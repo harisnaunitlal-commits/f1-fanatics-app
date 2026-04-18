@@ -1,0 +1,33 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx create-next-app@latest . --typescript --tailwind --eslint --app --no-src-dir --import-alias \"@/*\" --yes)",
+      "Read(//usr/local/**)",
+      "Read(//usr/**)",
+      "Bash(powershell.exe -Command \"Get-Command node\")",
+      "Bash(powershell.exe -Command \"node --version; npm --version\")",
+      "Bash(cmd /c \"npm run dev\")",
+      "Bash(cmd /c \"node --version && npm --version\")",
+      "Bash(powershell.exe -Command \"Test-Path 'C:\\\\Program Files\\\\nodejs\\\\node.exe'\")",
+      "Bash(powershell.exe -Command \"ls 'C:\\\\Program Files\\\\nodejs' | Select-Object Name\")",
+      "Bash(powershell.exe -Command \"ls 'C:\\\\Program Files\\\\nodejs'\")",
+      "Bash(\"C:\\\\Program Files\\\\nodejs\\\\npm.cmd\" install)",
+      "Bash(powershell.exe -Command ' *)",
+      "Bash(powershell.exe -ExecutionPolicy Bypass -Command '$env:PATH = '\\\\''C:\\\\Program Files\\\\nodejs;'\\\\'' + $env:PATH; & '\\\\''C:\\\\Program Files\\\\nodejs\\\\npm.cmd'\\\\'' install')",
+      "Bash(powershell.exe -ExecutionPolicy Bypass -Command '$env:PATH = '\\\\''C:\\\\Program Files\\\\nodejs;'\\\\'' + $env:PATH; & '\\\\''C:\\\\Program Files\\\\nodejs\\\\npm.cmd'\\\\'' run dev')",
+      "Bash(powershell.exe -Command \"Get-Content 'C:\\\\Users\\\\haris\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-haris-OneDrive-Documents-Projecto-F1-Play-2026-Code-Project-F1-Play-2026\\\\fca427a3-281e-4bb2-8991-b189bebf9fa3\\\\tasks\\\\b6mgu0p63.output'\")",
+      "Bash(powershell.exe -ExecutionPolicy Bypass -Command ' *)",
+      "Bash(powershell.exe -ExecutionPolicy Bypass -Command \"Test-NetConnection -ComputerName localhost -Port 3000 -WarningAction SilentlyContinue | Select-Object TcpTestSucceeded\")",
+      "Bash(powershell.exe -ExecutionPolicy Bypass -Command '$url = \\\\\"https://digrlsiwzfhbpsfwtmuq.supabase.co\\\\\"; $key = \\\\\"sb_publishable_Apaq-S0hNeEwDuCV41mrPQ_JUQugWVP\\\\\"; $h = @{ apikey = $key; Authorization = \\\\\"Bearer $key\\\\\"; Accept = \\\\\"application/json\\\\\" }; $r = Invoke-RestMethod -Uri \\($url + \\\\\"/rest/v1/scores_fantasy?select=gp_id,member_email,pontos_acum,pontos_gp&order=gp_id,member_email\\\\\"\\) -Headers $h; Write-Host \\\\\"total:\\\\\" $r.Count; $r | Group-Object gp_id | ForEach-Object { Write-Host \\\\\"gp\\\\\" $_.Name $_.Count }')",
+      "Bash(npm run *)",
+      "Bash(where.exe npm *)",
+      "Bash(where.exe node *)",
+      "Read(//c/Program Files/nodejs//**)",
+      "Read(//c/Users/haris/AppData/Roaming/**)",
+      "Read(//c/Users/haris/**)",
+      "Bash(\"/c/Program Files/nodejs/npm.cmd\" run dev)",
+      "Bash(export PATH=\"/c/Program Files/nodejs:$PATH\")",
+      "Bash(\"/c/Program Files/nodejs/node.exe\" \"/c/Program Files/nodejs/node_modules/npm/bin/npm-cli.js\" run dev)"
+    ]
+  }
+}
