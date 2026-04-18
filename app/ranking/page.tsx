@@ -52,7 +52,7 @@ export default async function GlobalRankingPage({
   const selectedGp = scoredGps?.find(g => g.id === selectedGpId)
 
   const { data: ranking } = selectedGpId
-    ? await supabase
+    ? await (supabase as any)
         .from('global_ranking')
         .select('member_email, play_pts, fantasy_pts, predict_pts, play_gpts, fantasy_gpts, predict_gpts, global_score, n_ligas, members(nickname, foto_url)')
         .eq('gp_id', selectedGpId)

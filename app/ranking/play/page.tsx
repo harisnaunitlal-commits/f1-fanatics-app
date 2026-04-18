@@ -37,7 +37,7 @@ export default async function PlayRankingPage({
 
   // All scores across all scored GPs for the cumulative standings
   const { data: allScores } = scoredGps?.length
-    ? await supabase
+    ? await (supabase as any)
         .from('scores_play')
         .select('member_email, gp_id, total, participou, members(nickname, foto_url)')
         .in('gp_id', scoredGps.map(g => g.id))

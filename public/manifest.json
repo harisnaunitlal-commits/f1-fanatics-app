@@ -1,0 +1,21 @@
+{
+  "name": "Beira F1 Fanatics",
+  "short_name": "F1 Fanatics",
+  "description": "Plataforma de ligas F1 da comunidade Beira F1 Fanatics",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f0f0f",
+  "theme_color": "#e10600",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

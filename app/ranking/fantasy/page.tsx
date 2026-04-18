@@ -24,7 +24,7 @@ export default async function FantasyRankingPage({
 
   // Cumulative at selected GP — pontos_acum is already running total
   const { data: scores } = selectedGpId
-    ? await supabase
+    ? await (supabase as any)
         .from('scores_fantasy')
         .select('member_email, equipa_nome, pontos_acum, members(nickname, foto_url)')
         .eq('gp_id', selectedGpId)

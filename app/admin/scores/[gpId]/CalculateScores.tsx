@@ -90,8 +90,8 @@ export default function CalculateScores({
     await (supabase as any).from('audit_log').insert({
       admin_email: adminEmail,
       accao: 'calculate_scores',
-      gp_id: gp.id,
-      detalhes: { n_predictions: predictions.length, gp_nome: gp.nome },
+      tabela: 'scores_play',
+      detalhe: { gp_id: gp.id, n_predictions: predictions.length, gp_nome: gp.nome },
     })
 
     router.push(`/ranking/play?gp=${gp.id}`)

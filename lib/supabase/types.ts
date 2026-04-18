@@ -43,6 +43,16 @@ export interface Database {
         Insert: GlobalRanking
         Update: Partial<GlobalRanking>
       }
+      season_stats: {
+        Row: SeasonStats
+        Insert: SeasonStats
+        Update: Partial<SeasonStats>
+      }
+      audit_log: {
+        Row: AuditLog
+        Insert: Omit<AuditLog, 'id' | 'criado_em'>
+        Update: Partial<AuditLog>
+      }
     }
   }
 }
@@ -178,15 +188,32 @@ export interface GlobalRanking {
   play_pts: number
   fantasy_pts: number
   predict_pts: number
-  play_max: number | null
-  fantasy_max: number | null
-  predict_max: number | null
   play_gpts: number | null
   fantasy_gpts: number | null
   predict_gpts: number | null
   global_score: number | null
   n_ligas: number | null
   calculado_em: string
+}
+
+export interface SeasonStats {
+  gp_id: number
+  play_max: number
+  fantasy_max: number
+  predict_max: number
+  n_members_play: number | null
+  n_members_fantasy: number | null
+  n_members_predict: number | null
+  calculado_em: string
+}
+
+export interface AuditLog {
+  id: string
+  admin_email: string
+  accao: string
+  tabela: string | null
+  detalhe: Json | null
+  criado_em: string
 }
 
 // Pilotos 2026

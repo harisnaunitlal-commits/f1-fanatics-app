@@ -13,7 +13,7 @@ export default async function ProfilePage() {
 
   if (!member) redirect('/register')
 
-  const { data: playScores } = await supabase
+  const { data: playScores } = await (supabase as any)
     .from('scores_play')
     .select('total, gp_id, gp_calendar(nome, emoji_bandeira, round)')
     .eq('member_email', user.email)
