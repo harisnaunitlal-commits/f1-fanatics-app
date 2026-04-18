@@ -21,11 +21,19 @@ export default function PredictImport({
   const [error, setError] = useState('')
 
   async function handleSave() {
-    if (!selectedGp) { setError('Selecciona o GP.'); return }
-    const valid = rows.filter(r => r.pontos_acum !== '' && r.nick)
-    if (valid.length === 0) { setError('Nenhum dado para guardar.'); return }
+    if (!selectedGp) {
+      setError('Selecciona o GP.')
+      return
+    }
 
-    setLoading(true); setError('')
+    const valid = rows.filter(r => r.pontos_acum !== '' && r.nick)
+    if (valid.length === 0) {
+      setError('Nenhum dado para guardar.')
+      return
+    }
+
+    setLoading(true)
+    setError('')
 
     const gp = gps.find(g => g.id === selectedGp)!
     const toInsert = valid.map(r => ({
@@ -35,10 +43,17 @@ export default function PredictImport({
       pontos_acum: parseInt(r.pontos_acum),
     }))
 
-    const { error: err } = await supabase.from('scores_predict').upsert(toInsert)
-    if (err) { setError(err.message); setLoading(false); return }
+    const { error: err } = await (supabase as any)
+      .from('scores_predict')
+      .upsert(toInsert)
 
-    await supabase.from('audit_log').insert({
+    if (err) {
+      setError(err.message)
+      setLoading(false)
+      return
+    }
+
+    await (supabase as any).from('audit_log').insert({
       admin_email: adminEmail,
       accao: 'import_predict',
       gp_id: selectedGp as number,
@@ -62,17 +77,25 @@ export default function PredictImport({
 
       <div className="card mb-6">
         <label className="label">GP *</label>
-        <select className="select" value={selectedGp}
-          onChange={e => setSelectedGp(e.target.value ? parseInt(e.target.value) : '')}>
+        <select
+          className="select"
+          value={selectedGp}
+          onChange={e => setSelectedGp(e.target.value ? parseInt(e.target.value) : '')}
+        >
           <option value="">Selecciona GP...</option>
-          {gps.map(g => <option key={g.id} value={g.id}>{g.emoji_bandeira} {g.nome}</option>)}
+          {gps.map(g => (
+            <option key={g.id} value={g.id}>
+              {g.emoji_bandeira} {g.nome}
+            </option>
+          ))}
         </select>
       </div>
 
       {success ? (
         <div className="card text-center text-green-400 py-8">
           ✅ F1 Predict importado com sucesso!
-          <br /><a href="/admin" className="text-f1red underline mt-2 block">← Voltar ao admin</a>
+          <br />
+          <a href="/admin" className="text-f1red underline mt-2 block">← Voltar ao admin</a>
         </div>
       ) : (
         <div className="card">
@@ -82,21 +105,27 @@ export default function PredictImport({
               return (
                 <div key={row.email} className="grid grid-cols-3 gap-2 items-center">
                   <span className="text-sm text-gray-300">{member?.nickname}</span>
-                  <input className="input text-sm py-2"
+                  <input
+                    className="input text-sm py-2"
                     placeholder="Nick Predict"
                     value={row.nick}
                     onChange={e => {
-                      const copy = [...rows]; copy[i] = { ...copy[i], nick: e.target.value }
+                      const copy = [...rows]
+                      copy[i] = { ...copy[i], nick: e.target.value }
                       setRows(copy)
-                    }} />
-                  <input className="input text-sm py-2"
+                    }}
+                  />
+                  <input
+                    className="input text-sm py-2"
                     type="number"
                     placeholder="Pontos acum."
                     value={row.pontos_acum}
                     onChange={e => {
-                      const copy = [...rows]; copy[i] = { ...copy[i], pontos_acum: e.target.value }
+                      const copy = [...rows]
+                      copy[i] = { ...copy[i], pontos_acum: e.target.value }
                       setRows(copy)
-                    }} />
+                    }}
+                  />
                 </div>
               )
             })}

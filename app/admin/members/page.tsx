@@ -4,17 +4,26 @@ import Link from 'next/link'
 
 export default async function AdminMembersPage() {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
   if (!user?.email) redirect('/auth/login')
-  const { data: me } = await supabase.from('members').select('is_admin').eq('email', user.email).single()
+
+  const { data: me } = await (supabase as any)
+    .from('members')
+    .select('is_admin')
+    .eq('email', user.email)
+    .single()
+
   if (!me?.is_admin) redirect('/')
 
-  const { data: members } = await supabase
+  const { data: members } = await (supabase as any)
     .from('members')
     .select('*')
     .order('nickname')
 
-  const { data: playSums } = await supabase
+  const { data: playSums } = await (supabase as any)
     .from('scores_play')
     .select('member_email, total')
 
@@ -47,7 +56,7 @@ export default async function AdminMembersPage() {
             </tr>
           </thead>
           <tbody>
-            {members?.map(m => (
+            {members?.map((m: any) => (
               <tr key={m.email} className="border-b border-gray-800/50">
                 <td className="py-2 pr-4 font-medium">{m.nickname}</td>
                 <td className="py-2 pr-4 text-gray-400 text-xs">{m.email}</td>
