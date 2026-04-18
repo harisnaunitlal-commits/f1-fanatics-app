@@ -20,24 +20,24 @@ export default function AnswersForm({
   const [error, setError] = useState('')
 
   const [form, setForm] = useState<FormData>({
-    p1_primeiro:  existing?.p1_primeiro  ?? null,
-    p1_segundo:   existing?.p1_segundo   ?? null,
-    p1_terceiro:  existing?.p1_terceiro  ?? null,
-    p2_equipa:    existing?.p2_equipa    ?? null,
-    p3_lap:       existing?.p3_lap       ?? null,
-    p4_quarto:    existing?.p4_quarto    ?? null,
-    p4_quinto:    existing?.p4_quinto    ?? null,
-    p4_sexto:     existing?.p4_sexto     ?? null,
-    p5_duelo:     existing?.p5_duelo     ?? null,
-    p6_duelo:     existing?.p6_duelo     ?? null,
-    p7_duelo:     existing?.p7_duelo     ?? null,
-    p8_margem:    existing?.p8_margem    ?? null,
-    p9_retire:    existing?.p9_retire    ?? null,
-    p10_dotd:     existing?.p10_dotd     ?? null,
-    p11_fl:       existing?.p11_fl       ?? null,
-    p12_classif:  existing?.p12_classif  ?? null,
+    p1_primeiro: existing?.p1_primeiro ?? null,
+    p1_segundo: existing?.p1_segundo ?? null,
+    p1_terceiro: existing?.p1_terceiro ?? null,
+    p2_equipa: existing?.p2_equipa ?? null,
+    p3_lap: existing?.p3_lap ?? null,
+    p4_quarto: existing?.p4_quarto ?? null,
+    p4_quinto: existing?.p4_quinto ?? null,
+    p4_sexto: existing?.p4_sexto ?? null,
+    p5_duelo: existing?.p5_duelo ?? null,
+    p6_duelo: existing?.p6_duelo ?? null,
+    p7_duelo: existing?.p7_duelo ?? null,
+    p8_margem: existing?.p8_margem ?? null,
+    p9_retire: existing?.p9_retire ?? null,
+    p10_dotd: existing?.p10_dotd ?? null,
+    p11_fl: existing?.p11_fl ?? null,
+    p12_classif: existing?.p12_classif ?? null,
     p13_especial: existing?.p13_especial ?? null,
-    p14_sc:       existing?.p14_sc       ?? null,
+    p14_sc: existing?.p14_sc ?? null,
     p15_outsider: existing?.p15_outsider ?? null,
     perguntas_anuladas: existing?.perguntas_anuladas ?? [],
   })
@@ -61,9 +61,12 @@ export default function AnswersForm({
     const anuladas = form.perguntas_anuladas ?? []
     return (
       <label className="flex items-center gap-2 text-xs text-gray-500 cursor-pointer mt-1">
-        <input type="checkbox" checked={anuladas.includes(field)}
+        <input
+          type="checkbox"
+          checked={anuladas.includes(field)}
           onChange={() => toggleAnulada(field)}
-          className="rounded" />
+          className="rounded"
+        />
         Anular esta pergunta (0 pts para todos)
       </label>
     )
@@ -73,10 +76,17 @@ export default function AnswersForm({
     return (
       <div>
         <label className="label">{label}</label>
-        <select className={`select ${(form.perguntas_anuladas ?? []).includes(field) ? 'opacity-40' : ''}`}
-          value={(form[field] as string) ?? ''} onChange={set(field)}>
+        <select
+          className={`select ${(form.perguntas_anuladas ?? []).includes(field) ? 'opacity-40' : ''}`}
+          value={(form[field] as string) ?? ''}
+          onChange={set(field)}
+        >
           <option value="">Selecciona...</option>
-          {PILOTOS_2026.map(p => <option key={p.codigo} value={p.codigo}>{p.nome}</option>)}
+          {PILOTOS_2026.map(p => (
+            <option key={p.codigo} value={p.codigo}>
+              {p.nome}
+            </option>
+          ))}
         </select>
         <AnuladaCheck field={field} />
       </div>
@@ -85,19 +95,27 @@ export default function AnswersForm({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    setLoading(true); setError('')
+    setLoading(true)
+    setError('')
 
-    const { error: upsertErr } = await supabase.from('gp_answers').upsert({
+    const payload = {
       gp_id: gp.id,
       ...form,
       inserido_por: adminEmail,
       inserido_em: new Date().toISOString(),
-    })
+    }
 
-    if (upsertErr) { setError(upsertErr.message); setLoading(false); return }
+    const { error: upsertErr } = await (supabase as any)
+      .from('gp_answers')
+      .upsert(payload)
 
-    // Log audit
-    await supabase.from('audit_log').insert({
+    if (upsertErr) {
+      setError(upsertErr.message)
+      setLoading(false)
+      return
+    }
+
+    await (supabase as any).from('audit_log').insert({
       admin_email: adminEmail,
       accao: existing ? 'update_answers' : 'insert_answers',
       gp_id: gp.id,
@@ -134,7 +152,7 @@ export default function AnswersForm({
           <h3 className="font-bold text-f1red mb-4">🏆 Pódio</h3>
           <div className="grid grid-cols-3 gap-3">
             <PilotoSel field="p1_primeiro" label="1º" />
-            <PilotoSel field="p1_segundo"  label="2º" />
+            <PilotoSel field="p1_segundo" label="2º" />
             <PilotoSel field="p1_terceiro" label="3º" />
           </div>
         </div>
@@ -144,7 +162,11 @@ export default function AnswersForm({
           <label className="label">Equipa</label>
           <select className="select" value={form.p2_equipa ?? ''} onChange={set('p2_equipa')}>
             <option value="">Selecciona...</option>
-            {EQUIPAS_2026.map(e => <option key={e} value={e}>{e}</option>)}
+            {EQUIPAS_2026.map(e => (
+              <option key={e} value={e}>
+                {e}
+              </option>
+            ))}
           </select>
           <AnuladaCheck field="p2_equipa" />
         </div>
@@ -152,13 +174,13 @@ export default function AnswersForm({
         <div className="card">
           <h3 className="font-bold text-f1red mb-4">📍 LAP / P4-P6 / Duelos</h3>
           <div className="grid grid-cols-2 gap-3">
-            <PilotoSel field="p3_lap"    label="LAP" />
+            <PilotoSel field="p3_lap" label="LAP" />
             <PilotoSel field="p4_quarto" label="4º" />
             <PilotoSel field="p4_quinto" label="5º" />
-            <PilotoSel field="p4_sexto"  label="6º" />
-            <PilotoSel field="p5_duelo"  label="Duelo 1 (Red Bull)" />
-            <PilotoSel field="p6_duelo"  label="Duelo 2 (McLaren)" />
-            <PilotoSel field="p7_duelo"  label="Duelo 3 (Ferrari)" />
+            <PilotoSel field="p4_sexto" label="6º" />
+            <PilotoSel field="p5_duelo" label="Duelo 1 (Red Bull)" />
+            <PilotoSel field="p6_duelo" label="Duelo 2 (McLaren)" />
+            <PilotoSel field="p7_duelo" label="Duelo 3 (Ferrari)" />
           </div>
         </div>
 
@@ -169,7 +191,11 @@ export default function AnswersForm({
               <label className="label">Margem vitória</label>
               <select className="select" value={form.p8_margem ?? ''} onChange={set('p8_margem')}>
                 <option value="">Selecciona...</option>
-                {MARGENS_VITORIA.map(m => <option key={m} value={m}>{m}</option>)}
+                {MARGENS_VITORIA.map(m => (
+                  <option key={m} value={m}>
+                    {m}
+                  </option>
+                ))}
               </select>
             </div>
             <PilotoSel field="p11_fl" label="Fastest Lap" />
@@ -177,7 +203,11 @@ export default function AnswersForm({
               <label className="label">Nº classificados</label>
               <select className="select" value={form.p12_classif ?? ''} onChange={set('p12_classif')}>
                 <option value="">Selecciona...</option>
-                {OPCOES_CLASSIF.map(o => <option key={o} value={o}>{o}</option>)}
+                {OPCOES_CLASSIF.map(o => (
+                  <option key={o} value={o}>
+                    {o}
+                  </option>
+                ))}
               </select>
             </div>
           </div>
@@ -187,7 +217,7 @@ export default function AnswersForm({
           <h3 className="font-bold text-yellow-400 mb-4">💥 First to Retire / DOTD</h3>
           <div className="grid grid-cols-2 gap-3">
             <PilotoSel field="p9_retire" label="First to Retire (3 pts)" />
-            <PilotoSel field="p10_dotd"  label="Driver of the Day (2 pts)" />
+            <PilotoSel field="p10_dotd" label="Driver of the Day (2 pts)" />
           </div>
         </div>
 
