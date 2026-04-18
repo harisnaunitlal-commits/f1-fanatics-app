@@ -4,14 +4,21 @@ import Link from 'next/link'
 
 export default async function AdminPage() {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
   if (!user?.email) redirect('/auth/login')
 
-  const { data: member } = await supabase
-    .from('members').select('is_admin').eq('email', user.email).single()
+  const { data: member } = await (supabase as any)
+    .from('members')
+    .select('is_admin')
+    .eq('email', user.email)
+    .single()
+
   if (!member?.is_admin) redirect('/')
 
-  const { data: gps } = await supabase
+  const { data: gps } = await (supabase as any)
     .from('gp_calendar')
     .select('*')
     .eq('temporada', 2026)
@@ -23,19 +30,28 @@ export default async function AdminPage() {
       <p className="text-gray-400 mb-8">Gestão de respostas, pontuações e dados das ligas.</p>
 
       <div className="grid gap-3">
-        {gps?.map(gp => (
+        {gps?.map((gp: any) => (
           <div key={gp.id} className="card flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <span className="text-2xl">{gp.emoji_bandeira}</span>
               <div>
-                <div className="font-bold">R{String(gp.round).padStart(2,'0')} · {gp.nome}</div>
+                <div className="font-bold">
+                  R{String(gp.round).padStart(2, '0')} · {gp.nome}
+                </div>
                 <div className="text-sm">
-                  <span className={`px-2 py-0.5 rounded text-xs font-bold ${
-                    gp.status === 'scored'   ? 'bg-green-900/50 text-green-400' :
-                    gp.status === 'closed'   ? 'bg-yellow-900/50 text-yellow-400' :
-                    gp.status === 'active'   ? 'bg-blue-900/50 text-blue-400' :
-                    'bg-gray-700 text-gray-400'
-                  }`}>{gp.status.toUpperCase()}</span>
+                  <span
+                    className={`px-2 py-0.5 rounded text-xs font-bold ${
+                      gp.status === 'scored'
+                        ? 'bg-green-900/50 text-green-400'
+                        : gp.status === 'closed'
+                          ? 'bg-yellow-900/50 text-yellow-400'
+                          : gp.status === 'active'
+                            ? 'bg-blue-900/50 text-blue-400'
+                            : 'bg-gray-700 text-gray-400'
+                    }`}
+                  >
+                    {gp.status.toUpperCase()}
+                  </span>
                 </div>
               </div>
             </div>
