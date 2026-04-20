@@ -10,7 +10,7 @@ export default async function PlayerProfilePage({
   const nickname = decodeURIComponent(params.nickname)
   const supabase = await createClient()
 
-  const { data: member } = await supabase
+  const { data: member } = await (supabase as any)
     .from('members')
     .select('*')
     .eq('nickname', nickname)
@@ -22,33 +22,36 @@ export default async function PlayerProfilePage({
   const { data: playScores } = await (supabase as any)
     .from('scores_play')
     .select('gp_id, total, participou, gp_calendar(round, nome, emoji_bandeira)')
-    .eq('member_email', member.email)
+    .eq('member_email', (member as any).email)
     .order('gp_id')
 
   // Fantasy scores
   const { data: fantasyScores } = await (supabase as any)
     .from('scores_fantasy')
     .select('gp_id, pontos_acum, pontos_gp, equipa_nome, gp_calendar(round, nome, emoji_bandeira)')
-    .eq('member_email', member.email)
+    .eq('member_email', (member as any).email)
     .order('gp_id')
 
   // Predict scores
   const { data: predictScores } = await (supabase as any)
     .from('scores_predict')
     .select('gp_id, pontos_acum, nick_predict, gp_calendar(round, nome, emoji_bandeira)')
-    .eq('member_email', member.email)
+    .eq('member_email', (member as any).email)
     .order('gp_id')
 
   // Latest global ranking entry
   const { data: globalRanking } = await (supabase as any)
     .from('global_ranking')
     .select('gp_id, play_pts, fantasy_pts, predict_pts, play_gpts, fantasy_gpts, predict_gpts, global_score, n_ligas, gp_calendar(round, nome, emoji_bandeira)')
-    .eq('member_email', member.email)
+    .eq('member_email', (member as any).email)
     .order('gp_id', { ascending: false })
     .limit(1)
     .single()
 
-  const playTotal = (playScores ?? []).filter(s => s.participou).reduce((a, s) => a + s.total, 0)
+  const playTotal = (playScores ?? [])
+    .filter((s: any) => s.participou)
+    .reduce((a: number, s: any) => a + s.total, 0)
+
   const latestFantasy = (fantasyScores ?? []).at(-1)
   const latestPredict = (predictScores ?? []).at(-1)
 
@@ -70,7 +73,9 @@ export default async function PlayerProfilePage({
           {member.nome_completo && (
             <p className="text-gray-400">{member.nome_completo}</p>
           )}
-          <p className="text-gray-500 text-sm mt-0.5">{member.cidade ?? 'Beira'}, {member.pais}</p>
+          <p className="text-gray-500 text-sm mt-0.5">
+            {member.cidade ?? 'Beira'}, {member.pais}
+          </p>
         </div>
       </div>
 
@@ -84,12 +89,16 @@ export default async function PlayerProfilePage({
           </div>
           <div className="card text-center">
             <div className="text-xs text-gray-500 uppercase tracking-wider mb-1">Fantasy</div>
-            <div className="text-2xl font-black text-white">{latestFantasy?.pontos_acum ?? '—'}</div>
+            <div className="text-2xl font-black text-white">
+              {latestFantasy?.pontos_acum ?? '—'}
+            </div>
             <div className="text-xs text-gray-500">acumulado</div>
           </div>
           <div className="card text-center">
             <div className="text-xs text-gray-500 uppercase tracking-wider mb-1">Predict</div>
-            <div className="text-2xl font-black text-white">{latestPredict?.pontos_acum ?? '—'}</div>
+            <div className="text-2xl font-black text-white">
+              {latestPredict?.pontos_acum ?? '—'}
+            </div>
             <div className="text-xs text-gray-500">acumulado</div>
           </div>
         </div>
@@ -98,8 +107,12 @@ export default async function PlayerProfilePage({
       {globalRanking && (
         <div className="card text-center">
           <div className="text-xs text-gray-500 uppercase tracking-wider mb-2">Global Score</div>
-          <div className="text-5xl font-black text-f1red">{globalRanking.global_score?.toFixed(1)}</div>
-          <div className="text-xs text-gray-500 mt-1">{globalRanking.n_ligas} liga{globalRanking.n_ligas !== 1 ? 's' : ''}</div>
+          <div className="text-5xl font-black text-f1red">
+            {globalRanking.global_score?.toFixed(1)}
+          </div>
+          <div className="text-xs text-gray-500 mt-1">
+            {globalRanking.n_ligas} liga{globalRanking.n_ligas !== 1 ? 's' : ''}
+          </div>
         </div>
       )}
 
@@ -108,10 +121,18 @@ export default async function PlayerProfilePage({
         <div>
           <h2 className="font-bold mb-3 text-gray-300">F1 Play — por corrida</h2>
           <div className="space-y-1">
-            {playScores.map(s => {
-              const gp = s.gp_calendar as { round: number; nome: string; emoji_bandeira: string | null } | null
+            {playScores.map((s: any) => {
+              const gp = s.gp_calendar as {
+                round: number
+                nome: string
+                emoji_bandeira: string | null
+              } | null
+
               return (
-                <div key={s.gp_id} className="flex items-center justify-between rounded-lg px-3 py-2 bg-f1dark border border-gray-800">
+                <div
+                  key={s.gp_id}
+                  className="flex items-center justify-between rounded-lg px-3 py-2 bg-f1dark border border-gray-800"
+                >
                   <span className="text-sm text-gray-300">
                     {gp?.emoji_bandeira} R{String(gp?.round).padStart(2, '0')} {gp?.nome}
                   </span>
@@ -135,7 +156,7 @@ export default async function PlayerProfilePage({
         </div>
       )}
 
-      {/* Fav */}
+      {/* Favorites */}
       {(member.piloto_fav || member.equipa_fav) && (
         <div className="flex gap-4">
           {member.piloto_fav && (
