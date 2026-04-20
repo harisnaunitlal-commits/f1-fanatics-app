@@ -15,7 +15,9 @@ export interface Database {
       }
       predictions: {
         Row: Prediction
-        Insert: Omit<Prediction, 'id' | 'submetido_em' | 'editado_em' | 'versao'>
+        Insert: Omit<Prediction, 'id' | 'submetido_em' | 'versao'> & {
+          editado_em?: string
+        }
         Update: Partial<Prediction>
       }
       gp_answers: {
@@ -152,13 +154,25 @@ export interface GpAnswers {
 export interface ScorePlay {
   member_email: string
   gp_id: number
-  pts_p1a: number; pts_p1b: number; pts_p1c: number
-  pts_p2: number; pts_p3: number
-  pts_p4a: number; pts_p4b: number; pts_p4c: number
-  pts_p5: number; pts_p6: number; pts_p7: number
-  pts_p8: number; pts_p9: number; pts_p10: number
-  pts_p11: number; pts_p12: number
-  pts_p13: number; pts_p14: number; pts_p15: number
+  pts_p1a: number
+  pts_p1b: number
+  pts_p1c: number
+  pts_p2: number
+  pts_p3: number
+  pts_p4a: number
+  pts_p4b: number
+  pts_p4c: number
+  pts_p5: number
+  pts_p6: number
+  pts_p7: number
+  pts_p8: number
+  pts_p9: number
+  pts_p10: number
+  pts_p11: number
+  pts_p12: number
+  pts_p13: number
+  pts_p14: number
+  pts_p15: number
   total: number
   participou: boolean
   calculado_em: string
@@ -218,26 +232,26 @@ export interface AuditLog {
 
 // Pilotos 2026
 export const PILOTOS_2026 = [
-  { codigo: 'VER', nome: 'Max Verstappen',    equipa: 'Red Bull Racing' },
-  { codigo: 'NOR', nome: 'Lando Norris',      equipa: 'McLaren' },
-  { codigo: 'LEC', nome: 'Charles Leclerc',   equipa: 'Ferrari' },
-  { codigo: 'HAM', nome: 'Lewis Hamilton',    equipa: 'Ferrari' },
-  { codigo: 'SAI', nome: 'Carlos Sainz',      equipa: 'Williams' },
-  { codigo: 'PIA', nome: 'Oscar Piastri',     equipa: 'McLaren' },
-  { codigo: 'RUS', nome: 'George Russell',    equipa: 'Mercedes' },
-  { codigo: 'ANT', nome: 'Kimi Antonelli',    equipa: 'Mercedes' },
-  { codigo: 'ALO', nome: 'Fernando Alonso',   equipa: 'Aston Martin' },
-  { codigo: 'STR', nome: 'Lance Stroll',      equipa: 'Aston Martin' },
-  { codigo: 'TSU', nome: 'Yuki Tsunoda',      equipa: 'Red Bull Racing' },
-  { codigo: 'LAW', nome: 'Liam Lawson',       equipa: 'RB' },
-  { codigo: 'HUL', nome: 'Nico Hülkenberg',   equipa: 'Sauber' },
+  { codigo: 'VER', nome: 'Max Verstappen', equipa: 'Red Bull Racing' },
+  { codigo: 'NOR', nome: 'Lando Norris', equipa: 'McLaren' },
+  { codigo: 'LEC', nome: 'Charles Leclerc', equipa: 'Ferrari' },
+  { codigo: 'HAM', nome: 'Lewis Hamilton', equipa: 'Ferrari' },
+  { codigo: 'SAI', nome: 'Carlos Sainz', equipa: 'Williams' },
+  { codigo: 'PIA', nome: 'Oscar Piastri', equipa: 'McLaren' },
+  { codigo: 'RUS', nome: 'George Russell', equipa: 'Mercedes' },
+  { codigo: 'ANT', nome: 'Kimi Antonelli', equipa: 'Mercedes' },
+  { codigo: 'ALO', nome: 'Fernando Alonso', equipa: 'Aston Martin' },
+  { codigo: 'STR', nome: 'Lance Stroll', equipa: 'Aston Martin' },
+  { codigo: 'TSU', nome: 'Yuki Tsunoda', equipa: 'Red Bull Racing' },
+  { codigo: 'LAW', nome: 'Liam Lawson', equipa: 'RB' },
+  { codigo: 'HUL', nome: 'Nico Hülkenberg', equipa: 'Sauber' },
   { codigo: 'BOR', nome: 'Gabriel Bortoleto', equipa: 'Sauber' },
-  { codigo: 'OCO', nome: 'Esteban Ocon',      equipa: 'Haas' },
-  { codigo: 'BEA', nome: 'Oliver Bearman',    equipa: 'Haas' },
-  { codigo: 'GAS', nome: 'Pierre Gasly',      equipa: 'Alpine' },
-  { codigo: 'DOO', nome: 'Jack Doohan',       equipa: 'Alpine' },
-  { codigo: 'ALB', nome: 'Alexander Albon',   equipa: 'Williams' },
-  { codigo: 'COL', nome: 'Franco Colapinto',  equipa: 'Alpine' },
+  { codigo: 'OCO', nome: 'Esteban Ocon', equipa: 'Haas' },
+  { codigo: 'BEA', nome: 'Oliver Bearman', equipa: 'Haas' },
+  { codigo: 'GAS', nome: 'Pierre Gasly', equipa: 'Alpine' },
+  { codigo: 'DOO', nome: 'Jack Doohan', equipa: 'Alpine' },
+  { codigo: 'ALB', nome: 'Alexander Albon', equipa: 'Williams' },
+  { codigo: 'COL', nome: 'Franco Colapinto', equipa: 'Alpine' },
 ] as const
 
 export const EQUIPAS_2026 = [
@@ -246,10 +260,10 @@ export const EQUIPAS_2026 = [
 ] as const
 
 export const MARGENS_VITORIA = [
-  'Menos de 1s', '1s - 5s', '5s - 10s', 'Mais de 10s', 'Safety Car final'
+  'Menos de 1s', '1s - 5s', '5s - 10s', 'Mais de 10s', 'Safety Car final',
 ] as const
 
 export const OPCOES_CLASSIF = [
   'Menos de 10', '10', '11', '12', '13', '14', '15',
-  '16', '17', '18', '19', '20 (todos)'
+  '16', '17', '18', '19', '20 (todos)',
 ] as const
