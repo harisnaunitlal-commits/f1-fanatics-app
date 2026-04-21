@@ -5,11 +5,17 @@ import SignOutButton from './SignOutButton'
 
 export default async function ProfilePage() {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
   if (!user?.email) redirect('/auth/login')
 
   const { data: member } = await (supabase as any)
-    .from('members').select('*').eq('email', user.email).single()
+    .from('members')
+    .select('*')
+    .eq('email', user.email)
+    .single()
 
   if (!member) redirect('/register')
 
@@ -19,27 +25,39 @@ export default async function ProfilePage() {
     .eq('member_email', user.email)
     .order('gp_id')
 
-  const totalPlay = playScores?.reduce((acc, s) => acc + (s.total ?? 0), 0) ?? 0
-  const gpsPlayed = playScores?.filter(s => s.total > 0).length ?? 0
+  const totalPlay =
+    playScores?.reduce((acc: number, s: any) => acc + (s.total ?? 0), 0) ?? 0
+
+  const gpsPlayed =
+    playScores?.filter((s: any) => (s.total ?? 0) > 0).length ?? 0
 
   return (
     <div className="max-w-2xl mx-auto">
       <div className="flex items-start justify-between mb-8 gap-4 flex-wrap">
         <div className="flex items-center gap-4">
-          {member.foto_url
-            ? <img src={member.foto_url} alt="" className="w-20 h-20 rounded-full object-cover border-2 border-f1red" />
-            : <div className="w-20 h-20 rounded-full bg-f1red/20 text-f1red text-3xl flex items-center justify-center font-black border-2 border-f1red">
-                {member.nickname.charAt(0).toUpperCase()}
-              </div>
-          }
+          {member.foto_url ? (
+            <img
+              src={member.foto_url}
+              alt=""
+              className="w-20 h-20 rounded-full object-cover border-2 border-f1red"
+            />
+          ) : (
+            <div className="w-20 h-20 rounded-full bg-f1red/20 text-f1red text-3xl flex items-center justify-center font-black border-2 border-f1red">
+              {member.nickname.charAt(0).toUpperCase()}
+            </div>
+          )}
           <div>
             <h1 className="text-2xl font-bold">{member.nickname}</h1>
             <p className="text-gray-400">{member.nome_completo}</p>
-            {member.bio && <p className="text-gray-500 text-sm mt-1 italic">"{member.bio}"</p>}
+            {member.bio && (
+              <p className="text-gray-500 text-sm mt-1 italic">"{member.bio}"</p>
+            )}
           </div>
         </div>
         <div className="flex gap-2">
-          <Link href="/register" className="btn-secondary text-sm py-2 px-4">✏️ Editar</Link>
+          <Link href="/register" className="btn-secondary text-sm py-2 px-4">
+            ✏️ Editar
+          </Link>
           <SignOutButton />
         </div>
       </div>
@@ -91,11 +109,18 @@ export default async function ProfilePage() {
           {member.cidade && (
             <>
               <span className="text-gray-500">Cidade</span>
-              <span>{member.cidade}, {member.pais}</span>
+              <span>
+                {member.cidade}, {member.pais}
+              </span>
             </>
           )}
           <span className="text-gray-500">Membro desde</span>
-          <span>{new Date(member.criado_em).toLocaleDateString('pt-MZ', { month: 'long', year: 'numeric' })}</span>
+          <span>
+            {new Date(member.criado_em).toLocaleDateString('pt-MZ', {
+              month: 'long',
+              year: 'numeric',
+            })}
+          </span>
         </div>
       </div>
 
@@ -103,14 +128,27 @@ export default async function ProfilePage() {
         <div className="card">
           <h2 className="font-bold mb-4">Histórico F1 Play</h2>
           <div className="space-y-2">
-            {playScores.map(s => {
-              const gp = s.gp_calendar as { nome: string; emoji_bandeira: string; round: number } | null
+            {playScores.map((s: any) => {
+              const gp = s.gp_calendar as {
+                nome: string
+                emoji_bandeira: string
+                round: number
+              } | null
+
               return (
                 <div key={s.gp_id} className="flex items-center justify-between">
                   <span className="text-gray-400 text-sm">
-                    {gp?.emoji_bandeira} R{String(gp?.round ?? 0).padStart(2,'0')} {gp?.nome}
+                    {gp?.emoji_bandeira} R{String(gp?.round ?? 0).padStart(2, '0')} {gp?.nome}
                   </span>
-                  <span className={`font-bold ${s.total >= 10 ? 'text-green-400' : s.total >= 6 ? 'text-yellow-400' : 'text-gray-400'}`}>
+                  <span
+                    className={`font-bold ${
+                      s.total >= 10
+                        ? 'text-green-400'
+                        : s.total >= 6
+                          ? 'text-yellow-400'
+                          : 'text-gray-400'
+                    }`}
+                  >
                     {s.total} pts
                   </span>
                 </div>
