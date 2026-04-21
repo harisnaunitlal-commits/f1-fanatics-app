@@ -43,12 +43,14 @@ export default function RegisterPage() {
       return
     }
 
-    const { error: err } = await supabase.from('members').upsert({
-      email: user.email,
-      ...form,
-      activo: true,
-      atualizado_em: new Date().toISOString(),
-    })
+    const { error: err } = await (supabase as any)
+      .from('members')
+      .upsert({
+        email: user.email,
+        ...form,
+        activo: true,
+        actualizado_em: new Date().toISOString(),
+      })
 
     if (err) {
       setError(err.message)
