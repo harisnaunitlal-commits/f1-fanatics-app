@@ -1,220 +1,284 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { FormEvent, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
-import { PILOTOS_2026, EQUIPAS_2026 } from '@/lib/supabase/types'
+import { supabase } from '@/lib/supabaseClient'
+
+type RegisterForm = {
+  full_name: string
+  email: string
+  whatsapp: string
+  city: string
+  country: string
+  favorite_team: string
+  experience_level: string
+}
+
+const initialForm: RegisterForm = {
+  full_name: '',
+  email: '',
+  whatsapp: '',
+  city: '',
+  country: '',
+  favorite_team: '',
+  experience_level: '',
+}
 
 export default function RegisterPage() {
   const router = useRouter()
-  const supabase = createClient()
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const [userEmail, setUserEmail] = useState('')
 
-  const [form, setForm] = useState({
-    nome_completo: '',
-    nickname: '',
-    whatsapp: '',
-    piloto_fav: '',
-    equipa_fav: '',
-    fantasy_nick: '',
-    predict_nick: '',
-    data_nasc: '',
-    sexo: '',
-    cidade: '',
-    pais: 'Moçambique',
-    empresa: '',
-    area_profissional: '',
-    bio: '',
-    visibilidade: 'publico',
-  })
+  const [userEmail, setUserEmail] = useState<string>('')
+  const [form, setForm] = useState<RegisterForm>(initialForm)
+  const [loading, setLoading] = useState<boolean>(true)
+  const [saving, setSaving] = useState<boolean>(false)
+  const [message, setMessage] = useState<string>('')
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (!user?.email) { router.push('/auth/login'); return }
-      setUserEmail(user.email)
-      // Pre-fill from existing member data
-      (supabase as any).from('members').select('*').eq('email', user.email).single()
-        .then(({ data }) => {
-          if (data) {
-            setForm({
-              nome_completo:    data.nome_completo,
-              nickname:         data.nickname,
-              whatsapp:         data.whatsapp ?? '',
-              piloto_fav:       data.piloto_fav ?? '',
-              equipa_fav:       data.equipa_fav ?? '',
-              fantasy_nick:     data.fantasy_nick ?? '',
-              predict_nick:     data.predict_nick ?? '',
-              data_nasc:        data.data_nasc ?? '',
-              sexo:             data.sexo ?? '',
-              cidade:           data.cidade ?? '',
-              pais:             data.pais,
-              empresa:          data.empresa ?? '',
-              area_profissional: data.area_profissional ?? '',
-              bio:              data.bio ?? '',
-              visibilidade:     data.visibilidade,
-            })
-          }
-        })
-    })
-  }, [])
+    const loadUser = async () => {
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser()
 
-  const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
-    setForm(f => ({ ...f, [k]: e.target.value }))
+        if (!user?.email) {
+          router.push('/auth/login')
+          return
+        }
 
-  async function handleSubmit(e: React.FormEvent) {
+        setUserEmail(user.email)
+
+        const normalizedEmail = user.email.trim().toLowerCase()
+
+        setForm((prev) => ({
+          ...prev,
+          email: normalizedEmail,
+        }))
+
+        const { data, error } = await (supabase as any)
+          .from('members')
+          .select('*')
+          .eq('email', normalizedEmail)
+          .maybeSingle()
+
+        if (error) {
+          console.error('Error loading member:', error)
+        }
+
+        if (data) {
+          setForm({
+            full_name: data.full_name ?? '',
+            email: data.email ?? normalizedEmail,
+            whatsapp: data.whatsapp ?? '',
+            city: data.city ?? '',
+            country: data.country ?? '',
+            favorite_team: data.favorite_team ?? '',
+            experience_level: data.experience_level ?? '',
+          })
+        }
+      } catch (error) {
+        console.error('Error loading user:', error)
+        setMessage('Failed to load your account details.')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadUser()
+  }, [router])
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target
+
+    setForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }))
+  }
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    setLoading(true)
-    setError('')
+    setSaving(true)
+    setMessage('')
 
-    if (form.bio.length > 100) {
-      setError('A bio não pode ter mais de 100 caracteres.')
-      setLoading(false); return
-    }
+    try {
+      const payload = {
+        ...form,
+        email: (form.email || userEmail).trim().toLowerCase(),
+      }
 
-    const payload = {
-      email: userEmail,
-      nome_completo: form.nome_completo.trim(),
-      nickname: form.nickname.trim(),
-      whatsapp: form.whatsapp.trim() || null,
-      piloto_fav: form.piloto_fav || null,
-      equipa_fav: form.equipa_fav || null,
-      fantasy_nick: form.fantasy_nick.trim() || null,
-      predict_nick: form.predict_nick.trim() || null,
-      data_nasc: form.data_nasc || null,
-      sexo: (form.sexo || null) as 'M' | 'F' | 'outro' | 'prefiro_nao_dizer' | null,
-      cidade: form.cidade.trim() || null,
-      pais: form.pais || 'Moçambique',
-      empresa: form.empresa.trim() || null,
-      area_profissional: form.area_profissional.trim() || null,
-      bio: form.bio.trim() || null,
-      visibilidade: form.visibilidade as 'publico' | 'membros' | 'privado',
-    }
+      const { error } = await (supabase as any)
+        .from('members')
+        .upsert(payload, { onConflict: 'email' })
 
-    const { error } = await (supabase as any).from('members').upsert(payload)
-    if (error) {
-      setError(error.message.includes('unique') ? 'Este nickname já está em uso.' : error.message)
-    } else {
-      router.push('/')
+      if (error) {
+        throw error
+      }
+
+      setMessage('Registration saved successfully.')
+      router.push('/dashboard')
+    } catch (error) {
+      console.error('Error saving registration:', error)
+      setMessage('Failed to save registration.')
+    } finally {
+      setSaving(false)
     }
-    setLoading(false)
+  }
+
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-black text-white flex items-center justify-center px-6">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold">Loading registration...</h1>
+        </div>
+      </main>
+    )
   }
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold">Registo de Membro</h1>
-        <p className="text-gray-400 mt-1">
-          Preenche o teu perfil para participar nas ligas · <span className="text-gray-500">{userEmail}</span>
+    <main className="min-h-screen bg-black text-white px-6 py-10">
+      <div className="mx-auto max-w-2xl">
+        <h1 className="text-3xl font-bold mb-2">Complete your registration</h1>
+        <p className="text-white/70 mb-8">
+          Fill in your member details to join Beira F1 Fanatics.
         </p>
+
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-5 rounded-2xl border border-white/10 bg-white/5 p-6"
+        >
+          <div>
+            <label htmlFor="full_name" className="mb-2 block text-sm font-medium">
+              Full name
+            </label>
+            <input
+              id="full_name"
+              name="full_name"
+              type="text"
+              value={form.full_name}
+              onChange={handleChange}
+              className="w-full rounded-lg border border-white/10 bg-black px-4 py-3 outline-none focus:border-white/30"
+              placeholder="Your full name"
+              required
+            />
+          </div>
+
+          <div>
+            <label htmlFor="email" className="mb-2 block text-sm font-medium">
+              Email
+            </label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              value={form.email}
+              onChange={handleChange}
+              className="w-full rounded-lg border border-white/10 bg-black px-4 py-3 outline-none focus:border-white/30"
+              placeholder="your@email.com"
+              required
+            />
+          </div>
+
+          <div>
+            <label htmlFor="whatsapp" className="mb-2 block text-sm font-medium">
+              WhatsApp
+            </label>
+            <input
+              id="whatsapp"
+              name="whatsapp"
+              type="text"
+              value={form.whatsapp}
+              onChange={handleChange}
+              className="w-full rounded-lg border border-white/10 bg-black px-4 py-3 outline-none focus:border-white/30"
+              placeholder="+258..."
+            />
+          </div>
+
+          <div className="grid gap-5 md:grid-cols-2">
+            <div>
+              <label htmlFor="city" className="mb-2 block text-sm font-medium">
+                City
+              </label>
+              <input
+                id="city"
+                name="city"
+                type="text"
+                value={form.city}
+                onChange={handleChange}
+                className="w-full rounded-lg border border-white/10 bg-black px-4 py-3 outline-none focus:border-white/30"
+                placeholder="Beira"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="country" className="mb-2 block text-sm font-medium">
+                Country
+              </label>
+              <input
+                id="country"
+                name="country"
+                type="text"
+                value={form.country}
+                onChange={handleChange}
+                className="w-full rounded-lg border border-white/10 bg-black px-4 py-3 outline-none focus:border-white/30"
+                placeholder="Mozambique"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label htmlFor="favorite_team" className="mb-2 block text-sm font-medium">
+              Favorite F1 team
+            </label>
+            <input
+              id="favorite_team"
+              name="favorite_team"
+              type="text"
+              value={form.favorite_team}
+              onChange={handleChange}
+              className="w-full rounded-lg border border-white/10 bg-black px-4 py-3 outline-none focus:border-white/30"
+              placeholder="Ferrari, Red Bull, Mercedes..."
+            />
+          </div>
+
+          <div>
+            <label
+              htmlFor="experience_level"
+              className="mb-2 block text-sm font-medium"
+            >
+              Experience level
+            </label>
+            <select
+              id="experience_level"
+              name="experience_level"
+              value={form.experience_level}
+              onChange={handleChange}
+              className="w-full rounded-lg border border-white/10 bg-black px-4 py-3 outline-none focus:border-white/30"
+            >
+              <option value="">Select one</option>
+              <option value="beginner">Beginner</option>
+              <option value="intermediate">Intermediate</option>
+              <option value="advanced">Advanced</option>
+              <option value="expert">Expert</option>
+            </select>
+          </div>
+
+          {message ? (
+            <div className="rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm">
+              {message}
+            </div>
+          ) : null}
+
+          <button
+            type="submit"
+            disabled={saving}
+            className="w-full rounded-lg bg-white px-4 py-3 font-semibold text-black transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {saving ? 'Saving...' : 'Save registration'}
+          </button>
+        </form>
       </div>
-
-      <form onSubmit={handleSubmit} className="space-y-8">
-        {/* Obrigatórios */}
-        <div className="card">
-          <h2 className="text-lg font-bold mb-4 text-f1red">Dados obrigatórios</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="sm:col-span-2">
-              <label className="label">Nome completo *</label>
-              <input className="input" value={form.nome_completo} onChange={set('nome_completo')} required />
-            </div>
-            <div>
-              <label className="label">Nickname público (ranking) *</label>
-              <input className="input" value={form.nickname} onChange={set('nickname')} required
-                placeholder="Ex: Haris, Zema, IsoF1..." />
-            </div>
-            <div>
-              <label className="label">WhatsApp *</label>
-              <input className="input" type="tel" value={form.whatsapp} onChange={set('whatsapp')} required
-                placeholder="+258 84 000 0000" />
-            </div>
-            <div>
-              <label className="label">Piloto favorito *</label>
-              <select className="select" value={form.piloto_fav} onChange={set('piloto_fav')} required>
-                <option value="">Selecciona...</option>
-                {PILOTOS_2026.map(p => (
-                  <option key={p.codigo} value={p.codigo}>{p.nome} ({p.equipa})</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="label">Equipa favorita *</label>
-              <select className="select" value={form.equipa_fav} onChange={set('equipa_fav')} required>
-                <option value="">Selecciona...</option>
-                {EQUIPAS_2026.map(e => <option key={e} value={e}>{e}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="label">Nick no F1 Fantasy</label>
-              <input className="input" value={form.fantasy_nick} onChange={set('fantasy_nick')}
-                placeholder="Como aparece em fantasy.formula1.com" />
-            </div>
-            <div>
-              <label className="label">Nick no F1 Predict</label>
-              <input className="input" value={form.predict_nick} onChange={set('predict_nick')}
-                placeholder="Como aparece em f1predict.formula1.com" />
-            </div>
-          </div>
-        </div>
-
-        {/* Opcionais */}
-        <div className="card">
-          <h2 className="text-lg font-bold mb-4 text-gray-400">Dados opcionais (comunidade)</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="label">Data de nascimento</label>
-              <input className="input" type="date" value={form.data_nasc} onChange={set('data_nasc')} />
-            </div>
-            <div>
-              <label className="label">Género</label>
-              <select className="select" value={form.sexo} onChange={set('sexo')}>
-                <option value="">Prefiro não dizer</option>
-                <option value="M">Masculino</option>
-                <option value="F">Feminino</option>
-                <option value="outro">Outro</option>
-                <option value="prefiro_nao_dizer">Prefiro não dizer</option>
-              </select>
-            </div>
-            <div>
-              <label className="label">Cidade</label>
-              <input className="input" value={form.cidade} onChange={set('cidade')} placeholder="Beira" />
-            </div>
-            <div>
-              <label className="label">País</label>
-              <input className="input" value={form.pais} onChange={set('pais')} placeholder="Moçambique" />
-            </div>
-            <div>
-              <label className="label">Empresa / Organização</label>
-              <input className="input" value={form.empresa} onChange={set('empresa')} />
-            </div>
-            <div>
-              <label className="label">Área profissional</label>
-              <input className="input" value={form.area_profissional} onChange={set('area_profissional')} />
-            </div>
-            <div className="sm:col-span-2">
-              <label className="label">Bio (máx 100 caracteres)</label>
-              <textarea className="input resize-none" rows={2} maxLength={100}
-                value={form.bio} onChange={set('bio')} placeholder="Apaixonado pela F1 desde..." />
-              <p className="text-xs text-gray-500 mt-1">{form.bio.length}/100</p>
-            </div>
-            <div>
-              <label className="label">Visibilidade do perfil</label>
-              <select className="select" value={form.visibilidade} onChange={set('visibilidade')}>
-                <option value="publico">Público (todos vêem)</option>
-                <option value="membros">Só membros</option>
-                <option value="privado">Privado</option>
-              </select>
-            </div>
-          </div>
-        </div>
-
-        {error && <p className="text-red-400 bg-red-900/20 rounded-lg px-4 py-3">{error}</p>}
-
-        <button type="submit" disabled={loading} className="btn-primary w-full text-lg">
-          {loading ? 'A guardar...' : 'Guardar perfil'}
-        </button>
-      </form>
-    </div>
+    </main>
   )
 }
