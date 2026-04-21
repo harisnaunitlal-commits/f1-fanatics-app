@@ -8,7 +8,7 @@ export default async function ProfilePage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user?.email) redirect('/auth/login')
 
-  const { data: member } = await supabase
+  const { data: member } = await (supabase as any)
     .from('members').select('*').eq('email', user.email).single()
 
   if (!member) redirect('/register')

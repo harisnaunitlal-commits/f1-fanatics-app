@@ -10,7 +10,7 @@ export default async function PredictRankingPage({
 }) {
   const supabase = await createClient()
 
-  const { data: scoredGps } = await supabase
+  const { data: scoredGps } = await (supabase as any)
     .from('gp_calendar')
     .select('id, round, nome, emoji_bandeira')
     .eq('status', 'scored')
@@ -34,7 +34,7 @@ export default async function PredictRankingPage({
   const visibleGps = scoredGpsAsc.filter(g => g.id <= (selectedGpId ?? 0))
 
   const { data: allScores } = visibleGps.length
-    ? await supabase
+    ? await (supabase as any)
         .from('scores_predict')
         .select('member_email, gp_id, pontos_acum')
         .in('gp_id', visibleGps.map(g => g.id))

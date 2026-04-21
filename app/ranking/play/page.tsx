@@ -21,7 +21,7 @@ export default async function PlayRankingPage({
 }) {
   const supabase = await createClient()
 
-  const { data: scoredGps } = await supabase
+  const { data: scoredGps } = await (supabase as any)
     .from('gp_calendar')
     .select('id, round, nome, emoji_bandeira')
     .eq('status', 'scored')
@@ -68,7 +68,7 @@ export default async function PlayRankingPage({
 
   // Per-GP detail for selected GP
   const { data: gpScores } = selectedGpId
-    ? await supabase
+    ? await (supabase as any)
         .from('scores_play')
         .select('*')
         .eq('gp_id', selectedGpId)

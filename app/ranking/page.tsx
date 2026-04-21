@@ -37,7 +37,7 @@ export default async function GlobalRankingPage({
 }) {
   const supabase = await createClient()
 
-  const { data: scoredGps } = await supabase
+  const { data: scoredGps } = await (supabase as any)
     .from('gp_calendar')
     .select('id, round, nome, emoji_bandeira')
     .eq('status', 'scored')

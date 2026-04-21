@@ -11,7 +11,7 @@ export default async function PredictGpPage({ params }: { params: { gpId: string
   const gpId = parseInt(params.gpId)
   if (isNaN(gpId)) notFound()
 
-  const { data: gp } = await supabase
+  const { data: gp } = await (supabase as any)
     .from('gp_calendar').select('*').eq('id', gpId).single()
   if (!gp) notFound()
 
@@ -28,7 +28,7 @@ export default async function PredictGpPage({ params }: { params: { gpId: string
     )
   }
 
-  const { data: existing } = await supabase
+  const { data: existing } = await (supabase as any)
     .from('predictions')
     .select('*')
     .eq('member_email', user.email)

@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
       // Check if member profile exists
       const { data: { user } } = await supabase.auth.getUser()
       if (user?.email) {
-        const { data: member } = await supabase
+        const { data: member } = await (supabase as any)
           .from('members').select('email').eq('email', user.email).single()
         if (!member) {
           return NextResponse.redirect(`${origin}/register`)

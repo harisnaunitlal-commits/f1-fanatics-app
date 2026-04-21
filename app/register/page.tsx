@@ -35,7 +35,7 @@ export default function RegisterPage() {
       if (!user?.email) { router.push('/auth/login'); return }
       setUserEmail(user.email)
       // Pre-fill from existing member data
-      supabase.from('members').select('*').eq('email', user.email).single()
+      (supabase as any).from('members').select('*').eq('email', user.email).single()
         .then(({ data }) => {
           if (data) {
             setForm({
@@ -92,7 +92,7 @@ export default function RegisterPage() {
       visibilidade: form.visibilidade as 'publico' | 'membros' | 'privado',
     }
 
-    const { error } = await supabase.from('members').upsert(payload)
+    const { error } = await (supabase as any).from('members').upsert(payload)
     if (error) {
       setError(error.message.includes('unique') ? 'Este nickname já está em uso.' : error.message)
     } else {
