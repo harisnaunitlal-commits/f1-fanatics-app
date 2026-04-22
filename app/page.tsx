@@ -112,18 +112,22 @@ export default async function HomePage() {
       )}
 
       {top3 && top3.length > 0 && lastGp && (
-        <div>
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-b from-gray-900 to-f1dark border border-gray-800 p-6 pb-0">
+          {/* Header */}
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold">
-              Top 3 Global · após <span className="text-sm">{(lastGp as any).emoji_bandeira}</span> {(lastGp as any).nome}
-            </h2>
-            <Link href="/ranking" className="text-f1red text-sm hover:underline">
-              Ver ranking completo →
+            <div>
+              <p className="text-xs text-gray-500 uppercase tracking-widest font-bold">Ranking Global</p>
+              <h2 className="text-xl font-black">
+                Pódio · {(lastGp as any).emoji_bandeira} {(lastGp as any).nome}
+              </h2>
+            </div>
+            <Link href="/ranking" className="text-f1red text-sm hover:underline font-medium">
+              Ver completo →
             </Link>
           </div>
 
-          {/* Podium layout: 2nd | 1st | 3rd */}
-          <div className="flex items-end justify-center gap-3">
+          {/* Podium: 2nd | 1st | 3rd */}
+          <div className="flex items-end justify-center gap-2">
             {[1, 0, 2].map((i) => {
               const r = (top3 as any[])[i]
               if (!r) return null
@@ -131,55 +135,71 @@ export default async function HomePage() {
               const name = member?.nickname ?? '?'
               const initial = name.charAt(0).toUpperCase()
               const isFirst = i === 0
-              const isSecond = i === 1
-              const isThird = i === 2
 
-              const podiumH = isFirst ? 'pb-8' : isSecond ? 'pb-4' : 'pb-2'
-              const avatarSize = isFirst ? 'w-24 h-24 text-3xl' : 'w-16 h-16 text-xl'
-              const scoreSize = isFirst ? 'text-4xl' : 'text-2xl'
-              const nameSize = isFirst ? 'text-base font-bold' : 'text-sm font-semibold'
-              const ringColor = isFirst
-                ? 'ring-4 ring-yellow-400 shadow-[0_0_24px_rgba(250,204,21,0.4)]'
-                : isSecond
-                ? 'ring-2 ring-gray-400'
-                : 'ring-2 ring-amber-600'
-              const scoreColor = isFirst ? 'text-yellow-400' : isSecond ? 'text-gray-300' : 'text-amber-500'
-              const cardBg = isFirst
-                ? 'bg-gradient-to-b from-yellow-900/20 to-f1gray border-yellow-500/30'
-                : 'bg-f1gray border-gray-700/50'
-              const medal = isFirst ? '🥇' : isSecond ? '🥈' : '🥉'
-              const pos = isFirst ? 1 : isSecond ? 2 : 3
+              const cfg = i === 0 ? {
+                pos: 1,
+                avatarCls: 'w-28 h-28',
+                avatarInitCls: 'text-4xl',
+                ring: 'ring-4 ring-yellow-400 shadow-[0_0_30px_rgba(250,204,21,0.5)]',
+                nameCls: 'text-white text-lg font-black',
+                scoreCls: 'text-yellow-400 text-5xl font-black',
+                blockH: 'h-28',
+                blockBg: 'bg-gradient-to-t from-yellow-600 to-yellow-400',
+                blockLabel: 'text-yellow-900',
+                cardMt: 'mb-0',
+                width: 'flex-[1.4]',
+              } : i === 1 ? {
+                pos: 2,
+                avatarCls: 'w-20 h-20',
+                avatarInitCls: 'text-2xl',
+                ring: 'ring-2 ring-gray-400 shadow-[0_0_16px_rgba(156,163,175,0.3)]',
+                nameCls: 'text-gray-200 text-sm font-bold',
+                scoreCls: 'text-gray-300 text-3xl font-black',
+                blockH: 'h-20',
+                blockBg: 'bg-gradient-to-t from-gray-500 to-gray-400',
+                blockLabel: 'text-gray-800',
+                cardMt: 'mb-0',
+                width: 'flex-1',
+              } : {
+                pos: 3,
+                avatarCls: 'w-16 h-16',
+                avatarInitCls: 'text-xl',
+                ring: 'ring-2 ring-amber-600 shadow-[0_0_12px_rgba(180,83,9,0.3)]',
+                nameCls: 'text-gray-300 text-sm font-bold',
+                scoreCls: 'text-amber-500 text-3xl font-black',
+                blockH: 'h-14',
+                blockBg: 'bg-gradient-to-t from-amber-800 to-amber-600',
+                blockLabel: 'text-amber-200',
+                cardMt: 'mb-0',
+                width: 'flex-1',
+              }
 
               return (
                 <Link
                   key={r.member_email}
                   href={`/players/${encodeURIComponent(name)}`}
-                  className={`flex-1 max-w-[200px] rounded-2xl border p-4 text-center ${cardBg} ${podiumH} hover:scale-105 transition-transform`}
+                  className={`${cfg.width} flex flex-col items-center hover:scale-105 transition-transform duration-200`}
                 >
-                  <div className="text-2xl mb-3">{medal}</div>
-
-                  {member?.foto_url ? (
-                    <img
-                      src={member.foto_url}
-                      alt={name}
-                      className={`${avatarSize} rounded-full object-cover mx-auto mb-3 ${ringColor}`}
-                    />
-                  ) : (
-                    <div className={`${avatarSize} rounded-full bg-f1red/20 text-f1red flex items-center justify-center font-black mx-auto mb-3 ${ringColor}`}>
-                      {initial}
-                    </div>
-                  )}
-
-                  <div className={`${nameSize} truncate`}>{name}</div>
-                  <div className={`${scoreSize} font-black mt-1 ${scoreColor}`}>
-                    {r.global_score?.toFixed(1)}
+                  {/* Avatar + info */}
+                  <div className="text-center mb-3 px-2">
+                    {member?.foto_url ? (
+                      <img
+                        src={member.foto_url}
+                        alt={name}
+                        className={`${cfg.avatarCls} rounded-full object-cover mx-auto mb-2 ${cfg.ring}`}
+                      />
+                    ) : (
+                      <div className={`${cfg.avatarCls} rounded-full bg-f1red/20 text-f1red flex items-center justify-center font-black mx-auto mb-2 ${cfg.ring} ${cfg.avatarInitCls}`}>
+                        {initial}
+                      </div>
+                    )}
+                    <div className={`${cfg.nameCls} truncate max-w-full`}>{name}</div>
+                    <div className={cfg.scoreCls}>{r.global_score?.toFixed(1)}</div>
                   </div>
 
                   {/* Podium block */}
-                  <div className={`mt-3 rounded-lg py-1 text-xs font-bold text-gray-600 ${
-                    isFirst ? 'bg-yellow-400/10' : 'bg-gray-700/30'
-                  }`}>
-                    #{pos}
+                  <div className={`w-full ${cfg.blockH} ${cfg.blockBg} rounded-t-xl flex items-center justify-center`}>
+                    <span className={`text-2xl font-black ${cfg.blockLabel}`}>{cfg.pos}</span>
                   </div>
                 </Link>
               )
