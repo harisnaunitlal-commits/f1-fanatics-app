@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import SignOutButton from './SignOutButton'
+import AvatarUpload from '@/components/AvatarUpload'
 
 export default async function ProfilePage() {
   const supabase = await createClient()
@@ -35,19 +36,15 @@ export default async function ProfilePage() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <div className="flex items-start justify-between mb-8 gap-4 flex-wrap">
-        <div className="flex items-center gap-4">
-          {member.foto_url ? (
-            <img
-              src={member.foto_url}
-              alt=""
-              className="w-20 h-20 rounded-full object-cover border-2 border-f1red"
-            />
-          ) : (
-            <div className="w-20 h-20 rounded-full bg-f1red/20 text-f1red text-3xl flex items-center justify-center font-black border-2 border-f1red">
-              {member.nickname.charAt(0).toUpperCase()}
-            </div>
-          )}
+      {/* Header — avatar + name + actions */}
+      <div className="flex items-start justify-between mb-8 gap-6 flex-wrap">
+        <div className="flex items-center gap-5">
+          {/* Clickable avatar upload */}
+          <AvatarUpload
+            email={user.email!}
+            currentUrl={member.foto_url}
+            nickname={member.nickname}
+          />
           <div>
             <h1 className="text-2xl font-bold">{member.nickname}</h1>
             <p className="text-gray-400">{member.nome_completo}</p>
@@ -56,9 +53,9 @@ export default async function ProfilePage() {
             )}
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 self-start">
           <Link href="/register" className="btn-secondary text-sm py-2 px-4">
-            ✏️ Editar
+            ✏️ Editar perfil
           </Link>
           <SignOutButton />
         </div>
