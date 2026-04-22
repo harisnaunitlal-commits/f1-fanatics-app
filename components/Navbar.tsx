@@ -13,12 +13,29 @@ export default function Navbar() {
   const supabase = createClient()
 
   useEffect(() => {
-    supabase.auth.getUser().then(async ({ data: { user } }) => {
-      if (!user?.email) return
-      const { data } = await supabase
-        .from('members').select('*').eq('email', user.email).single()
-      if (data) setMember(data)
+    async function loadMember(email: string) {
+      const { data } = await (supabase as any)
+        .from('members').select('*').eq('email', email).single()
+      setMember(data ?? null)
+    }
+
+    // Check on first load
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user?.email) loadMember(user.email)
     })
+
+    // Re-check whenever auth state changes (login / logout)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        if (session?.user?.email) {
+          loadMember(session.user.email)
+        } else {
+          setMember(null)
+        }
+      }
+    )
+
+    return () => subscription.unsubscribe()
   }, [])
 
   const nav = [
