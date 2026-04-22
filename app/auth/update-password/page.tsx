@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 
@@ -13,6 +13,29 @@ export default function UpdatePasswordPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+  const [sessionReady, setSessionReady] = useState(false)
+  const [checking, setChecking] = useState(true)
+
+  useEffect(() => {
+    // Listen for PASSWORD_RECOVERY event from Supabase
+    // This fires when user arrives via the recovery email link
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN') {
+        setSessionReady(true)
+        setChecking(false)
+      }
+    })
+
+    // Also check if session already exists (e.g. from server-side cookie)
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        setSessionReady(true)
+      }
+      setChecking(false)
+    })
+
+    return () => subscription.unsubscribe()
+  }, [])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -22,7 +45,6 @@ export default function UpdatePasswordPage() {
       setError('A password deve ter pelo menos 6 caracteres.')
       return
     }
-
     if (password !== confirm) {
       setError('As passwords não coincidem.')
       return
@@ -38,9 +60,40 @@ export default function UpdatePasswordPage() {
       return
     }
 
-    // Success — redirect home
-    router.push('/?password_updated=1')
+    // Success
+    router.push('/')
     router.refresh()
+  }
+
+  // Still loading session check
+  if (checking) {
+    return (
+      <div className="max-w-md mx-auto mt-16 text-center">
+        <div className="text-4xl mb-4 animate-pulse">🔐</div>
+        <p className="text-gray-400">A verificar sessão...</p>
+      </div>
+    )
+  }
+
+  // No session found — link expired or already used
+  if (!sessionReady) {
+    return (
+      <div className="max-w-md mx-auto mt-16 text-center">
+        <div className="text-5xl mb-4">⏰</div>
+        <h1 className="text-2xl font-bold mb-3">Link expirado</h1>
+        <p className="text-gray-400 mb-6">
+          O link de recuperação expirou ou já foi utilizado.
+          Pede um novo abaixo.
+        </p>
+        <a href="/auth/forgot-password" className="btn-primary inline-block px-6 py-3">
+          Pedir novo link
+        </a>
+        <br />
+        <a href="/auth/login" className="block mt-4 text-sm text-gray-500 hover:text-white">
+          ← Voltar ao login
+        </a>
+      </div>
+    )
   }
 
   return (
@@ -88,9 +141,9 @@ export default function UpdatePasswordPage() {
             />
           </div>
 
-          {/* Strength hint */}
+          {/* Strength bar */}
           {password.length > 0 && (
-            <div className="flex gap-1">
+            <div className="flex items-center gap-1">
               {[...Array(4)].map((_, i) => (
                 <div
                   key={i}
@@ -103,7 +156,7 @@ export default function UpdatePasswordPage() {
                   }`}
                 />
               ))}
-              <span className="text-xs text-gray-500 ml-1">
+              <span className="text-xs text-gray-500 ml-1 w-16">
                 {password.length < 6 ? 'Fraca' : password.length < 10 ? 'Razoável' : 'Forte'}
               </span>
             </div>
