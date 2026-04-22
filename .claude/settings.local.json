@@ -28,7 +28,9 @@
       "Bash(\"/c/Program Files/nodejs/npm.cmd\" run dev)",
       "Bash(export PATH=\"/c/Program Files/nodejs:$PATH\")",
       "Bash(\"/c/Program Files/nodejs/node.exe\" \"/c/Program Files/nodejs/node_modules/npm/bin/npm-cli.js\" run dev)",
-      "Bash(dir \"app\\\\players\\\\[nickname]\")"
+      "Bash(dir \"app\\\\players\\\\[nickname]\")",
+      "mcp__Claude_in_Chrome__tabs_context_mcp",
+      "WebFetch(domain:app.beiraf1fanatics.com)"
     ]
   }
 }
