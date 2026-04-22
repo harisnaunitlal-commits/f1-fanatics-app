@@ -113,41 +113,75 @@ export default async function HomePage() {
 
       {top3 && top3.length > 0 && lastGp && (
         <div>
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold">
-              Top 3 Global · após {(lastGp as any).emoji_bandeira} {(lastGp as any).nome}
+              Top 3 Global · após <span className="text-sm">{(lastGp as any).emoji_bandeira}</span> {(lastGp as any).nome}
             </h2>
             <Link href="/ranking" className="text-f1red text-sm hover:underline">
               Ver ranking completo →
             </Link>
           </div>
-          <div className="grid grid-cols-3 gap-4">
-            {(top3 as any[]).map((r, i) => {
+
+          {/* Podium layout: 2nd | 1st | 3rd */}
+          <div className="flex items-end justify-center gap-3">
+            {[1, 0, 2].map((i) => {
+              const r = (top3 as any[])[i]
+              if (!r) return null
               const member = r.members as { nickname: string; foto_url: string | null } | null
+              const name = member?.nickname ?? '?'
+              const initial = name.charAt(0).toUpperCase()
+              const isFirst = i === 0
+              const isSecond = i === 1
+              const isThird = i === 2
+
+              const podiumH = isFirst ? 'pb-8' : isSecond ? 'pb-4' : 'pb-2'
+              const avatarSize = isFirst ? 'w-24 h-24 text-3xl' : 'w-16 h-16 text-xl'
+              const scoreSize = isFirst ? 'text-4xl' : 'text-2xl'
+              const nameSize = isFirst ? 'text-base font-bold' : 'text-sm font-semibold'
+              const ringColor = isFirst
+                ? 'ring-4 ring-yellow-400 shadow-[0_0_24px_rgba(250,204,21,0.4)]'
+                : isSecond
+                ? 'ring-2 ring-gray-400'
+                : 'ring-2 ring-amber-600'
+              const scoreColor = isFirst ? 'text-yellow-400' : isSecond ? 'text-gray-300' : 'text-amber-500'
+              const cardBg = isFirst
+                ? 'bg-gradient-to-b from-yellow-900/20 to-f1gray border-yellow-500/30'
+                : 'bg-f1gray border-gray-700/50'
+              const medal = isFirst ? '🥇' : isSecond ? '🥈' : '🥉'
+              const pos = isFirst ? 1 : isSecond ? 2 : 3
+
               return (
-                <div
+                <Link
                   key={r.member_email}
-                  className={`card text-center ${i === 0 ? 'border-yellow-500/40 bg-yellow-900/10' : ''}`}
+                  href={`/players/${encodeURIComponent(name)}`}
+                  className={`flex-1 max-w-[200px] rounded-2xl border p-4 text-center ${cardBg} ${podiumH} hover:scale-105 transition-transform`}
                 >
-                  <div className="text-3xl mb-2">
-                    {i === 0 ? '🥇' : i === 1 ? '🥈' : '🥉'}
-                  </div>
+                  <div className="text-2xl mb-3">{medal}</div>
+
                   {member?.foto_url ? (
                     <img
                       src={member.foto_url}
-                      alt=""
-                      className="w-12 h-12 rounded-full object-cover mx-auto mb-2"
+                      alt={name}
+                      className={`${avatarSize} rounded-full object-cover mx-auto mb-3 ${ringColor}`}
                     />
                   ) : (
-                    <div className="w-12 h-12 rounded-full bg-f1red/20 text-f1red text-xl flex items-center justify-center font-bold mx-auto mb-2">
-                      {(member?.nickname ?? '?').charAt(0).toUpperCase()}
+                    <div className={`${avatarSize} rounded-full bg-f1red/20 text-f1red flex items-center justify-center font-black mx-auto mb-3 ${ringColor}`}>
+                      {initial}
                     </div>
                   )}
-                  <div className="font-bold">{member?.nickname ?? '?'}</div>
-                  <div className={`text-2xl font-black mt-1 ${i === 0 ? 'text-yellow-400' : 'text-white'}`}>
+
+                  <div className={`${nameSize} truncate`}>{name}</div>
+                  <div className={`${scoreSize} font-black mt-1 ${scoreColor}`}>
                     {r.global_score?.toFixed(1)}
                   </div>
-                </div>
+
+                  {/* Podium block */}
+                  <div className={`mt-3 rounded-lg py-1 text-xs font-bold text-gray-600 ${
+                    isFirst ? 'bg-yellow-400/10' : 'bg-gray-700/30'
+                  }`}>
+                    #{pos}
+                  </div>
+                </Link>
               )
             })}
           </div>
