@@ -27,7 +27,8 @@
       "Read(//c/Users/haris/**)",
       "Bash(\"/c/Program Files/nodejs/npm.cmd\" run dev)",
       "Bash(export PATH=\"/c/Program Files/nodejs:$PATH\")",
-      "Bash(\"/c/Program Files/nodejs/node.exe\" \"/c/Program Files/nodejs/node_modules/npm/bin/npm-cli.js\" run dev)"
+      "Bash(\"/c/Program Files/nodejs/node.exe\" \"/c/Program Files/nodejs/node_modules/npm/bin/npm-cli.js\" run dev)",
+      "Bash(dir \"app\\\\players\\\\[nickname]\")"
     ]
   }
 }
