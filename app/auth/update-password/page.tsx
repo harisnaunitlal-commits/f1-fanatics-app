@@ -17,34 +17,23 @@ export default function UpdatePasswordPage() {
   const [checking, setChecking] = useState(true)
 
   useEffect(() => {
-    // The browser Supabase client automatically exchanges the ?code= from the URL
-    // and fires onAuthStateChange with PASSWORD_RECOVERY event
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (event === 'PASSWORD_RECOVERY') {
+    const code = new URLSearchParams(window.location.search).get('code')
+
+    if (code) {
+      // Exchange the PKCE code for a session manually
+      supabase.auth.exchangeCodeForSession(code).then(({ data, error }) => {
+        if (!error && data.session) {
           setSessionReady(true)
-          setChecking(false)
-        } else if (event === 'SIGNED_IN' && session) {
-          setSessionReady(true)
-          setChecking(false)
         }
-      }
-    )
-
-    // Also check if there's already an active session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        setSessionReady(true)
         setChecking(false)
-      } else {
-        // Give time for the code exchange to complete from URL params
-        setTimeout(() => {
-          setChecking(false)
-        }, 3000)
-      }
-    })
-
-    return () => subscription.unsubscribe()
+      })
+    } else {
+      // No code in URL — check if already has a session
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session) setSessionReady(true)
+        setChecking(false)
+      })
+    }
   }, [])
 
   async function handleSubmit(e: React.FormEvent) {
