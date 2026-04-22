@@ -55,12 +55,14 @@ export default function AvatarUpload({ email, currentUrl, nickname }: Props) {
       const publicUrl = urlData.publicUrl + `?v=${Date.now()}`
 
       // Update members table
-      const { error: dbErr } = await (supabase as any)
+      const { error: dbErr, data: dbData } = await (supabase as any)
         .from('members')
-        .update({ foto_url: urlData.publicUrl })
+        .update({ foto_url: urlData.publicUrl, actualizado_em: new Date().toISOString() })
         .eq('email', email)
+        .select()
 
-      if (dbErr) throw dbErr
+      if (dbErr) throw new Error(`DB: ${dbErr.message}`)
+      if (!dbData || dbData.length === 0) throw new Error('Sem permissão para actualizar. Contacta o admin.')
 
       setPreviewUrl(publicUrl)
       setSuccess(true)
