@@ -18,7 +18,7 @@ export default function ForgotPasswordPage() {
     const { error } = await supabase.auth.resetPasswordForEmail(
       email.toLowerCase().trim(),
       {
-        redirectTo: `https://app.beiraf1fanatics.com/auth/callback?type=recovery`,
+        redirectTo: `https://app.beiraf1fanatics.com/auth/update-password`,
       }
     )
 

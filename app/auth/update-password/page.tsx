@@ -17,21 +17,31 @@ export default function UpdatePasswordPage() {
   const [checking, setChecking] = useState(true)
 
   useEffect(() => {
-    // Listen for PASSWORD_RECOVERY event from Supabase
-    // This fires when user arrives via the recovery email link
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN') {
-        setSessionReady(true)
-        setChecking(false)
+    // The browser Supabase client automatically exchanges the ?code= from the URL
+    // and fires onAuthStateChange with PASSWORD_RECOVERY event
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (event === 'PASSWORD_RECOVERY') {
+          setSessionReady(true)
+          setChecking(false)
+        } else if (event === 'SIGNED_IN' && session) {
+          setSessionReady(true)
+          setChecking(false)
+        }
       }
-    })
+    )
 
-    // Also check if session already exists (e.g. from server-side cookie)
+    // Also check if there's already an active session
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
         setSessionReady(true)
+        setChecking(false)
+      } else {
+        // Give time for the code exchange to complete from URL params
+        setTimeout(() => {
+          setChecking(false)
+        }, 3000)
       }
-      setChecking(false)
     })
 
     return () => subscription.unsubscribe()
@@ -60,30 +70,27 @@ export default function UpdatePasswordPage() {
       return
     }
 
-    // Success
+    // Success — go to home
     router.push('/')
     router.refresh()
   }
 
-  // Still loading session check
   if (checking) {
     return (
-      <div className="max-w-md mx-auto mt-16 text-center">
-        <div className="text-4xl mb-4 animate-pulse">🔐</div>
+      <div className="max-w-md mx-auto mt-24 text-center">
+        <div className="text-5xl mb-4 animate-pulse">🔐</div>
         <p className="text-gray-400">A verificar sessão...</p>
       </div>
     )
   }
 
-  // No session found — link expired or already used
   if (!sessionReady) {
     return (
       <div className="max-w-md mx-auto mt-16 text-center">
         <div className="text-5xl mb-4">⏰</div>
         <h1 className="text-2xl font-bold mb-3">Link expirado</h1>
         <p className="text-gray-400 mb-6">
-          O link de recuperação expirou ou já foi utilizado.
-          Pede um novo abaixo.
+          O link de recuperação expirou ou já foi utilizado. Pede um novo abaixo.
         </p>
         <a href="/auth/forgot-password" className="btn-primary inline-block px-6 py-3">
           Pedir novo link
