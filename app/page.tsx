@@ -58,8 +58,8 @@ export default async function HomePage() {
 
   // Convert emoji flag (🇦🇺) or text code (AU) to local flag image path
   const toFlag = (code: string) => {
-    const clean = [...code].map(c => {
-      const cp = c.codePointAt(0)!
+    const clean = Array.from(code).map(c => {
+      const cp = c.codePointAt(0) ?? 0
       // Regional Indicator letters (flag emoji) → convert to A-Z
       if (cp >= 127462 && cp <= 127487) return String.fromCharCode(cp - 127397)
       return c.toUpperCase()
