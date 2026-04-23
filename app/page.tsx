@@ -56,9 +56,9 @@ export default async function HomePage() {
     .eq('temporada', 2026)
     .order('round')
 
-  // Convert 2-letter country code (e.g. "AU") to flag SVG via GitHub-hosted flag-icons
+  // Convert 2-letter country code (e.g. "AU") to local flag image
   const toFlag = (code: string) =>
-    `https://purecatamphetamine.github.io/country-flag-icons/3x2/${code.toUpperCase()}.svg`
+    `/flags/${code.toUpperCase()}.png`
 
   return (
     <div className="space-y-10">
