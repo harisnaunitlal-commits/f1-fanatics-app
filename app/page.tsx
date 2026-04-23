@@ -56,9 +56,16 @@ export default async function HomePage() {
     .eq('temporada', 2026)
     .order('round')
 
-  // Convert 2-letter country code (e.g. "AU") to local flag image
-  const toFlag = (code: string) =>
-    `/flags/${code.toUpperCase()}.png`
+  // Convert emoji flag (🇦🇺) or text code (AU) to local flag image path
+  const toFlag = (code: string) => {
+    const clean = [...code].map(c => {
+      const cp = c.codePointAt(0)!
+      // Regional Indicator letters (flag emoji) → convert to A-Z
+      if (cp >= 127462 && cp <= 127487) return String.fromCharCode(cp - 127397)
+      return c.toUpperCase()
+    }).join('')
+    return `/flags/${clean}.png`
+  }
 
   return (
     <div className="space-y-10">
