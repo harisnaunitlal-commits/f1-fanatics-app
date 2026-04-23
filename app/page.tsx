@@ -56,6 +56,10 @@ export default async function HomePage() {
     .eq('temporada', 2026)
     .order('round')
 
+  // Convert 2-letter country code (e.g. "AU") to flag emoji (e.g. 🇦🇺)
+  const toFlag = (code: string) =>
+    code.toUpperCase().replace(/./g, c => String.fromCodePoint(c.charCodeAt(0) + 127397))
+
   return (
     <div className="space-y-10">
 
@@ -81,7 +85,7 @@ export default async function HomePage() {
                   Próxima Corrida
                 </p>
                 <h1 className="text-4xl font-black flex items-center gap-3">
-                  <span>{(nextGp as any).emoji_bandeira}</span>
+                  <span>{toFlag((nextGp as any).emoji_bandeira)}</span>
                   <span>GP {(nextGp as any).nome}</span>
                 </h1>
                 <p className="text-gray-400 mt-2">
@@ -132,7 +136,7 @@ export default async function HomePage() {
             <div>
               <p className="text-xs text-gray-500 uppercase tracking-widest font-bold">Ranking Global</p>
               <h2 className="text-xl font-black">
-                Pódio · {(lastGp as any).emoji_bandeira} {(lastGp as any).nome}
+                Pódio · {toFlag((lastGp as any).emoji_bandeira)} {(lastGp as any).nome}
               </h2>
             </div>
             <Link href="/ranking" className="text-f1red text-sm hover:underline font-medium">
@@ -270,7 +274,7 @@ export default async function HomePage() {
                   </div>
 
                   {/* Flag emoji large */}
-                  <div className="text-4xl mb-2 leading-none">{gp.emoji_bandeira}</div>
+                  <div className="text-4xl mb-2 leading-none">{toFlag(gp.emoji_bandeira)}</div>
 
                   {/* GP name */}
                   <div className="font-black text-sm text-white leading-tight truncate">{gp.nome}</div>
