@@ -48,7 +48,9 @@ export default function Navbar() {
     <nav className="bg-f1dark border-b border-f1gray sticky top-0 z-50">
       <div className="max-w-5xl mx-auto px-4 flex items-center justify-between h-14">
         <Link href="/" className="flex items-center gap-2 font-bold text-lg">
-          <span className="text-f1red">🏎️</span>
+          <div className="bg-white rounded-lg p-0.5 flex items-center justify-center">
+            <img src="/logos/beira-f1.png" alt="BF1F" className="h-8 w-8 object-contain" />
+          </div>
           <span className="hidden sm:inline">Beira F1 Fanatics</span>
           <span className="sm:hidden">BF1F</span>
         </Link>

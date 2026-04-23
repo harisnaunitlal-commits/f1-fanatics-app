@@ -58,6 +58,20 @@ export default async function HomePage() {
 
   return (
     <div className="space-y-10">
+
+      {/* ── Brand Hero ── */}
+      <div className="flex flex-col items-center text-center py-6">
+        <div className="bg-white rounded-2xl p-4 shadow-[0_0_40px_rgba(225,6,0,0.3)] mb-4">
+          <img
+            src="/logos/beira-f1.png"
+            alt="Beira F1 Fanatics"
+            className="h-28 w-28 object-contain"
+          />
+        </div>
+        <h1 className="text-3xl font-black tracking-tight mt-1">Beira F1 Fanatics</h1>
+        <p className="text-gray-400 text-sm mt-1">Liga F1 · Beira, Moçambique 🇲🇿</p>
+      </div>
+
       {nextGp && (
         <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-f1red/20 to-f1dark border border-f1red/30 p-8">
           <div className="relative z-10">
