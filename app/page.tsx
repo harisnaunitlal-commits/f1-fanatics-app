@@ -224,25 +224,63 @@ export default async function HomePage() {
 
       <div>
         <h2 className="text-xl font-bold mb-4">Calendário 2026</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-          {(allGps as any[])?.map(gp => (
-            <div
-              key={gp.id}
-              className={`rounded-lg px-3 py-2 text-sm flex items-center gap-2 border ${
-                gp.status === 'scored'
-                  ? 'bg-green-900/20 border-green-800/30 text-gray-300'
-                  : gp.status === 'active'
-                    ? 'bg-blue-900/20 border-blue-700/30 text-white'
-                    : gp.status === 'closed'
-                      ? 'bg-gray-800/50 border-gray-700/30 text-gray-400'
-                      : 'bg-f1dark border-gray-800 text-gray-400'
-              }`}
-            >
-              <span>{gp.emoji_bandeira}</span>
-              <span className="truncate">{gp.nome}</span>
-              {gp.status === 'scored' && <span className="ml-auto text-green-500 text-xs">✓</span>}
-            </div>
-          ))}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+          {(allGps as any[])?.map(gp => {
+            const raceDate = new Date(gp.data_corrida)
+            const friDate = new Date(raceDate)
+            friDate.setDate(raceDate.getDate() - 2)
+
+            const startDay = friDate.getDate()
+            const endDay = raceDate.getDate()
+            const startMonth = friDate.toLocaleDateString('pt-MZ', { month: 'short', timeZone: 'Africa/Maputo' })
+            const endMonth = raceDate.toLocaleDateString('pt-MZ', { month: 'short', timeZone: 'Africa/Maputo' })
+            const dateRange = friDate.getMonth() === raceDate.getMonth()
+              ? `${startDay}–${endDay} ${endMonth.charAt(0).toUpperCase() + endMonth.slice(1, 3)}`
+              : `${startDay} ${startMonth.slice(0,3)} – ${endDay} ${endMonth.slice(0,3)}`
+
+            const isScored  = gp.status === 'scored'
+            const isActive  = gp.status === 'active'
+            const isUpcoming = gp.status === 'upcoming'
+
+            return (
+              <div
+                key={gp.id}
+                className={`relative rounded-xl border overflow-hidden transition-transform hover:scale-105 ${
+                  isScored  ? 'border-green-700/40 bg-gradient-to-b from-green-900/20 to-f1dark' :
+                  isActive  ? 'border-f1red/60 bg-gradient-to-b from-f1red/10 to-f1dark shadow-[0_0_16px_rgba(225,6,0,0.2)]' :
+                  isUpcoming ? 'border-gray-700 bg-gradient-to-b from-gray-800/40 to-f1dark' :
+                               'border-gray-800/50 bg-f1dark opacity-60'
+                }`}
+              >
+                {/* Top colour stripe */}
+                <div className={`h-1 w-full ${
+                  isScored ? 'bg-green-500' :
+                  isActive ? 'bg-f1red' :
+                  isUpcoming ? 'bg-gray-500' : 'bg-gray-700'
+                }`} />
+
+                <div className="p-3">
+                  {/* Round + status badge */}
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[10px] font-black text-gray-500 tracking-widest uppercase">
+                      R{String(gp.round).padStart(2, '0')}
+                    </span>
+                    {isScored && <span className="text-[10px] font-bold text-green-500 bg-green-900/30 px-1.5 py-0.5 rounded-full">✓ Pontuado</span>}
+                    {isActive && <span className="text-[10px] font-bold text-f1red bg-f1red/10 px-1.5 py-0.5 rounded-full animate-pulse">● Activo</span>}
+                  </div>
+
+                  {/* Flag emoji large */}
+                  <div className="text-4xl mb-2 leading-none">{gp.emoji_bandeira}</div>
+
+                  {/* GP name */}
+                  <div className="font-black text-sm text-white leading-tight truncate">{gp.nome}</div>
+
+                  {/* Date range */}
+                  <div className="text-xs text-gray-400 font-medium mt-1">{dateRange}</div>
+                </div>
+              </div>
+            )
+          })}
         </div>
       </div>
 
