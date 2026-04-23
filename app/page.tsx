@@ -56,9 +56,9 @@ export default async function HomePage() {
     .eq('temporada', 2026)
     .order('round')
 
-  // Convert 2-letter country code (e.g. "AU") to flag image URL via flagcdn.com
+  // Convert 2-letter country code (e.g. "AU") to flag SVG via GitHub-hosted flag-icons
   const toFlag = (code: string) =>
-    `https://flagcdn.com/w80/${code.toLowerCase()}.png`
+    `https://purecatamphetamine.github.io/country-flag-icons/3x2/${code.toUpperCase()}.svg`
 
   return (
     <div className="space-y-10">
@@ -85,7 +85,7 @@ export default async function HomePage() {
                   Próxima Corrida
                 </p>
                 <h1 className="text-4xl font-black flex items-center gap-3">
-                  <img src={toFlag((nextGp as any).emoji_bandeira)} alt={(nextGp as any).nome} className="h-10 rounded shadow" />
+                  <img src={toFlag((nextGp as any).emoji_bandeira)} alt={(nextGp as any).nome} className="h-12 rounded-lg shadow" />
                   <span>GP {(nextGp as any).nome}</span>
                 </h1>
                 <p className="text-gray-400 mt-2">
@@ -274,7 +274,7 @@ export default async function HomePage() {
                   </div>
 
                   {/* Flag emoji large */}
-                  <img src={toFlag(gp.emoji_bandeira)} alt={gp.nome} className="h-10 w-auto rounded shadow mb-2" />
+                  <img src={toFlag(gp.emoji_bandeira)} alt={gp.nome} className="w-full h-14 object-cover rounded-lg shadow mb-2" />
 
                   {/* GP name */}
                   <div className="font-black text-sm text-white leading-tight truncate">{gp.nome}</div>
