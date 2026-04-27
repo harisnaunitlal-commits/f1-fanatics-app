@@ -4,7 +4,11 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { PILOTOS_2026, EQUIPAS_2026 } from '@/lib/supabase/types'
-import { P8_MARGENS, P3_OPTIONS, P12_OPTIONS, getGpQuestions } from '@/lib/gp-questions'
+import {
+  P8_MARGENS, P3_OPTIONS, P12_OPTIONS,
+  getGpQuestions, getDriverPhoto,
+  type DuelConfig, type DriverOption,
+} from '@/lib/gp-questions'
 import type { GpCalendar, Prediction } from '@/lib/supabase/types'
 import { getTimeUntilDeadline, isDeadlinePassed } from '@/lib/scoring'
 
@@ -13,6 +17,106 @@ type FormData = Omit<
   'id' | 'member_email' | 'gp_id' | 'submetido_em' | 'editado_em' | 'versao'
 >
 
+// ─── Driver Photo Card ─────────────────────────────────────────────────────────
+function DriverCard({
+  codigo, name, team, color, selected, onClick,
+}: {
+  codigo: string; name: string; team: string; color: string
+  selected: boolean; onClick: () => void
+}) {
+  const [imgErr, setImgErr] = useState(false)
+  const photoUrl = getDriverPhoto(codigo)
+  const lastName = name.split(' ').slice(-1)[0]
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="relative flex flex-col items-center rounded-xl border-2 overflow-hidden transition-all duration-200 w-full"
+      style={{
+        borderColor: selected ? color : 'rgba(255,255,255,0.1)',
+        backgroundColor: selected ? color + '22' : 'rgba(255,255,255,0.03)',
+        transform: selected ? 'scale(1.04)' : 'scale(1)',
+        boxShadow: selected ? `0 0 16px ${color}55` : 'none',
+      }}
+    >
+      {/* Team colour stripe */}
+      <div className="w-full h-1.5" style={{ backgroundColor: color }} />
+
+      {/* Checkmark */}
+      {selected && (
+        <div
+          className="absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center z-10 text-white text-[10px] font-black"
+          style={{ backgroundColor: color }}
+        >✓</div>
+      )}
+
+      {/* Photo or code fallback */}
+      <div className="w-full aspect-[4/5] overflow-hidden" style={{ backgroundColor: color + '18' }}>
+        {photoUrl && !imgErr ? (
+          <img
+            src={photoUrl}
+            alt={name}
+            className="w-full h-full object-cover object-top"
+            onError={() => setImgErr(true)}
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center" style={{ color }}>
+            <span className="text-2xl font-black">{codigo}</span>
+          </div>
+        )}
+      </div>
+
+      {/* Name + team */}
+      <div className="px-1.5 py-2 text-center w-full">
+        <div className="font-black text-xs text-white leading-tight truncate">{lastName}</div>
+        <div className="text-[9px] font-medium mt-0.5 truncate" style={{ color }}>{team}</div>
+      </div>
+    </button>
+  )
+}
+
+// ─── Duel Selector (2 cards + VS) ─────────────────────────────────────────────
+function DuelSelector({
+  cfg, value, onChange,
+}: {
+  cfg: DuelConfig; value: string; onChange: (v: string) => void
+}) {
+  return (
+    <div className="grid grid-cols-[1fr_28px_1fr] items-center gap-2">
+      <DriverCard
+        codigo={cfg.driverA} name={cfg.nameA} team={cfg.teamA} color={cfg.colorA}
+        selected={value === cfg.driverA} onClick={() => onChange(cfg.driverA)}
+      />
+      <div className="text-gray-500 font-black text-sm text-center">VS</div>
+      <DriverCard
+        codigo={cfg.driverB} name={cfg.nameB} team={cfg.teamB} color={cfg.colorB}
+        selected={value === cfg.driverB} onClick={() => onChange(cfg.driverB)}
+      />
+    </div>
+  )
+}
+
+// ─── 5-Driver Grid Selector ────────────────────────────────────────────────────
+function DriverGrid({
+  options, value, onChange,
+}: {
+  options: DriverOption[]; value: string; onChange: (v: string) => void
+}) {
+  return (
+    <div className="grid grid-cols-5 gap-2">
+      {options.map(d => (
+        <DriverCard
+          key={d.codigo}
+          codigo={d.codigo} name={d.nome} team={d.equipa} color={d.color}
+          selected={value === d.codigo} onClick={() => onChange(d.codigo)}
+        />
+      ))}
+    </div>
+  )
+}
+
+// ─── Main Form ─────────────────────────────────────────────────────────────────
 export default function PredictForm({
   gp,
   userEmail,
@@ -30,49 +134,38 @@ export default function PredictForm({
   const [timeLeft, setTimeLeft] = useState(getTimeUntilDeadline(gp.deadline_play))
 
   const config = getGpQuestions(gp.round)
+  const gpNameFull = config ? `Grande Prémio ${config.gpPrep} ${config.gpName}` : gp.nome
 
   const blank: FormData = {
-    p1_primeiro: null,
-    p1_segundo: null,
-    p1_terceiro: null,
-    p2_equipa: null,
-    p3_lap: null,
-    p4_quarto: null,
-    p4_quinto: null,
-    p4_sexto: null,
-    p5_duelo: null,
-    p6_duelo: null,
-    p7_duelo: null,
-    p8_margem: null,
-    p9_retire: null,
-    p10_dotd: null,
-    p11_fl: null,
-    p12_classif: null,
-    p13_especial: null,
-    p14_sc: null,
-    p15_outsider: null,
+    p1_primeiro: null, p1_segundo: null, p1_terceiro: null,
+    p2_equipa: null, p3_lap: null,
+    p4_quarto: null, p4_quinto: null, p4_sexto: null,
+    p5_duelo: null, p6_duelo: null, p7_duelo: null,
+    p8_margem: null, p9_retire: null, p10_dotd: null,
+    p11_fl: null, p12_classif: null, p13_especial: null,
+    p14_sc: null, p15_outsider: null,
   }
 
   const [form, setForm] = useState<FormData>(existing ? {
     p1_primeiro: existing.p1_primeiro,
-    p1_segundo: existing.p1_segundo,
+    p1_segundo:  existing.p1_segundo,
     p1_terceiro: existing.p1_terceiro,
-    p2_equipa: existing.p2_equipa,
-    p3_lap: existing.p3_lap,
-    p4_quarto: existing.p4_quarto,
-    p4_quinto: existing.p4_quinto,
-    p4_sexto: existing.p4_sexto,
-    p5_duelo: existing.p5_duelo,
-    p6_duelo: existing.p6_duelo,
-    p7_duelo: existing.p7_duelo,
-    p8_margem: existing.p8_margem,
-    p9_retire: existing.p9_retire,
-    p10_dotd: existing.p10_dotd,
-    p11_fl: existing.p11_fl,
+    p2_equipa:   existing.p2_equipa,
+    p3_lap:      existing.p3_lap,
+    p4_quarto:   existing.p4_quarto,
+    p4_quinto:   existing.p4_quinto,
+    p4_sexto:    existing.p4_sexto,
+    p5_duelo:    existing.p5_duelo,
+    p6_duelo:    existing.p6_duelo,
+    p7_duelo:    existing.p7_duelo,
+    p8_margem:   existing.p8_margem,
+    p9_retire:   existing.p9_retire,
+    p10_dotd:    existing.p10_dotd,
+    p11_fl:      existing.p11_fl,
     p12_classif: existing.p12_classif,
-    p13_especial: existing.p13_especial,
-    p14_sc: existing.p14_sc,
-    p15_outsider: existing.p15_outsider,
+    p13_especial:existing.p13_especial,
+    p14_sc:      existing.p14_sc,
+    p15_outsider:existing.p15_outsider,
   } : blank)
 
   useEffect(() => {
@@ -94,31 +187,15 @@ export default function PredictForm({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-
-    if (isDeadlinePassed(gp.deadline_play)) {
-      setError('O prazo expirou.')
-      return
-    }
-
-    setLoading(true)
-    setError('')
+    if (isDeadlinePassed(gp.deadline_play)) { setError('O prazo expirou.'); return }
+    setLoading(true); setError('')
 
     const { error: upsertErr } = await (supabase as any)
       .from('predictions')
-      .upsert({
-        member_email: userEmail,
-        gp_id: gp.id,
-        ...form,
-        editado_em: new Date().toISOString(),
-      })
+      .upsert({ member_email: userEmail, gp_id: gp.id, ...form, editado_em: new Date().toISOString() })
 
-    if (upsertErr) {
-      setError(upsertErr.message)
-    } else {
-      setSuccess(true)
-      setTimeout(() => router.push('/predict'), 2000)
-    }
-
+    if (upsertErr) { setError(upsertErr.message) }
+    else { setSuccess(true); setTimeout(() => router.push('/predict'), 2000) }
     setLoading(false)
   }
 
@@ -132,73 +209,34 @@ export default function PredictForm({
     )
   }
 
-  // Helper: pilot select (full grid)
-  function PilotoSelect({
-    label, value, onChange, includeNone = false
-  }: {
-    label: string
-    value: string
-    onChange: (v: string) => void
-    includeNone?: boolean
+  // ── Helper selects ─────────────────────────────────────────────────────────
+  function PilotoSelect({ label, value, onChange, includeNone = false }: {
+    label: string; value: string; onChange: (v: string) => void; includeNone?: boolean
   }) {
     return (
       <div>
         <label className="label">{label}</label>
-        <select
-          className="select"
-          value={value}
-          onChange={e => onChange(e.target.value)}
-        >
+        <select className="select" value={value} onChange={e => onChange(e.target.value)}>
           <option value="">Selecciona...</option>
           {includeNone && <option value="NONE">Nenhum Piloto</option>}
           {PILOTOS_2026.map(p => (
-            <option key={p.codigo} value={p.codigo}>
-              {p.nome} ({p.equipa})
-            </option>
+            <option key={p.codigo} value={p.codigo}>{p.nome} ({p.equipa})</option>
           ))}
         </select>
       </div>
     )
   }
 
-  // Helper: radio group
-  function RadioGroup({
-    name, value, options, onChange
-  }: {
-    name: string
-    value: string
-    options: { value: string; label: string; sub?: string }[]
-    onChange: (v: string) => void
-  }) {
+  function QHeader({ code, title, pts }: { code: string; title: string; pts: string }) {
     return (
-      <div className="space-y-2">
-        {options.map(opt => (
-          <label
-            key={opt.value}
-            className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
-              value === opt.value
-                ? 'border-f1red bg-f1red/10'
-                : 'border-white/10 hover:border-white/30'
-            }`}
-          >
-            <input
-              type="radio"
-              name={name}
-              value={opt.value}
-              checked={value === opt.value}
-              onChange={() => onChange(opt.value)}
-              className="mt-0.5 accent-red-500"
-            />
-            <div>
-              <span className="font-medium">{opt.label}</span>
-              {opt.sub && <span className="text-xs text-gray-400 ml-2">{opt.sub}</span>}
-            </div>
-          </label>
-        ))}
+      <div className="flex items-baseline justify-between mb-1">
+        <h3 className="font-bold text-f1red">{code} · {title}</h3>
+        <span className="text-xs text-gray-400">{pts}</span>
       </div>
     )
   }
 
+  // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <div className="max-w-2xl mx-auto pb-16">
       {/* Deadline banner */}
@@ -208,370 +246,209 @@ export default function PredictForm({
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-5">
-        {error && (
-          <p className="text-red-400 bg-red-900/20 rounded-lg px-4 py-3">{error}</p>
-        )}
+        {error && <p className="text-red-400 bg-red-900/20 rounded-lg px-4 py-3">{error}</p>}
 
         {/* P1 — Pódio */}
         <div className="card">
-          <div className="flex items-baseline justify-between mb-1">
-            <h3 className="font-bold text-white">P1 · Pódio</h3>
-            <span className="text-xs text-gray-400">3 pts</span>
-          </div>
-          <p className="text-sm text-gray-400 mb-4">Quem vai fazer o pódio?</p>
+          <QHeader code="P1" title="Pódio" pts="3 pts" />
+          <p className="text-sm text-gray-400 mb-4">
+            Qual é a sua previsão de pódio para o {gpNameFull}?
+          </p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <PilotoSelect
-              label="1º lugar"
-              value={form.p1_primeiro ?? ''}
-              onChange={v => setField('p1_primeiro', v)}
-            />
-            <PilotoSelect
-              label="2º lugar"
-              value={form.p1_segundo ?? ''}
-              onChange={v => setField('p1_segundo', v)}
-            />
-            <PilotoSelect
-              label="3º lugar"
-              value={form.p1_terceiro ?? ''}
-              onChange={v => setField('p1_terceiro', v)}
-            />
+            <PilotoSelect label="1º lugar" value={form.p1_primeiro ?? ''} onChange={v => setField('p1_primeiro', v)} />
+            <PilotoSelect label="2º lugar" value={form.p1_segundo ?? ''}  onChange={v => setField('p1_segundo', v)} />
+            <PilotoSelect label="3º lugar" value={form.p1_terceiro ?? ''} onChange={v => setField('p1_terceiro', v)} />
           </div>
         </div>
 
-        {/* P2 — 2ª Equipa */}
+        {/* P2 — 2ª / 3ª Equipa */}
         <div className="card">
-          <div className="flex items-baseline justify-between mb-1">
-            <h3 className="font-bold text-white">P2 · 2ª Equipa</h3>
-            <span className="text-xs text-gray-400">1 pt</span>
-          </div>
+          <QHeader code="P2" title="Equipa" pts="1 pt" />
           <p className="text-sm text-gray-400 mb-4">
-            {config?.p2Label ?? "Qual será a 2ª equipa que mais vai pontuar?"}
+            {config?.p2Label ?? `Qual será a segunda equipa, que vai pontuar mais no ${gpNameFull}?`}
           </p>
           <div>
             <label className="label">Equipa</label>
-            <select
-              className="select"
-              value={form.p2_equipa ?? ''}
-              onChange={e => setField('p2_equipa', e.target.value)}
-            >
+            <select className="select" value={form.p2_equipa ?? ''} onChange={e => setField('p2_equipa', e.target.value)}>
               <option value="">Selecciona...</option>
-              {EQUIPAS_2026.map(eq => (
-                <option key={eq} value={eq}>{eq}</option>
-              ))}
+              {EQUIPAS_2026.map(eq => <option key={eq} value={eq}>{eq}</option>)}
             </select>
           </div>
         </div>
 
-        {/* P3 — Carros dobrados */}
+        {/* P3 — Volta de Avanço */}
         <div className="card">
-          <div className="flex items-baseline justify-between mb-1">
-            <h3 className="font-bold text-white">P3 · Carros dobrados</h3>
-            <span className="text-xs text-gray-400">1 pt</span>
-          </div>
-          <p className="text-sm text-gray-400 mb-4">Quantos carros serão dobrados durante a corrida?</p>
+          <QHeader code="P3" title="Volta de Avanço" pts="1 pt" />
+          <p className="text-sm text-gray-400 mb-4">
+            Quantos pilotos levarão a volta de avanço (LAP) no {gpNameFull}?
+          </p>
           <div>
-            <label className="label">Número de carros dobrados</label>
-            <select
-              className="select"
-              value={form.p3_lap ?? ''}
-              onChange={e => setField('p3_lap', e.target.value)}
-            >
+            <label className="label">Número de pilotos</label>
+            <select className="select" value={form.p3_lap ?? ''} onChange={e => setField('p3_lap', e.target.value)}>
               <option value="">Selecciona...</option>
-              {(config?.p3Options ?? P3_OPTIONS).map(o => (
-                <option key={o} value={o}>{o}</option>
-              ))}
+              {(config?.p3Options ?? P3_OPTIONS).map(o => <option key={o} value={o}>{o}</option>)}
             </select>
           </div>
         </div>
 
         {/* P4 — Posições 4-6 */}
         <div className="card">
-          <div className="flex items-baseline justify-between mb-1">
-            <h3 className="font-bold text-white">P4 · Posições 4-6</h3>
-            <span className="text-xs text-gray-400">3 pts</span>
-          </div>
-          <p className="text-sm text-gray-400 mb-4">Quem vai terminar em 4º, 5º e 6º?</p>
+          <QHeader code="P4" title="Posições 4-6" pts="3 pts" />
+          <p className="text-sm text-gray-400 mb-4">
+            Escolha os classificados segundo a ordem abaixo, para o {gpNameFull}?
+          </p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <PilotoSelect
-              label="4º lugar"
-              value={form.p4_quarto ?? ''}
-              onChange={v => setField('p4_quarto', v)}
-            />
-            <PilotoSelect
-              label="5º lugar"
-              value={form.p4_quinto ?? ''}
-              onChange={v => setField('p4_quinto', v)}
-            />
-            <PilotoSelect
-              label="6º lugar"
-              value={form.p4_sexto ?? ''}
-              onChange={v => setField('p4_sexto', v)}
-            />
+            <PilotoSelect label="4º lugar" value={form.p4_quarto ?? ''} onChange={v => setField('p4_quarto', v)} />
+            <PilotoSelect label="5º lugar" value={form.p4_quinto ?? ''} onChange={v => setField('p4_quinto', v)} />
+            <PilotoSelect label="6º lugar" value={form.p4_sexto ?? ''}  onChange={v => setField('p4_sexto', v)} />
           </div>
         </div>
 
         {/* P5 — Duelo 1 */}
         <div className="card">
-          <div className="flex items-baseline justify-between mb-1">
-            <h3 className="font-bold text-white">P5 · Duelo 1</h3>
-            <span className="text-xs text-gray-400">1 pt</span>
-          </div>
+          <QHeader code="P5" title="Duelo 1" pts="1 pt" />
           <p className="text-sm text-gray-400 mb-4">
-            {config
-              ? `${config.p5.nameA} vs ${config.p5.nameB} — quem vai terminar à frente?`
-              : 'Quem vai terminar à frente no duelo 1?'}
+            Qual piloto vai terminar na frente do outro no {gpNameFull}?
           </p>
-          {config ? (
-            <RadioGroup
-              name="p5_duelo"
-              value={form.p5_duelo ?? ''}
-              onChange={v => setField('p5_duelo', v)}
-              options={[
-                { value: config.p5.driverA, label: config.p5.nameA, sub: config.p5.teamA },
-                { value: config.p5.driverB, label: config.p5.nameB, sub: config.p5.teamB },
-              ]}
-            />
-          ) : (
-            <PilotoSelect
-              label="Piloto vencedor"
-              value={form.p5_duelo ?? ''}
-              onChange={v => setField('p5_duelo', v)}
-            />
-          )}
+          {config
+            ? <DuelSelector cfg={config.p5} value={form.p5_duelo ?? ''} onChange={v => setField('p5_duelo', v)} />
+            : <PilotoSelect label="Piloto" value={form.p5_duelo ?? ''} onChange={v => setField('p5_duelo', v)} />
+          }
         </div>
 
         {/* P6 — Duelo 2 */}
         <div className="card">
-          <div className="flex items-baseline justify-between mb-1">
-            <h3 className="font-bold text-white">P6 · Duelo 2</h3>
-            <span className="text-xs text-gray-400">1 pt</span>
-          </div>
+          <QHeader code="P6" title="Duelo 2" pts="1 pt" />
           <p className="text-sm text-gray-400 mb-4">
-            {config
-              ? `${config.p6.nameA} vs ${config.p6.nameB} — quem vai terminar à frente?`
-              : 'Quem vai terminar à frente no duelo 2?'}
+            Qual piloto vai terminar na frente do outro no {gpNameFull}?
           </p>
-          {config ? (
-            <RadioGroup
-              name="p6_duelo"
-              value={form.p6_duelo ?? ''}
-              onChange={v => setField('p6_duelo', v)}
-              options={[
-                { value: config.p6.driverA, label: config.p6.nameA, sub: config.p6.teamA },
-                { value: config.p6.driverB, label: config.p6.nameB, sub: config.p6.teamB },
-              ]}
-            />
-          ) : (
-            <PilotoSelect
-              label="Piloto vencedor"
-              value={form.p6_duelo ?? ''}
-              onChange={v => setField('p6_duelo', v)}
-            />
-          )}
+          {config
+            ? <DuelSelector cfg={config.p6} value={form.p6_duelo ?? ''} onChange={v => setField('p6_duelo', v)} />
+            : <PilotoSelect label="Piloto" value={form.p6_duelo ?? ''} onChange={v => setField('p6_duelo', v)} />
+          }
         </div>
 
         {/* P7 — Duelo 3 */}
         <div className="card">
-          <div className="flex items-baseline justify-between mb-1">
-            <h3 className="font-bold text-white">P7 · Duelo 3</h3>
-            <span className="text-xs text-gray-400">1 pt</span>
-          </div>
+          <QHeader code="P7" title="Duelo 3" pts="1 pt" />
           <p className="text-sm text-gray-400 mb-4">
-            {config
-              ? `${config.p7.nameA} vs ${config.p7.nameB} — quem vai terminar à frente?`
-              : 'Quem vai terminar à frente no duelo 3?'}
+            Qual piloto vai terminar na frente do outro no {gpNameFull}?
           </p>
-          {config ? (
-            <RadioGroup
-              name="p7_duelo"
-              value={form.p7_duelo ?? ''}
-              onChange={v => setField('p7_duelo', v)}
-              options={[
-                { value: config.p7.driverA, label: config.p7.nameA, sub: config.p7.teamA },
-                { value: config.p7.driverB, label: config.p7.nameB, sub: config.p7.teamB },
-              ]}
-            />
-          ) : (
-            <PilotoSelect
-              label="Piloto vencedor"
-              value={form.p7_duelo ?? ''}
-              onChange={v => setField('p7_duelo', v)}
-            />
-          )}
+          {config
+            ? <DuelSelector cfg={config.p7} value={form.p7_duelo ?? ''} onChange={v => setField('p7_duelo', v)} />
+            : <PilotoSelect label="Piloto" value={form.p7_duelo ?? ''} onChange={v => setField('p7_duelo', v)} />
+          }
         </div>
 
-        {/* P8 — Margem vitória */}
+        {/* P8 — Margem de vitória */}
         <div className="card">
-          <div className="flex items-baseline justify-between mb-1">
-            <h3 className="font-bold text-white">P8 · Margem de vitória</h3>
-            <span className="text-xs text-gray-400">1 pt</span>
-          </div>
-          <p className="text-sm text-gray-400 mb-4">Qual vai ser a margem entre 1º e 2º?</p>
+          <QHeader code="P8" title="Margem de Vitória" pts="1 pt" />
+          <p className="text-sm text-gray-400 mb-4">
+            Qual será a margem de victória, do prímeiro a cruzar a linha de chegada?
+          </p>
           <div>
             <label className="label">Margem</label>
-            <select
-              className="select"
-              value={form.p8_margem ?? ''}
-              onChange={e => setField('p8_margem', e.target.value)}
-            >
+            <select className="select" value={form.p8_margem ?? ''} onChange={e => setField('p8_margem', e.target.value)}>
               <option value="">Selecciona...</option>
-              {P8_MARGENS.map(m => (
-                <option key={m} value={m}>{m}</option>
-              ))}
+              {P8_MARGENS.map(m => <option key={m} value={m}>{m}</option>)}
             </select>
           </div>
         </div>
 
         {/* P9 — First to Retire */}
         <div className="card">
-          <div className="flex items-baseline justify-between mb-1">
-            <h3 className="font-bold text-white">P9 · Primeiro a abandonar</h3>
-            <span className="text-xs text-gray-400">3 pts</span>
-          </div>
-          <p className="text-sm text-gray-400 mb-4">Qual piloto vai abandonar primeiro? Se achas que nenhum abandona, escolhe "Nenhum Piloto".</p>
-          <PilotoSelect
-            label="Piloto"
-            value={form.p9_retire ?? ''}
-            onChange={v => setField('p9_retire', v)}
-            includeNone
-          />
+          <QHeader code="P9" title="First to Retire" pts="3 pts" />
+          <p className="text-sm text-gray-400 mb-4">
+            Quem será o primeiro piloto, First to Retire no {gpNameFull}?
+          </p>
+          <PilotoSelect label="Piloto" value={form.p9_retire ?? ''} onChange={v => setField('p9_retire', v)} includeNone />
         </div>
 
-        {/* P10 — DOTD */}
+        {/* P10 — Driver of the Day */}
         <div className="card">
-          <div className="flex items-baseline justify-between mb-1">
-            <h3 className="font-bold text-white">P10 · Driver of the Day</h3>
-            <span className="text-xs text-gray-400">2 pts</span>
-          </div>
-          <p className="text-sm text-gray-400 mb-4">Quem vai ganhar o DOTD (votação dos fãs)?</p>
-          <PilotoSelect
-            label="Piloto"
-            value={form.p10_dotd ?? ''}
-            onChange={v => setField('p10_dotd', v)}
-          />
+          <QHeader code="P10" title="Driver of the Day" pts="2 pts" />
+          <p className="text-sm text-gray-400 mb-4">
+            Quem será o piloto eleito 'Driver of the Day' no {gpNameFull}?
+          </p>
+          <PilotoSelect label="Piloto" value={form.p10_dotd ?? ''} onChange={v => setField('p10_dotd', v)} />
         </div>
 
-        {/* P11 — Fastest Lap */}
+        {/* P11 — Volta mais rápida */}
         <div className="card">
-          <div className="flex items-baseline justify-between mb-1">
-            <h3 className="font-bold text-white">P11 · Volta mais rápida</h3>
-            <span className="text-xs text-gray-400">1 pt</span>
-          </div>
-          <p className="text-sm text-gray-400 mb-4">Quem vai fazer a volta mais rápida?</p>
-          <PilotoSelect
-            label="Piloto"
-            value={form.p11_fl ?? ''}
-            onChange={v => setField('p11_fl', v)}
-          />
+          <QHeader code="P11" title="Volta Mais Rápida" pts="1 pt" />
+          <p className="text-sm text-gray-400 mb-4">
+            Qual piloto fará a volta mais rápida no {gpNameFull}?
+          </p>
+          <PilotoSelect label="Piloto" value={form.p11_fl ?? ''} onChange={v => setField('p11_fl', v)} />
         </div>
 
         {/* P12 — Nº classificados */}
         <div className="card">
-          <div className="flex items-baseline justify-between mb-1">
-            <h3 className="font-bold text-white">P12 · Nº de classificados</h3>
-            <span className="text-xs text-gray-400">1 pt</span>
-          </div>
-          <p className="text-sm text-gray-400 mb-4">Quantos pilotos vão ser classificados?</p>
+          <QHeader code="P12" title="Nº de Classificados" pts="1 pt" />
+          <p className="text-sm text-gray-400 mb-4">
+            Quantos pilotos classificados, terminaram a corrida no {gpNameFull}?
+          </p>
           <div>
             <label className="label">Número de classificados</label>
-            <select
-              className="select"
-              value={form.p12_classif ?? ''}
-              onChange={e => setField('p12_classif', e.target.value)}
-            >
+            <select className="select" value={form.p12_classif ?? ''} onChange={e => setField('p12_classif', e.target.value)}>
               <option value="">Selecciona...</option>
-              {P12_OPTIONS.map(o => (
-                <option key={o} value={o}>{o}</option>
-              ))}
+              {P12_OPTIONS.map(o => <option key={o} value={o}>{o}</option>)}
             </select>
           </div>
         </div>
 
-        {/* P13 — Especial */}
+        {/* P13 — Pergunta Especial */}
         <div className="card">
-          <div className="flex items-baseline justify-between mb-1">
-            <h3 className="font-bold text-white">P13 · Pergunta especial</h3>
-            <span className="text-xs text-gray-400">1 pt</span>
-          </div>
+          <QHeader code="P13" title="Pergunta Especial" pts="1 pt" />
           <p className="text-sm text-gray-400 mb-4">
-            {config?.p13Label ?? "Pergunta especial da corrida"}
+            {config?.p13Label ?? "Qual piloto terminará a corrida na posição mais alta?"}
           </p>
-          {config ? (
-            <RadioGroup
-              name="p13_especial"
-              value={form.p13_especial ?? ''}
-              onChange={v => setField('p13_especial', v)}
-              options={config.p13Options.map(d => ({
-                value: d.codigo,
-                label: d.nome,
-                sub: d.equipa,
-              }))}
-            />
-          ) : (
-            <PilotoSelect
-              label="Piloto"
-              value={form.p13_especial ?? ''}
-              onChange={v => setField('p13_especial', v)}
-            />
-          )}
+          {config
+            ? <DriverGrid options={config.p13Options} value={form.p13_especial ?? ''} onChange={v => setField('p13_especial', v)} />
+            : <PilotoSelect label="Piloto" value={form.p13_especial ?? ''} onChange={v => setField('p13_especial', v)} />
+          }
         </div>
 
         {/* P14 — Safety Car */}
         <div className="card">
-          <div className="flex items-baseline justify-between mb-1">
-            <h3 className="font-bold text-white">P14 · Safety Car</h3>
-            <span className="text-xs text-gray-400">1 pt</span>
+          <QHeader code="P14" title="Safety Car" pts="1 pt" />
+          <p className="text-sm text-gray-400 mb-4">
+            Haverá um Safety Car na pista durante o {gpNameFull}?
+          </p>
+          <div className="grid grid-cols-2 gap-3">
+            {['Sim','Não'].map(opt => (
+              <button
+                key={opt}
+                type="button"
+                onClick={() => setField('p14_sc', opt)}
+                className="py-4 rounded-xl border-2 font-bold text-lg transition-all duration-200"
+                style={{
+                  borderColor: form.p14_sc === opt ? '#e10600' : 'rgba(255,255,255,0.1)',
+                  backgroundColor: form.p14_sc === opt ? 'rgba(225,6,0,0.15)' : 'rgba(255,255,255,0.03)',
+                  color: form.p14_sc === opt ? '#fff' : '#9ca3af',
+                }}
+              >
+                {opt === 'Sim' ? '🟡 Sim' : '🟢 Não'}
+              </button>
+            ))}
           </div>
-          <p className="text-sm text-gray-400 mb-4">Vai haver Safety Car na corrida?</p>
-          <RadioGroup
-            name="p14_sc"
-            value={form.p14_sc ?? ''}
-            onChange={v => setField('p14_sc', v)}
-            options={[
-              { value: 'Sim', label: 'Sim' },
-              { value: 'Não', label: 'Não' },
-            ]}
-          />
         </div>
 
         {/* P15 — Outsider */}
         <div className="card">
-          <div className="flex items-baseline justify-between mb-1">
-            <h3 className="font-bold text-white">P15 · Outsider</h3>
-            <span className="text-xs text-gray-400">1 pt</span>
-          </div>
+          <QHeader code="P15" title="Outsider" pts="1 pt" />
           <p className="text-sm text-gray-400 mb-4">
-            {config?.p15Label ?? "Qual piloto outsider vai terminar na posição mais alta?"}
+            {config?.p15Label ?? "Qual piloto terminará a corrida na posição mais alta?"}
           </p>
-          {config ? (
-            <RadioGroup
-              name="p15_outsider"
-              value={form.p15_outsider ?? ''}
-              onChange={v => setField('p15_outsider', v)}
-              options={config.p15Options.map(d => ({
-                value: d.codigo,
-                label: d.nome,
-                sub: d.equipa,
-              }))}
-            />
-          ) : (
-            <PilotoSelect
-              label="Piloto"
-              value={form.p15_outsider ?? ''}
-              onChange={v => setField('p15_outsider', v)}
-            />
-          )}
+          {config
+            ? <DriverGrid options={config.p15Options} value={form.p15_outsider ?? ''} onChange={v => setField('p15_outsider', v)} />
+            : <PilotoSelect label="Piloto" value={form.p15_outsider ?? ''} onChange={v => setField('p15_outsider', v)} />
+          }
         </div>
 
-        {error && (
-          <p className="text-red-400 bg-red-900/20 rounded-lg px-4 py-3">{error}</p>
-        )}
+        {error && <p className="text-red-400 bg-red-900/20 rounded-lg px-4 py-3">{error}</p>}
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="btn-primary w-full text-lg py-4"
-        >
+        <button type="submit" disabled={loading} className="btn-primary w-full text-lg py-4">
           {loading ? 'A guardar...' : '🏎️ Submeter previsão'}
         </button>
       </form>
