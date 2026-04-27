@@ -260,10 +260,10 @@ export const EQUIPAS_2026 = [
 ] as const
 
 export const MARGENS_VITORIA = [
-  'Menos de 1s', '1s - 5s', '5s - 10s', 'Mais de 10s', 'Safety Car final',
+  "0-2s","2-3.5s","3.5-5s","5-6.5s","6.5-8s",
+  "8-10s","10-12s","12-15s","15-22s","+22s"
 ] as const
 
 export const OPCOES_CLASSIF = [
-  'Menos de 10', '10', '11', '12', '13', '14', '15',
-  '16', '17', '18', '19', '20 (todos)',
+  "22","21","20","19","18","17","16","15","14","13 ou menos"
 ] as const
