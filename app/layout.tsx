@@ -7,14 +7,23 @@ export const viewport: Viewport = {
 }
 
 export const metadata: Metadata = {
-  title: 'Beira F1 Fanatics 2026',
+  title: 'Beira F1',
   description: 'A liga de previsões F1 da Beira, Moçambique. Fundada em 2021.',
   manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'Beira F1',
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt">
+      <head>
+        <link rel="apple-touch-icon" href="/logos/beira-f1.png" />
+        <meta name="mobile-web-app-capable" content="yes" />
+      </head>
       <body className="min-h-screen bg-f1dark text-white antialiased">
         <Navbar />
         <main className="max-w-5xl mx-auto px-4 py-6">
