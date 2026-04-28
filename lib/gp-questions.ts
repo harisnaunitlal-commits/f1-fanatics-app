@@ -50,12 +50,12 @@ export const TEAM_COLORS: Record<string, string> = {
   'RB':              '#6692FF',
   'Racing Bulls':    '#6692FF',
   'Haas':            '#B6BABD',
-  'Sauber':          '#52E252',
   'Audi':            '#52E252',
   'Cadillac':        '#CC1230',
 }
 
 // Official F1 headshot slugs — format: FirstnameSURNAME01
+// Using 2025 season paths (most complete set available on F1 CDN)
 const PHOTO_SLUGS: Record<string, string> = {
   VER: 'MaxVERSTAPPEN01',
   NOR: 'LandoNORRIS01',
@@ -67,24 +67,25 @@ const PHOTO_SLUGS: Record<string, string> = {
   ANT: 'KimiANTONELLI01',
   ALO: 'FernandoALONSO01',
   STR: 'LanceSTROLL01',
-  TSU: 'YukiTSUNODA01',
   LAW: 'LiamLAWSON01',
+  LIN: 'ArvidLINDBLAD01',
   HUL: 'NicoHULKENBERG01',
   BOR: 'GabrielBORTOLETO01',
   OCO: 'EstebanOCON01',
   BEA: 'OliverBEARMAN01',
   GAS: 'PierreGASLY01',
-  DOO: 'JackDOOHAN01',
-  ALB: 'AlexanderALBON01',
   COL: 'FrancoCOLAPINTO01',
+  ALB: 'AlexanderALBON01',
   HAD: 'IsackHADJAR01',
-  LIN: 'ArvidLINDBLAD01',
+  PER: 'SergioPEREZ01',
+  BOT: 'ValtteriBOTTAS01',
 }
 
 export function getDriverPhoto(codigo: string): string {
   const slug = PHOTO_SLUGS[codigo]
   if (!slug) return ''
-  return `https://media.formula1.com/image/upload/f_auto,c_limit,q_75,w_112/content/dam/fom-website/drivers/2026/${slug}`
+  // Try 2025 season paths — fallback to team-colour avatar on onError
+  return `https://media.formula1.com/image/upload/f_auto,c_limit,q_75,w_200/content/dam/fom-website/drivers/2025/${slug}`
 }
 
 const GP_QUESTIONS: Record<number, GpQuestions> = {

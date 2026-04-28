@@ -230,33 +230,35 @@ export interface AuditLog {
   criado_em: string
 }
 
-// Pilotos 2026
+// Pilotos 2026 — 22 pilotos, 11 equipas
 export const PILOTOS_2026 = [
-  { codigo: 'VER', nome: 'Max Verstappen', equipa: 'Red Bull Racing' },
-  { codigo: 'NOR', nome: 'Lando Norris', equipa: 'McLaren' },
-  { codigo: 'LEC', nome: 'Charles Leclerc', equipa: 'Ferrari' },
-  { codigo: 'HAM', nome: 'Lewis Hamilton', equipa: 'Ferrari' },
-  { codigo: 'SAI', nome: 'Carlos Sainz', equipa: 'Williams' },
-  { codigo: 'PIA', nome: 'Oscar Piastri', equipa: 'McLaren' },
-  { codigo: 'RUS', nome: 'George Russell', equipa: 'Mercedes' },
-  { codigo: 'ANT', nome: 'Kimi Antonelli', equipa: 'Mercedes' },
-  { codigo: 'ALO', nome: 'Fernando Alonso', equipa: 'Aston Martin' },
-  { codigo: 'STR', nome: 'Lance Stroll', equipa: 'Aston Martin' },
-  { codigo: 'TSU', nome: 'Yuki Tsunoda', equipa: 'Red Bull Racing' },
-  { codigo: 'LAW', nome: 'Liam Lawson', equipa: 'RB' },
-  { codigo: 'HUL', nome: 'Nico Hülkenberg', equipa: 'Sauber' },
-  { codigo: 'BOR', nome: 'Gabriel Bortoleto', equipa: 'Sauber' },
-  { codigo: 'OCO', nome: 'Esteban Ocon', equipa: 'Haas' },
-  { codigo: 'BEA', nome: 'Oliver Bearman', equipa: 'Haas' },
-  { codigo: 'GAS', nome: 'Pierre Gasly', equipa: 'Alpine' },
-  { codigo: 'DOO', nome: 'Jack Doohan', equipa: 'Alpine' },
-  { codigo: 'ALB', nome: 'Alexander Albon', equipa: 'Williams' },
-  { codigo: 'COL', nome: 'Franco Colapinto', equipa: 'Alpine' },
+  { codigo: 'VER', nome: 'Max Verstappen',    equipa: 'Red Bull Racing' },
+  { codigo: 'HAD', nome: 'Isack Hadjar',      equipa: 'Red Bull Racing' },
+  { codigo: 'NOR', nome: 'Lando Norris',      equipa: 'McLaren' },
+  { codigo: 'PIA', nome: 'Oscar Piastri',     equipa: 'McLaren' },
+  { codigo: 'LEC', nome: 'Charles Leclerc',   equipa: 'Ferrari' },
+  { codigo: 'HAM', nome: 'Lewis Hamilton',    equipa: 'Ferrari' },
+  { codigo: 'RUS', nome: 'George Russell',    equipa: 'Mercedes' },
+  { codigo: 'ANT', nome: 'Kimi Antonelli',    equipa: 'Mercedes' },
+  { codigo: 'ALO', nome: 'Fernando Alonso',   equipa: 'Aston Martin' },
+  { codigo: 'STR', nome: 'Lance Stroll',      equipa: 'Aston Martin' },
+  { codigo: 'LAW', nome: 'Liam Lawson',       equipa: 'Racing Bulls' },
+  { codigo: 'LIN', nome: 'Arvid Lindblad',    equipa: 'Racing Bulls' },
+  { codigo: 'HUL', nome: 'Nico Hülkenberg',   equipa: 'Audi' },
+  { codigo: 'BOR', nome: 'Gabriel Bortoleto', equipa: 'Audi' },
+  { codigo: 'OCO', nome: 'Esteban Ocon',      equipa: 'Haas' },
+  { codigo: 'BEA', nome: 'Oliver Bearman',    equipa: 'Haas' },
+  { codigo: 'GAS', nome: 'Pierre Gasly',      equipa: 'Alpine' },
+  { codigo: 'COL', nome: 'Franco Colapinto',  equipa: 'Alpine' },
+  { codigo: 'SAI', nome: 'Carlos Sainz',      equipa: 'Williams' },
+  { codigo: 'ALB', nome: 'Alexander Albon',   equipa: 'Williams' },
+  { codigo: 'PER', nome: 'Sergio Perez',      equipa: 'Cadillac' },
+  { codigo: 'BOT', nome: 'Valtteri Bottas',   equipa: 'Cadillac' },
 ] as const
 
 export const EQUIPAS_2026 = [
   'Red Bull Racing', 'McLaren', 'Ferrari', 'Mercedes',
-  'Aston Martin', 'Alpine', 'Williams', 'RB', 'Haas', 'Sauber',
+  'Aston Martin', 'Racing Bulls', 'Audi', 'Haas', 'Alpine', 'Williams', 'Cadillac',
 ] as const
 
 export const MARGENS_VITORIA = [

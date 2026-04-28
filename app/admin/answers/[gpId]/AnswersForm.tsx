@@ -172,7 +172,7 @@ export default function AnswersForm({
     return (
       <div className="flex items-baseline justify-between mb-1">
         <h3 className="font-bold text-f1red">{code} · {title}</h3>
-        <span className="text-gray-400 font-normal text-sm">{pts}</span>
+        <span className="text-xs font-bold text-yellow-400">{pts}</span>
       </div>
     )
   }
@@ -437,7 +437,7 @@ export default function AnswersForm({
                   color: form.p14_sc === opt ? '#fff' : '#9ca3af',
                 }}
               >
-                {opt === 'Sim' ? '🟡 Sim' : '🟢 Não'}
+                {opt === 'Sim' ? '🟢 Sim' : '🔴 Não'}
               </button>
             ))}
           </div>
