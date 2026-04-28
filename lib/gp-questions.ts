@@ -54,45 +54,44 @@ export const TEAM_COLORS: Record<string, string> = {
   'Cadillac':        '#CC1230',
 }
 
-// Official F1 headshot slugs — format: FirstnameSURNAME01
-// Using 2025 season paths (most complete set available on F1 CDN)
-const PHOTO_SLUGS: Record<string, string> = {
-  VER: 'MaxVERSTAPPEN01',
-  NOR: 'LandoNORRIS01',
-  LEC: 'CharlesLECLERC01',
-  HAM: 'LewisHAMILTON01',
-  SAI: 'CarlosSAINZ01',
-  PIA: 'OscarPIASTRI01',
-  RUS: 'GeorgeRUSSELL01',
-  ANT: 'KimiANTONELLI01',
-  ALO: 'FernandoALONSO01',
-  STR: 'LanceSTROLL01',
-  LAW: 'LiamLAWSON01',
-  LIN: 'ArvidLINDBLAD01',
-  HUL: 'NicoHULKENBERG01',
-  BOR: 'GabrielBORTOLETO01',
-  OCO: 'EstebanOCON01',
-  BEA: 'OliverBEARMAN01',
-  GAS: 'PierreGASLY01',
-  COL: 'FrancoCOLAPINTO01',
-  ALB: 'AlexanderALBON01',
-  HAD: 'IsackHADJAR01',
-  PER: 'SergioPEREZ01',
-  BOT: 'ValtteriBOTTAS01',
+// Local pilot photos — files in /public/pilots/*.jpg
+// Filenames match exactly what the user saved (case-sensitive on Linux/Vercel)
+const PHOTO_FILES: Record<string, string> = {
+  ALB: 'Albon',
+  ALO: 'Alonso',
+  ANT: 'Antonelli',
+  BEA: 'Bearmen',
+  BOR: 'Bortoleto',
+  BOT: 'Bottas',
+  COL: 'Colapinto',
+  GAS: 'Gasley',
+  HAD: 'Hadjar',
+  HAM: 'Hamilton',
+  HUL: 'Hulkenberg',
+  LAW: 'Lawson',
+  LEC: 'Lecrec',
+  LIN: 'Lindblad',
+  NOR: 'Norris',
+  OCO: 'Ocon',
+  PER: 'Perez',
+  PIA: 'Piastri',
+  RUS: 'Russel',
+  SAI: 'Sainz',
+  STR: 'Stroll',
+  VER: 'Verstappen',
 }
 
 export function getDriverPhoto(codigo: string): string {
-  const slug = PHOTO_SLUGS[codigo]
-  if (!slug) return ''
-  // Try 2025 season paths — fallback to team-colour avatar on onError
-  return `https://media.formula1.com/image/upload/f_auto,c_limit,q_75,w_200/content/dam/fom-website/drivers/2025/${slug}`
+  const file = PHOTO_FILES[codigo]
+  if (!file) return ''
+  return `/pilots/${file}.jpg`
 }
 
 const GP_QUESTIONS: Record<number, GpQuestions> = {
   1: { // R01 — Austrália
     gpName: 'Austrália',
     gpPrep: 'da',
-    p2Label: "Qual será a segunda equipa, que vai pontuar mais no Grande Prémio da Austrália?",
+    p2Label: "Qual será a SEGUNDA equipa, que vai pontuar mais no Grande Prémio da Austrália?",
     p3Options: P3_OPTIONS,
     p5: {
       driverA: 'HAD', nameA: 'Isack Hadjar',    teamA: 'Red Bull Racing', colorA: TEAM_COLORS['Red Bull Racing'],
@@ -127,7 +126,7 @@ const GP_QUESTIONS: Record<number, GpQuestions> = {
   2: { // R02 — China
     gpName: 'China',
     gpPrep: 'da',
-    p2Label: "Qual será a segunda equipa, que vai pontuar mais no Grande Prémio da China?",
+    p2Label: "Qual será a SEGUNDA equipa, que vai pontuar mais no Grande Prémio da China?",
     p3Options: P3_OPTIONS,
     p5: {
       driverA: 'NOR', nameA: 'Lando Norris',   teamA: 'McLaren', colorA: TEAM_COLORS['McLaren'],
@@ -162,7 +161,7 @@ const GP_QUESTIONS: Record<number, GpQuestions> = {
   3: { // R03 — Japão
     gpName: 'Japão',
     gpPrep: 'do',
-    p2Label: "Qual será a terceira equipa, que vai pontuar mais no Grande Prémio do Japão?",
+    p2Label: "Qual será a TERCEIRA equipa, que vai pontuar mais no Grande Prémio do Japão?",
     p3Options: P3_OPTIONS,
     p5: {
       driverA: 'HAM', nameA: 'Lewis Hamilton', teamA: 'Ferrari', colorA: TEAM_COLORS['Ferrari'],
