@@ -4,11 +4,19 @@ import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { isDeadlinePassed, getTimeUntilDeadline } from '@/lib/scoring'
 
+// Convert emoji flag or 2-letter code to local flag image
+function toFlag(code: string) {
+  const clean = Array.from(code).map(c => {
+    const cp = c.codePointAt(0) ?? 0
+    if (cp >= 127462 && cp <= 127487) return String.fromCharCode(cp - 127397)
+    return c.toUpperCase()
+  }).join('')
+  return `/flags/${clean}.png`
+}
+
 export default async function PredictPage() {
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const { data: { user } } = await supabase.auth.getUser()
 
   const { data: gps } = await (supabase as any)
     .from('gp_calendar')
@@ -25,7 +33,7 @@ export default async function PredictPage() {
     .from('gp_answers')
     .select('gp_id')
 
-  const submitted = new Set(myPredictions?.map((p: any) => p.gp_id) ?? [])
+  const submitted  = new Set(myPredictions?.map((p: any) => p.gp_id) ?? [])
   const hasAnswers = new Set(answeredGps?.map((a: any) => a.gp_id) ?? [])
 
   return (
@@ -37,70 +45,65 @@ export default async function PredictPage() {
 
       <div className="grid gap-3">
         {(gps as any[])?.map((gp: any) => {
-          const closed = isDeadlinePassed(gp.deadline_play)
-          const scored = gp.status === 'scored'
-          const hasPred = submitted.has(gp.id)
+          const closed   = isDeadlinePassed(gp.deadline_play)
+          const scored   = gp.status === 'scored'
+          const hasPred  = submitted.has(gp.id)
+          const hasAns   = hasAnswers.has(gp.id)
           const timeLeft = !closed ? getTimeUntilDeadline(gp.deadline_play) : null
 
           return (
             <div
               key={gp.id}
               className={`card flex items-center justify-between gap-4 ${
-                gp.status === 'upcoming' && !closed ? 'border-f1red/30' : ''
+                !closed ? 'border-f1red/30' : ''
               }`}
             >
+              {/* Flag + GP info */}
               <div className="flex items-center gap-3">
-                <span className="text-2xl">{gp.emoji_bandeira}</span>
+                <img
+                  src={toFlag(gp.emoji_bandeira)}
+                  alt={gp.nome}
+                  className="w-10 h-7 object-cover rounded shadow shrink-0"
+                />
                 <div>
                   <div className="font-bold">
                     R{String(gp.round).padStart(2, '0')} · {gp.nome}
                   </div>
                   <div className="text-sm text-gray-400">
                     {new Date(gp.data_corrida).toLocaleDateString('pt-MZ', {
-                      day: '2-digit',
-                      month: 'short',
-                      year: 'numeric',
+                      day: '2-digit', month: 'short', year: 'numeric',
                     })}
                     {timeLeft && (
-                      <span className="ml-2 text-f1red font-medium">
-                        ⏱ {timeLeft}
-                      </span>
+                      <span className="ml-2 text-f1red font-medium">⏱ {timeLeft}</span>
                     )}
                   </div>
                 </div>
               </div>
 
-              <div className="flex items-center gap-3 shrink-0">
-                {/* Ver respostas — available whenever answers exist AND player submitted */}
-                {hasPred && hasAnswers.has(gp.id) && (
+              {/* Actions */}
+              <div className="flex items-center gap-2 shrink-0 flex-wrap justify-end">
+
+                {/* Results button — visible to ALL when answers exist and GP is closed */}
+                {hasAns && closed && (
                   <Link
                     href={`/predict/${gp.id}/results`}
-                    className="text-sm text-yellow-400 hover:text-yellow-300 font-medium"
+                    className="text-sm font-bold text-yellow-400 hover:text-yellow-300 bg-yellow-400/10 hover:bg-yellow-400/20 px-3 py-1.5 rounded-lg transition-colors"
                   >
-                    📊 Ver resultados
+                    📊 Resultados
                   </Link>
                 )}
 
-                {scored && hasPred && (
-                  <Link
-                    href={`/ranking/play?gp=${gp.id}`}
-                    className="text-sm text-gray-400 hover:text-white underline"
-                  >
-                    Ver pontos
-                  </Link>
-                )}
-
+                {/* Submit / Edit */}
                 {!closed && (
                   <Link
                     href={`/predict/${gp.id}`}
-                    className={`btn-primary text-sm py-2 px-4 ${
-                      hasPred ? 'opacity-80' : ''
-                    }`}
+                    className={`btn-primary text-sm py-2 px-4 ${hasPred ? 'opacity-80' : ''}`}
                   >
                     {hasPred ? '✏️ Editar' : '🏎️ Submeter'}
                   </Link>
                 )}
 
+                {/* Status badge */}
                 {closed && !scored && (
                   <span className="text-sm text-gray-500 bg-gray-800 px-3 py-1.5 rounded-lg">
                     {hasPred ? '✅ Submetido' : '❌ Não participou'}
@@ -108,13 +111,9 @@ export default async function PredictPage() {
                 )}
 
                 {scored && (
-                  <span
-                    className={`text-sm px-3 py-1.5 rounded-lg ${
-                      hasPred
-                        ? 'bg-green-900/40 text-green-400'
-                        : 'bg-gray-800 text-gray-500'
-                    }`}
-                  >
+                  <span className={`text-sm px-3 py-1.5 rounded-lg ${
+                    hasPred ? 'bg-green-900/40 text-green-400' : 'bg-gray-800 text-gray-500'
+                  }`}>
                     {hasPred ? '✅ Pontuado' : '❌ Não participou'}
                   </span>
                 )}
