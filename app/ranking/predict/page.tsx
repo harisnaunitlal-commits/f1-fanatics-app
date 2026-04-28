@@ -20,20 +20,27 @@ export default async function PredictRankingPage({
 
   const scoredGpsAsc = [...(scoredGps ?? [])].reverse()
 
-  const selectedGpId = searchParams.gp
+  // null = "Resultados acumulados" (latest GP cumulative); specific ID = that GP
+  const selectedGpId: number | null = searchParams.gp
     ? parseInt(searchParams.gp)
-    : scoredGps?.[0]?.id ?? null
+    : null
 
-  const { data: scores } = selectedGpId
+  // For display, always query: no ?gp → use latest scored GP's cumulative
+  const queryGpId = selectedGpId ?? (scoredGps?.[0]?.id ?? null)
+
+  const { data: scores } = queryGpId
     ? await (supabase as any)
         .from('scores_predict')
         .select('member_email, nick_predict, pontos_acum, members(nickname, foto_url)')
-        .eq('gp_id', selectedGpId)
+        .eq('gp_id', queryGpId)
         .order('pontos_acum', { ascending: false })
     : { data: null }
 
   // Per-GP cumulative for delta calculation
-  const visibleGps = (scoredGpsAsc ?? []).filter((g: any) => g.id <= (selectedGpId ?? 0))
+  // When "Acumulado" selected, show all GP columns; otherwise up to selected GP
+  const visibleGps = selectedGpId === null
+    ? (scoredGpsAsc ?? [])
+    : (scoredGpsAsc ?? []).filter((g: any) => g.id <= selectedGpId)
 
   const { data: allScores } = visibleGps.length
     ? await (supabase as any)
