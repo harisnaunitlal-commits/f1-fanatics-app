@@ -20,56 +20,54 @@ export default async function PredictRankingPage({
 
   const scoredGpsAsc = [...(scoredGps ?? [])].reverse()
 
-  // null = "Resultados acumulados" (latest GP cumulative); specific ID = that GP
+  // null = "Acumulado" (latest GP total); specific ID = individual GP
   const selectedGpId: number | null = searchParams.gp
     ? parseInt(searchParams.gp)
     : null
 
-  // For display, always query: no ?gp → use latest scored GP's cumulative
+  const isAccumulado = selectedGpId === null
+
+  // For Acumulado: query latest GP (final cumulative); for per-GP: query that GP
   const queryGpId = selectedGpId ?? (scoredGps?.[0]?.id ?? null)
 
-  const { data: scores } = queryGpId
+  const { data: rawScores } = queryGpId
     ? await (supabase as any)
         .from('scores_predict')
         .select('member_email, nick_predict, pontos_acum, members(nickname, foto_url)')
         .eq('gp_id', queryGpId)
-        .order('pontos_acum', { ascending: false })
     : { data: null }
 
-  // Per-GP cumulative for delta calculation
-  // When "Acumulado" selected, show all GP columns; otherwise up to selected GP
-  const visibleGps = selectedGpId === null
-    ? (scoredGpsAsc ?? [])
-    : (scoredGpsAsc ?? []).filter((g: any) => g.id <= selectedGpId)
+  // For per-GP view: calculate individual GP score = pontos_acum - prev_pontos_acum
+  let scores: any[] | null = null
 
-  const { data: allScores } = visibleGps.length
-    ? await (supabase as any)
-        .from('scores_predict')
-        .select('member_email, gp_id, pontos_acum')
-        .in('gp_id', visibleGps.map((g: any) => g.id))
-    : { data: null }
+  if (rawScores) {
+    if (isAccumulado) {
+      scores = [...rawScores].sort((a: any, b: any) => b.pontos_acum - a.pontos_acum)
+    } else {
+      // Find the previous scored GP
+      const selectedIdx = scoredGpsAsc.findIndex((g: any) => g.id === selectedGpId)
+      const prevGp = selectedIdx > 0 ? scoredGpsAsc[selectedIdx - 1] : null
 
-  const memberAcum = new Map<string, Map<number, number>>()
-  ;((allScores ?? []) as any[]).forEach((s: any) => {
-    if (!memberAcum.has(s.member_email)) {
-      memberAcum.set(s.member_email, new Map())
+      // Fetch previous GP's cumulative scores to compute delta
+      const prevAcumMap = new Map<string, number>()
+      if (prevGp) {
+        const { data: prevScores } = await (supabase as any)
+          .from('scores_predict')
+          .select('member_email, pontos_acum')
+          .eq('gp_id', prevGp.id)
+        ;((prevScores ?? []) as any[]).forEach((s: any) => {
+          prevAcumMap.set(s.member_email, s.pontos_acum)
+        })
+      }
+
+      scores = rawScores
+        .map((s: any) => ({
+          ...s,
+          pontos_gp: s.pontos_acum - (prevAcumMap.get(s.member_email) ?? 0),
+        }))
+        .sort((a: any, b: any) => b.pontos_gp - a.pontos_gp)
     }
-    memberAcum.get(s.member_email)!.set(s.gp_id, s.pontos_acum)
-  })
-
-  const memberDeltas = new Map<string, Map<number, number>>()
-  Array.from(memberAcum.entries()).forEach(([email, acumMap]) => {
-    const deltaMap = new Map<number, number>()
-    for (let i = 0; i < visibleGps.length; i++) {
-      const gp = visibleGps[i]
-      const curr = acumMap.get(gp.id)
-      if (curr === undefined) continue
-      const prevGp = i > 0 ? visibleGps[i - 1] : null
-      const prev = prevGp ? (acumMap.get(prevGp.id) ?? 0) : 0
-      deltaMap.set(gp.id, curr - prev)
-    }
-    memberDeltas.set(email, deltaMap)
-  })
+  }
 
   return (
     <div>
@@ -84,7 +82,7 @@ export default async function PredictRankingPage({
 
       <p className="text-gray-500 text-sm mb-6">
         Liga: <span className="font-mono text-gray-400">C4MIFTXAH05</span> · ID: 696205 ·
-        Pontos acumulados do site oficial
+        Pontos {isAccumulado ? 'acumulados do site oficial' : 'individuais deste GP'}
       </p>
 
       {!scores || scores.length === 0 ? (
@@ -96,20 +94,17 @@ export default async function PredictRankingPage({
               <tr className="text-xs text-gray-500 border-b border-gray-700 uppercase tracking-wider bg-f1gray/30">
                 <th className="text-center py-3 px-3 w-12">#</th>
                 <th className="text-left py-3 px-3">Membro</th>
-                {visibleGps.map((g: any) => (
-                  <th key={g.id} className="text-center py-3 px-2 hidden sm:table-cell">
-                    {g.emoji_bandeira}
-                  </th>
-                ))}
-                <th className="text-right py-3 px-4 text-white">Acumulado</th>
+                <th className="text-right py-3 px-4 text-white">
+                  {isAccumulado ? 'Acumulado' : 'Pontos GP'}
+                </th>
               </tr>
             </thead>
             <tbody>
-              {(scores as any[]).map((s: any, i: number) => {
+              {scores.map((s: any, i: number) => {
                 const member = s.members as { nickname: string; foto_url: string | null } | null
                 const name = member?.nickname ?? s.member_email.split('@')[0]
                 const playerHref = `/players/${encodeURIComponent(name)}`
-                const deltas = memberDeltas.get(s.member_email) ?? new Map<number, number>()
+                const displayPts = isAccumulado ? s.pontos_acum : s.pontos_gp
 
                 const st =
                   i === 0
@@ -126,7 +121,7 @@ export default async function PredictRankingPage({
                         name: 'text-gray-100',
                         score: 'text-gray-300',
                         av: 'bg-gray-400/15 text-gray-300',
-                        row: 'bg-gray-400/[0.04]  border-l-2 border-l-gray-400',
+                        row: 'bg-gray-400/[0.04] border-l-2 border-l-gray-400',
                       }
                     : i === 2
                     ? {
@@ -174,32 +169,9 @@ export default async function PredictRankingPage({
                         </div>
                       </div>
                     </td>
-                    {visibleGps.map((g: any) => {
-                      const delta = deltas.get(g.id)
-                      return (
-                        <td key={g.id} className="text-center py-4 px-2 hidden sm:table-cell">
-                          {delta !== undefined ? (
-                            <span
-                              className={`text-xs font-medium tabular-nums ${
-                                delta > 0
-                                  ? 'text-green-400'
-                                  : delta < 0
-                                  ? 'text-red-400'
-                                  : 'text-gray-600'
-                              }`}
-                            >
-                              {delta > 0 ? '+' : ''}
-                              {delta}
-                            </span>
-                          ) : (
-                            <span className="text-gray-700">—</span>
-                          )}
-                        </td>
-                      )
-                    })}
                     <td className="py-4 px-4 text-right">
                       <span className={`text-2xl font-bold tabular-nums ${st.score}`}>
-                        {s.pontos_acum}
+                        {displayPts}
                       </span>
                     </td>
                   </ClickableRow>
