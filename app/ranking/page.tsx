@@ -18,6 +18,7 @@ type RankingRow = {
   members: { nickname: string; foto_url: string | null } | null
 }
 
+// Acumulado view: show cumulative pts + normalised score
 function LeagueCell({ pts, gpts }: { pts: number; gpts: number }) {
   if (pts === 0)
     return (
@@ -28,9 +29,22 @@ function LeagueCell({ pts, gpts }: { pts: number; gpts: number }) {
   return (
     <td className="py-4 px-3 text-right hidden md:table-cell">
       <div className="text-white tabular-nums font-medium">{pts}</div>
-      <div className="text-xs text-gray-500 tabular-nums">
-        {Number(gpts).toFixed(1)}
-      </div>
+      <div className="text-xs text-gray-500 tabular-nums">{Number(gpts).toFixed(1)}</div>
+    </td>
+  )
+}
+
+// Per-GP view: show raw per-GP points only
+function LeagueCellGp({ pts }: { pts: number }) {
+  if (pts === 0)
+    return (
+      <td className="py-4 px-3 text-right hidden md:table-cell">
+        <span className="text-gray-700 text-sm">—</span>
+      </td>
+    )
+  return (
+    <td className="py-4 px-3 text-right hidden md:table-cell">
+      <div className="text-white tabular-nums font-medium">{pts}</div>
     </td>
   )
 }
@@ -50,24 +64,68 @@ export default async function GlobalRankingPage({
 
   const scoredGpsAsc = [...(scoredGps ?? [])].reverse()
 
-  const selectedGpId = searchParams.gp
+  // null = "Acumulado" (latest snapshot); specific ID = individual GP
+  const selectedGpId: number | null = searchParams.gp
     ? parseInt(searchParams.gp)
-    : scoredGps?.[0]?.id ?? null
+    : null
 
-  const selectedGp = scoredGps?.find((g: any) => g.id === selectedGpId)
+  const isAccumulado = selectedGpId === null
 
-  const { data: ranking } = selectedGpId
+  // For Acumulado: query latest GP snapshot; for per-GP: query that GP
+  const queryGpId = selectedGpId ?? (scoredGps?.[0]?.id ?? null)
+
+  const { data: currRows } = queryGpId
     ? await (supabase as any)
         .from('global_ranking')
         .select(
           'member_email, play_pts, fantasy_pts, predict_pts, play_gpts, fantasy_gpts, predict_gpts, global_score, n_ligas, members(nickname, foto_url)'
         )
-        .eq('gp_id', selectedGpId)
-        .order('global_score', { ascending: false })
-        .order('member_email', { ascending: true })
+        .eq('gp_id', queryGpId)
     : { data: null }
 
-  const rows = ranking as RankingRow[] | null
+  // For per-GP: fetch previous GP snapshot to compute deltas
+  let rows: any[] | null = null
+
+  if (currRows) {
+    if (isAccumulado) {
+      rows = [...currRows].sort((a: any, b: any) =>
+        b.global_score - a.global_score || a.member_email.localeCompare(b.member_email)
+      )
+    } else {
+      // Find previous GP
+      const selectedIdx = scoredGpsAsc.findIndex((g: any) => g.id === selectedGpId)
+      const prevGp = selectedIdx > 0 ? scoredGpsAsc[selectedIdx - 1] : null
+
+      // Fetch previous snapshot
+      const prevMap = new Map<string, { play_pts: number; fantasy_pts: number; predict_pts: number }>()
+      if (prevGp) {
+        const { data: prevRows } = await (supabase as any)
+          .from('global_ranking')
+          .select('member_email, play_pts, fantasy_pts, predict_pts')
+          .eq('gp_id', prevGp.id)
+        ;((prevRows ?? []) as any[]).forEach((r: any) => {
+          prevMap.set(r.member_email, {
+            play_pts: r.play_pts ?? 0,
+            fantasy_pts: r.fantasy_pts ?? 0,
+            predict_pts: r.predict_pts ?? 0,
+          })
+        })
+      }
+
+      rows = currRows
+        .map((r: any) => {
+          const prev = prevMap.get(r.member_email) ?? { play_pts: 0, fantasy_pts: 0, predict_pts: 0 }
+          const play_gp    = (r.play_pts    ?? 0) - prev.play_pts
+          const fantasy_gp = (r.fantasy_pts ?? 0) - prev.fantasy_pts
+          const predict_gp = (r.predict_pts ?? 0) - prev.predict_pts
+          const total_gp   = play_gp + fantasy_gp + predict_gp
+          return { ...r, play_gp, fantasy_gp, predict_gp, total_gp }
+        })
+        .sort((a: any, b: any) =>
+          b.total_gp - a.total_gp || a.member_email.localeCompare(b.member_email)
+        )
+    }
+  }
 
   return (
     <div>
@@ -84,16 +142,11 @@ export default async function GlobalRankingPage({
         />
       )}
 
-      {selectedGp && (
-        <p className="text-gray-400 text-sm mb-6">
-          Após R{String(selectedGp.round).padStart(2, '0')}{' '}
-          {selectedGp.emoji_bandeira} {selectedGp.nome}
-          <span className="text-gray-600">
-            {' '}
-            · Score normalizado 0–100 · média das 3 ligas
-          </span>
-        </p>
-      )}
+      <p className="text-gray-500 text-sm mb-6">
+        {isAccumulado
+          ? 'Score normalizado 0–100 · média das 3 ligas · acumulado'
+          : 'Pontos individuais deste GP por liga'}
+      </p>
 
       {!rows || rows.length === 0 ? (
         <div className="card text-center text-gray-500 py-16">
@@ -107,27 +160,22 @@ export default async function GlobalRankingPage({
                 <tr className="text-xs text-gray-500 border-b border-gray-700 uppercase tracking-wider bg-f1gray/30">
                   <th className="text-center py-3 px-3 w-12">#</th>
                   <th className="text-left py-3 px-3">Jogador</th>
-                  <th className="text-right py-3 px-3 hidden md:table-cell">
-                    Play
+                  <th className="text-right py-3 px-3 hidden md:table-cell">Play</th>
+                  <th className="text-right py-3 px-3 hidden md:table-cell">Fantasy</th>
+                  <th className="text-right py-3 px-3 hidden md:table-cell">Predict</th>
+                  <th className="text-right py-3 px-4 text-white">
+                    {isAccumulado ? 'Score' : 'Total GP'}
                   </th>
-                  <th className="text-right py-3 px-3 hidden md:table-cell">
-                    Fantasy
-                  </th>
-                  <th className="text-right py-3 px-3 hidden md:table-cell">
-                    Predict
-                  </th>
-                  <th className="text-right py-3 px-4 text-white">Score</th>
                 </tr>
               </thead>
 
               <tbody>
-                {(rows ?? []).map((r: any, i: number) => {
-                  const name =
-                    r.members?.nickname ?? r.member_email.split('@')[0]
+                {rows.map((r: any, i: number) => {
+                  const name = r.members?.nickname ?? r.member_email.split('@')[0]
                   const initial = name.charAt(0).toUpperCase()
                   const playerHref = `/players/${encodeURIComponent(name)}`
 
-                  const s =
+                  const st =
                     i === 0
                       ? {
                           ring: 'bg-yellow-400/10 text-yellow-400',
@@ -164,12 +212,10 @@ export default async function GlobalRankingPage({
                     <ClickableRow
                       key={r.member_email}
                       href={playerHref}
-                      className={`border-b border-gray-800/50 transition-colors hover:bg-white/[0.03] ${s.row}`}
+                      className={`border-b border-gray-800/50 transition-colors hover:bg-white/[0.03] ${st.row}`}
                     >
                       <td className="py-4 px-3 text-center">
-                        <span
-                          className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold ${s.ring}`}
-                        >
+                        <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold ${st.ring}`}>
                           {i + 1}
                         </span>
                       </td>
@@ -183,37 +229,40 @@ export default async function GlobalRankingPage({
                               className="w-9 h-9 rounded-full object-cover shrink-0 ring-1 ring-gray-700"
                             />
                           ) : (
-                            <div
-                              className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${s.av}`}
-                            >
+                            <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${st.av}`}>
                               {initial}
                             </div>
                           )}
                           <div className="min-w-0">
-                            <div
-                              className={`font-semibold truncate ${s.name}`}
-                            >
-                              {name}
-                            </div>
-                            {r.n_ligas < 3 && (
+                            <div className={`font-semibold truncate ${st.name}`}>{name}</div>
+                            {isAccumulado && r.n_ligas < 3 && (
                               <div className="text-xs text-gray-600 mt-0.5">
-                                {r.n_ligas} liga
-                                {r.n_ligas !== 1 ? 's' : ''}
+                                {r.n_ligas} liga{r.n_ligas !== 1 ? 's' : ''}
                               </div>
                             )}
                           </div>
                         </div>
                       </td>
 
-                      <LeagueCell pts={r.play_pts} gpts={r.play_gpts} />
-                      <LeagueCell pts={r.fantasy_pts} gpts={r.fantasy_gpts} />
-                      <LeagueCell pts={r.predict_pts} gpts={r.predict_gpts} />
+                      {isAccumulado ? (
+                        <>
+                          <LeagueCell pts={r.play_pts}    gpts={r.play_gpts} />
+                          <LeagueCell pts={r.fantasy_pts} gpts={r.fantasy_gpts} />
+                          <LeagueCell pts={r.predict_pts} gpts={r.predict_gpts} />
+                        </>
+                      ) : (
+                        <>
+                          <LeagueCellGp pts={r.play_gp} />
+                          <LeagueCellGp pts={r.fantasy_gp} />
+                          <LeagueCellGp pts={r.predict_gp} />
+                        </>
+                      )}
 
                       <td className="py-4 px-4 text-right">
-                        <span
-                          className={`text-2xl font-bold tabular-nums ${s.score}`}
-                        >
-                          {Number(r.global_score).toFixed(1)}
+                        <span className={`text-2xl font-bold tabular-nums ${st.score}`}>
+                          {isAccumulado
+                            ? Number(r.global_score).toFixed(1)
+                            : r.total_gp}
                         </span>
                       </td>
                     </ClickableRow>
@@ -224,7 +273,9 @@ export default async function GlobalRankingPage({
           </div>
 
           <p className="text-xs text-gray-600 mt-3 text-center">
-            Score = (Play% + Fantasy% + Predict%) ÷ 3 · Ausência = 0 · Máx 100.0
+            {isAccumulado
+              ? 'Score = (Play% + Fantasy% + Predict%) ÷ 3 · Ausência = 0 · Máx 100.0'
+              : 'Total GP = Play + Fantasy + Predict (pontos brutos deste GP)'}
           </p>
         </>
       )}

@@ -36,11 +36,12 @@ export default async function PlayRankingPage({
 
   const scoredGpsAsc = [...(scoredGps ?? [])].reverse()
 
-  const selectedGpId = searchParams.gp
+  // null = "Acumulado" (sum all GPs); specific ID = individual GP only
+  const selectedGpId: number | null = searchParams.gp
     ? parseInt(searchParams.gp)
-    : scoredGps?.[0]?.id ?? null
+    : null
 
-  const selectedGp = scoredGps?.find((g: any) => g.id === selectedGpId)
+  const isAccumulado = selectedGpId === null
 
   const scoredGpIds = (scoredGps ?? []).map((g: any) => g.id)
 
@@ -55,7 +56,8 @@ export default async function PlayRankingPage({
   const rowsMap = new Map<string, AggregatedRow>()
 
   ;((allScores ?? []) as PlayScoreRow[]).forEach((s: any) => {
-    if (!selectedGpId || s.gp_id > selectedGpId) return
+    // Acumulado: include all GPs. Per-GP: only include up to that GP
+    if (!isAccumulado && s.gp_id > selectedGpId!) return
 
     const member = s.members as { nickname: string; foto_url: string | null } | null
     const nickname = member?.nickname ?? s.member_email.split('@')[0]
@@ -74,21 +76,15 @@ export default async function PlayRankingPage({
 
     const row = rowsMap.get(s.member_email)!
     row.cumulative_total += s.total ?? 0
-
-    if ((s.total ?? 0) > 0) {
-      row.gps_played += 1
-    }
-
-    if (s.gp_id === selectedGpId) {
-      row.gp_total = s.total ?? 0
-    }
+    if ((s.total ?? 0) > 0) row.gps_played += 1
+    if (s.gp_id === selectedGpId) row.gp_total = s.total ?? 0
   })
 
   const rows = Array.from(rowsMap.values()).sort((a, b) => {
-    if (b.cumulative_total !== a.cumulative_total) {
-      return b.cumulative_total - a.cumulative_total
-    }
-    return a.nickname.localeCompare(b.nickname)
+    const primary = isAccumulado
+      ? b.cumulative_total - a.cumulative_total
+      : b.gp_total - a.gp_total
+    return primary || a.nickname.localeCompare(b.nickname)
   })
 
   return (
@@ -106,12 +102,9 @@ export default async function PlayRankingPage({
         />
       )}
 
-      {selectedGp && (
-        <p className="text-gray-400 text-sm mb-6">
-          Acumulado até R{String((selectedGp as any).round).padStart(2, '0')}{' '}
-          {(selectedGp as any).emoji_bandeira} {(selectedGp as any).nome}
-        </p>
-      )}
+      <p className="text-gray-500 text-sm mb-6">
+        Pontos {isAccumulado ? 'acumulados de todos os GPs' : 'individuais deste GP'}
+      </p>
 
       {!rows.length ? (
         <div className="card text-center text-gray-500 py-16">
@@ -124,9 +117,12 @@ export default async function PlayRankingPage({
               <tr className="text-xs text-gray-500 border-b border-gray-700 uppercase tracking-wider bg-f1gray/30">
                 <th className="text-center py-3 px-3 w-12">#</th>
                 <th className="text-left py-3 px-3">Jogador</th>
-                <th className="text-right py-3 px-3 hidden md:table-cell">GP</th>
-                <th className="text-right py-3 px-3 hidden md:table-cell">GPs</th>
-                <th className="text-right py-3 px-4 text-white">Total</th>
+                {isAccumulado && (
+                  <th className="text-right py-3 px-3 hidden md:table-cell">GPs</th>
+                )}
+                <th className="text-right py-3 px-4 text-white">
+                  {isAccumulado ? 'Total' : 'Pontos GP'}
+                </th>
               </tr>
             </thead>
 
@@ -134,8 +130,9 @@ export default async function PlayRankingPage({
               {rows.map((r: AggregatedRow, i: number) => {
                 const initial = r.nickname.charAt(0).toUpperCase()
                 const playerHref = `/players/${encodeURIComponent(r.nickname)}`
+                const displayPts = isAccumulado ? r.cumulative_total : r.gp_total
 
-                const s =
+                const st =
                   i === 0
                     ? {
                         ring: 'bg-yellow-400/10 text-yellow-400',
@@ -172,12 +169,10 @@ export default async function PlayRankingPage({
                   <ClickableRow
                     key={r.member_email}
                     href={playerHref}
-                    className={`border-b border-gray-800/50 transition-colors hover:bg-white/[0.03] ${s.row}`}
+                    className={`border-b border-gray-800/50 transition-colors hover:bg-white/[0.03] ${st.row}`}
                   >
                     <td className="py-4 px-3 text-center">
-                      <span
-                        className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold ${s.ring}`}
-                      >
+                      <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold ${st.ring}`}>
                         {i + 1}
                       </span>
                     </td>
@@ -191,40 +186,25 @@ export default async function PlayRankingPage({
                             className="w-9 h-9 rounded-full object-cover shrink-0 ring-1 ring-gray-700"
                           />
                         ) : (
-                          <div
-                            className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${s.av}`}
-                          >
+                          <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${st.av}`}>
                             {initial}
                           </div>
                         )}
-                        <div className="min-w-0">
-                          <div className={`font-semibold truncate ${s.name}`}>
-                            {r.nickname}
-                          </div>
-                          <div className="text-xs text-gray-600 mt-0.5">
-                            {r.member_email}
-                          </div>
+                        <div className="font-semibold truncate">
+                          <span className={st.name}>{r.nickname}</span>
                         </div>
                       </div>
                     </td>
 
-                    <td className="py-4 px-3 text-right hidden md:table-cell">
-                      <span className="tabular-nums text-gray-300">
-                        {r.gp_total}
-                      </span>
-                    </td>
-
-                    <td className="py-4 px-3 text-right hidden md:table-cell">
-                      <span className="tabular-nums text-gray-400">
-                        {r.gps_played}
-                      </span>
-                    </td>
+                    {isAccumulado && (
+                      <td className="py-4 px-3 text-right hidden md:table-cell">
+                        <span className="tabular-nums text-gray-400">{r.gps_played}</span>
+                      </td>
+                    )}
 
                     <td className="py-4 px-4 text-right">
-                      <span
-                        className={`text-2xl font-bold tabular-nums ${s.score}`}
-                      >
-                        {r.cumulative_total}
+                      <span className={`text-2xl font-bold tabular-nums ${st.score}`}>
+                        {displayPts}
                       </span>
                     </td>
                   </ClickableRow>
