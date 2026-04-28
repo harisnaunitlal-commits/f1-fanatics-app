@@ -55,19 +55,26 @@ export default function Navbar() {
           <span className="sm:hidden">BF1F</span>
         </Link>
 
-        <div className="hidden md:flex items-center gap-6">
+        <div className="hidden md:flex items-center gap-2">
           {nav.map(n => (
             <Link key={n.href} href={n.href}
-              className={`text-sm font-medium transition-colors ${
-                pathname === n.href ? 'text-f1red' : 'text-gray-300 hover:text-white'
+              className={`text-sm font-medium px-4 py-1.5 rounded-lg transition-colors ${
+                pathname === n.href || (n.href !== '/' && pathname.startsWith(n.href))
+                  ? 'bg-f1red text-white'
+                  : 'bg-f1gray text-gray-300 hover:bg-f1red/80 hover:text-white'
               }`}>
               {n.label}
             </Link>
           ))}
           {member?.is_admin && (
-            <Link href="/admin" className={`text-sm font-medium transition-colors ${
-              pathname.startsWith('/admin') ? 'text-f1red' : 'text-gray-300 hover:text-white'
-            }`}>Admin</Link>
+            <Link href="/admin"
+              className={`text-sm font-medium px-4 py-1.5 rounded-lg transition-colors ${
+                pathname.startsWith('/admin')
+                  ? 'bg-f1red text-white'
+                  : 'bg-f1gray text-gray-300 hover:bg-f1red/80 hover:text-white'
+              }`}>
+              Admin
+            </Link>
           )}
         </div>
 
@@ -95,16 +102,20 @@ export default function Navbar() {
       </div>
 
       {menuOpen && (
-        <div className="md:hidden border-t border-f1gray bg-f1dark px-4 py-3 space-y-3">
+        <div className="md:hidden border-t border-f1gray bg-f1dark px-4 py-3 flex flex-wrap gap-2">
           {nav.map(n => (
             <Link key={n.href} href={n.href} onClick={() => setMenuOpen(false)}
-              className={`block text-sm font-medium ${
-                pathname === n.href ? 'text-f1red' : 'text-gray-300'
+              className={`text-sm font-medium px-4 py-1.5 rounded-lg transition-colors ${
+                pathname === n.href || (n.href !== '/' && pathname.startsWith(n.href))
+                  ? 'bg-f1red text-white'
+                  : 'bg-f1gray text-gray-300'
               }`}>{n.label}</Link>
           ))}
           {member?.is_admin && (
             <Link href="/admin" onClick={() => setMenuOpen(false)}
-              className="block text-sm font-medium text-gray-300">Admin</Link>
+              className={`text-sm font-medium px-4 py-1.5 rounded-lg transition-colors ${
+                pathname.startsWith('/admin') ? 'bg-f1red text-white' : 'bg-f1gray text-gray-300'
+              }`}>Admin</Link>
           )}
         </div>
       )}
