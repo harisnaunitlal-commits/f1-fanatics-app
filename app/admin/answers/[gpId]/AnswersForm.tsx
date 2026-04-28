@@ -151,7 +151,7 @@ export default function AnswersForm({
     )
   }
 
-  function PilotoSel({ field, label }: { field: keyof FormData; label: string }) {
+  function PilotoSel({ field, label, includeNone = false }: { field: keyof FormData; label: string; includeNone?: boolean }) {
     const anuladas = form.perguntas_anuladas ?? []
     return (
       <div>
@@ -162,6 +162,7 @@ export default function AnswersForm({
           onChange={set(field)}
         >
           <option value="">Selecciona...</option>
+          {includeNone && <option value="NONE">Nenhum Piloto</option>}
           {PILOTOS_2026.map(p => <option key={p.codigo} value={p.codigo}>{p.nome} ({p.equipa})</option>)}
         </select>
       </div>
@@ -228,7 +229,7 @@ export default function AnswersForm({
         {/* P1 — Pódio */}
         <div className="card">
           <QHeader code="P1" title="Pódio" pts="3 pts" />
-          <p className="text-xs text-gray-500 mb-3">
+          <p className="text-xs text-yellow-400/80 mb-3">
             Qual é a previsão de pódio para o {gpNameFull}?
           </p>
           <div className="grid grid-cols-3 gap-3">
@@ -242,7 +243,7 @@ export default function AnswersForm({
         {/* P2 — Equipa */}
         <div className="card">
           <QHeader code="P2" title="Equipa" pts="1 pt" />
-          <p className="text-xs text-gray-500 mb-3">
+          <p className="text-xs text-yellow-400/80 mb-3">
             {config?.p2Label ?? `Qual será a segunda equipa, que vai pontuar mais no ${gpNameFull}?`}
           </p>
           <select
@@ -258,7 +259,7 @@ export default function AnswersForm({
         {/* P3 — Volta de Avanço */}
         <div className="card">
           <QHeader code="P3" title="Volta de Avanço" pts="1 pt" />
-          <p className="text-xs text-gray-500 mb-3">
+          <p className="text-xs text-yellow-400/80 mb-3">
             Quantos pilotos levaram a volta de avanço (LAP) no {gpNameFull}?
           </p>
           <select
@@ -274,7 +275,7 @@ export default function AnswersForm({
         {/* P4 — Posições 4-6 */}
         <div className="card">
           <QHeader code="P4" title="Posições 4-6" pts="3 pts" />
-          <p className="text-xs text-gray-500 mb-3">
+          <p className="text-xs text-yellow-400/80 mb-3">
             Classificados segundo a ordem, no {gpNameFull}.
           </p>
           <div className="grid grid-cols-3 gap-3">
@@ -288,7 +289,7 @@ export default function AnswersForm({
         {/* P5 — Duelo 1 */}
         <div className="card">
           <QHeader code="P5" title="Duelo 1" pts="1 pt" />
-          <p className="text-xs text-gray-500 mb-3">
+          <p className="text-xs text-yellow-400/80 mb-3">
             Qual piloto terminou na frente do outro no {gpNameFull}?
           </p>
           {config
@@ -306,7 +307,7 @@ export default function AnswersForm({
         {/* P6 — Duelo 2 */}
         <div className="card">
           <QHeader code="P6" title="Duelo 2" pts="1 pt" />
-          <p className="text-xs text-gray-500 mb-3">
+          <p className="text-xs text-yellow-400/80 mb-3">
             Qual piloto terminou na frente do outro no {gpNameFull}?
           </p>
           {config
@@ -324,7 +325,7 @@ export default function AnswersForm({
         {/* P7 — Duelo 3 */}
         <div className="card">
           <QHeader code="P7" title="Duelo 3" pts="1 pt" />
-          <p className="text-xs text-gray-500 mb-3">
+          <p className="text-xs text-yellow-400/80 mb-3">
             Qual piloto terminou na frente do outro no {gpNameFull}?
           </p>
           {config
@@ -342,7 +343,7 @@ export default function AnswersForm({
         {/* P8 — Margem de vitória */}
         <div className="card">
           <QHeader code="P8" title="Margem de Vitória" pts="1 pt" />
-          <p className="text-xs text-gray-500 mb-3">
+          <p className="text-xs text-yellow-400/80 mb-3">
             Qual foi a margem de victória, do prímeiro a cruzar a linha de chegada?
           </p>
           <select
@@ -358,17 +359,17 @@ export default function AnswersForm({
         {/* P9 — First to Retire */}
         <div className="card">
           <QHeader code="P9" title="First to Retire" pts="3 pts" />
-          <p className="text-xs text-gray-500 mb-3">
+          <p className="text-xs text-yellow-400/80 mb-3">
             Quem foi o primeiro piloto, First to Retire no {gpNameFull}?
           </p>
-          <PilotoSel field="p9_retire" label="Piloto (ou NONE se nenhum abandonou)" />
+          <PilotoSel field="p9_retire" label="Piloto" includeNone />
           <AnuladaCheck field="p9_retire" />
         </div>
 
         {/* P10 — Driver of the Day */}
         <div className="card">
           <QHeader code="P10" title="Driver of the Day" pts="2 pts" />
-          <p className="text-xs text-gray-500 mb-3">
+          <p className="text-xs text-yellow-400/80 mb-3">
             Quem foi o piloto eleito 'Driver of the Day' no {gpNameFull}?
           </p>
           <PilotoSel field="p10_dotd" label="Piloto" />
@@ -378,7 +379,7 @@ export default function AnswersForm({
         {/* P11 — Volta mais rápida */}
         <div className="card">
           <QHeader code="P11" title="Volta Mais Rápida" pts="1 pt" />
-          <p className="text-xs text-gray-500 mb-3">
+          <p className="text-xs text-yellow-400/80 mb-3">
             Qual piloto fez a volta mais rápida no {gpNameFull}?
           </p>
           <PilotoSel field="p11_fl" label="Piloto" />
@@ -388,7 +389,7 @@ export default function AnswersForm({
         {/* P12 — Nº classificados */}
         <div className="card">
           <QHeader code="P12" title="Nº de Classificados" pts="1 pt" />
-          <p className="text-xs text-gray-500 mb-3">
+          <p className="text-xs text-yellow-400/80 mb-3">
             Quantos pilotos classificados terminaram a corrida no {gpNameFull}?
           </p>
           <select
@@ -404,7 +405,7 @@ export default function AnswersForm({
         {/* P13 — Pergunta Especial */}
         <div className="card">
           <QHeader code="P13" title="Pergunta Especial" pts="1 pt" />
-          <p className="text-xs text-gray-500 mb-3">
+          <p className="text-xs text-yellow-400/80 mb-3">
             {config?.p13Label ?? "Qual piloto terminou na posição mais alta?"}
           </p>
           {config
@@ -422,7 +423,7 @@ export default function AnswersForm({
         {/* P14 — Safety Car */}
         <div className="card">
           <QHeader code="P14" title="Safety Car" pts="1 pt" />
-          <p className="text-xs text-gray-500 mb-3">
+          <p className="text-xs text-yellow-400/80 mb-3">
             Houve Safety Car na pista durante o {gpNameFull}?
           </p>
           <div className="grid grid-cols-2 gap-3">
@@ -447,7 +448,7 @@ export default function AnswersForm({
         {/* P15 — Outsider */}
         <div className="card">
           <QHeader code="P15" title="Outsider" pts="1 pt" />
-          <p className="text-xs text-gray-500 mb-3">
+          <p className="text-xs text-yellow-400/80 mb-3">
             {config?.p15Label ?? "Qual piloto terminou na posição mais alta?"}
           </p>
           {config
