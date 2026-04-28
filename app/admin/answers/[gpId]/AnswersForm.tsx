@@ -260,20 +260,31 @@ export default function AnswersForm({
 
       <form onSubmit={handleSubmit} className="space-y-5">
 
-        {/* P1 — Pódio */}
+        {/* P1 — Top 6 Classificados (formerly P1 + P4) */}
         <div className="card">
-          <QHeader code="P1" title="Pódio" pts="3 pts" />
+          <QHeader code="P1" title="Top 6 Classificados" pts="6 pts" />
           <p className="text-xs text-yellow-400/80 mb-3">
-            Qual é a previsão de pódio para o {gpNameFull}?
+            Qual é a previsão para os 6 primeiros classificados do {gpNameFull}?
           </p>
-          <div className="grid grid-cols-3 gap-3">
-            <PilotoSel label="1º lugar" value={form.p1_primeiro ?? ''} onChange={setField('p1_primeiro')} disabled={anuladas.includes('p1_primeiro')}
-              excludeCodes={[form.p1_segundo, form.p1_terceiro].filter(Boolean) as string[]} />
-            <PilotoSel label="2º lugar" value={form.p1_segundo  ?? ''} onChange={setField('p1_segundo')}  disabled={anuladas.includes('p1_primeiro')}
-              excludeCodes={[form.p1_primeiro, form.p1_terceiro].filter(Boolean) as string[]} />
-            <PilotoSel label="3º lugar" value={form.p1_terceiro ?? ''} onChange={setField('p1_terceiro')} disabled={anuladas.includes('p1_primeiro')}
-              excludeCodes={[form.p1_primeiro, form.p1_segundo].filter(Boolean) as string[]} />
-          </div>
+          {(() => {
+            const all6 = [
+              form.p1_primeiro, form.p1_segundo, form.p1_terceiro,
+              form.p4_quarto,   form.p4_quinto,  form.p4_sexto,
+            ]
+            const excl = (own: string | null) =>
+              all6.filter(v => v && v !== own) as string[]
+            const dis = anuladas.includes('p1_primeiro')
+            return (
+              <div className="grid grid-cols-3 gap-3">
+                <PilotoSel label="1º lugar" value={form.p1_primeiro ?? ''} onChange={setField('p1_primeiro')} disabled={dis} excludeCodes={excl(form.p1_primeiro)} />
+                <PilotoSel label="2º lugar" value={form.p1_segundo  ?? ''} onChange={setField('p1_segundo')}  disabled={dis} excludeCodes={excl(form.p1_segundo)} />
+                <PilotoSel label="3º lugar" value={form.p1_terceiro ?? ''} onChange={setField('p1_terceiro')} disabled={dis} excludeCodes={excl(form.p1_terceiro)} />
+                <PilotoSel label="4º lugar" value={form.p4_quarto   ?? ''} onChange={setField('p4_quarto')}   disabled={dis} excludeCodes={excl(form.p4_quarto)} />
+                <PilotoSel label="5º lugar" value={form.p4_quinto   ?? ''} onChange={setField('p4_quinto')}   disabled={dis} excludeCodes={excl(form.p4_quinto)} />
+                <PilotoSel label="6º lugar" value={form.p4_sexto    ?? ''} onChange={setField('p4_sexto')}    disabled={dis} excludeCodes={excl(form.p4_sexto)} />
+              </div>
+            )
+          })()}
           <AnuladaCheck field="p1_primeiro" anuladas={anuladas} onToggle={toggleAnulada} />
         </div>
 
@@ -307,23 +318,6 @@ export default function AnswersForm({
             {(config?.p3Options ?? P3_OPTIONS).map(o => <option key={o} value={o}>{o}</option>)}
           </select>
           <AnuladaCheck field="p3_lap" anuladas={anuladas} onToggle={toggleAnulada} />
-        </div>
-
-        {/* P4 — Posições 4-6 */}
-        <div className="card">
-          <QHeader code="P4" title="Posições 4-6" pts="3 pts" />
-          <p className="text-xs text-yellow-400/80 mb-3">
-            Classificados segundo a ordem, no {gpNameFull}.
-          </p>
-          <div className="grid grid-cols-3 gap-3">
-            <PilotoSel label="4º lugar" value={form.p4_quarto ?? ''} onChange={setField('p4_quarto')} disabled={anuladas.includes('p4_quarto')}
-              excludeCodes={[form.p4_quinto, form.p4_sexto].filter(Boolean) as string[]} />
-            <PilotoSel label="5º lugar" value={form.p4_quinto ?? ''} onChange={setField('p4_quinto')} disabled={anuladas.includes('p4_quarto')}
-              excludeCodes={[form.p4_quarto, form.p4_sexto].filter(Boolean) as string[]} />
-            <PilotoSel label="6º lugar" value={form.p4_sexto  ?? ''} onChange={setField('p4_sexto')}  disabled={anuladas.includes('p4_quarto')}
-              excludeCodes={[form.p4_quarto, form.p4_quinto].filter(Boolean) as string[]} />
-          </div>
-          <AnuladaCheck field="p4_quarto" anuladas={anuladas} onToggle={toggleAnulada} />
         </div>
 
         {/* P5 — Duelo 1 */}

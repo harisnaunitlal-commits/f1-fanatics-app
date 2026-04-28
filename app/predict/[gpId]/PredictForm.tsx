@@ -285,20 +285,30 @@ export default function PredictForm({
       <form onSubmit={handleSubmit} className="space-y-5">
         {error && <p className="text-red-400 bg-red-900/20 rounded-lg px-4 py-3">{error}</p>}
 
-        {/* P1 — Pódio */}
+        {/* P1 — Top 6 Classificados (formerly P1 + P4) */}
         <div className="card">
-          <QHeader code="P1" title="Pódio" pts="3 pts" />
+          <QHeader code="P1" title="Top 6 Classificados" pts="6 pts" />
           <p className="text-sm text-yellow-400/80 mb-4">
-            Qual é a sua previsão de pódio para o {gpNameFull}?
+            Qual é a sua previsão para os 6 primeiros classificados do {gpNameFull}?
           </p>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <PilotoSelect label="1º lugar" value={form.p1_primeiro ?? ''} onChange={v => setField('p1_primeiro', v)}
-              excludeCodes={[form.p1_segundo, form.p1_terceiro].filter(Boolean) as string[]} />
-            <PilotoSelect label="2º lugar" value={form.p1_segundo ?? ''}  onChange={v => setField('p1_segundo', v)}
-              excludeCodes={[form.p1_primeiro, form.p1_terceiro].filter(Boolean) as string[]} />
-            <PilotoSelect label="3º lugar" value={form.p1_terceiro ?? ''} onChange={v => setField('p1_terceiro', v)}
-              excludeCodes={[form.p1_primeiro, form.p1_segundo].filter(Boolean) as string[]} />
-          </div>
+          {(() => {
+            const all6 = [
+              form.p1_primeiro, form.p1_segundo, form.p1_terceiro,
+              form.p4_quarto,   form.p4_quinto,  form.p4_sexto,
+            ]
+            const exclude = (own: string | null) =>
+              all6.filter(v => v && v !== own) as string[]
+            return (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <PilotoSelect label="1º lugar" value={form.p1_primeiro ?? ''} onChange={v => setField('p1_primeiro', v)} excludeCodes={exclude(form.p1_primeiro)} />
+                <PilotoSelect label="2º lugar" value={form.p1_segundo  ?? ''} onChange={v => setField('p1_segundo',  v)} excludeCodes={exclude(form.p1_segundo)} />
+                <PilotoSelect label="3º lugar" value={form.p1_terceiro ?? ''} onChange={v => setField('p1_terceiro', v)} excludeCodes={exclude(form.p1_terceiro)} />
+                <PilotoSelect label="4º lugar" value={form.p4_quarto   ?? ''} onChange={v => setField('p4_quarto',   v)} excludeCodes={exclude(form.p4_quarto)} />
+                <PilotoSelect label="5º lugar" value={form.p4_quinto   ?? ''} onChange={v => setField('p4_quinto',   v)} excludeCodes={exclude(form.p4_quinto)} />
+                <PilotoSelect label="6º lugar" value={form.p4_sexto    ?? ''} onChange={v => setField('p4_sexto',    v)} excludeCodes={exclude(form.p4_sexto)} />
+              </div>
+            )
+          })()}
         </div>
 
         {/* P2 — 2ª / 3ª Equipa */}
@@ -328,22 +338,6 @@ export default function PredictForm({
               <option value="">Selecciona...</option>
               {(config?.p3Options ?? P3_OPTIONS).map(o => <option key={o} value={o}>{o}</option>)}
             </select>
-          </div>
-        </div>
-
-        {/* P4 — Posições 4-6 */}
-        <div className="card">
-          <QHeader code="P4" title="Posições 4-6" pts="3 pts" />
-          <p className="text-sm text-yellow-400/80 mb-4">
-            Escolha os classificados segundo a ordem abaixo, para o {gpNameFull}?
-          </p>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <PilotoSelect label="4º lugar" value={form.p4_quarto ?? ''} onChange={v => setField('p4_quarto', v)}
-              excludeCodes={[form.p4_quinto, form.p4_sexto].filter(Boolean) as string[]} />
-            <PilotoSelect label="5º lugar" value={form.p4_quinto ?? ''} onChange={v => setField('p4_quinto', v)}
-              excludeCodes={[form.p4_quarto, form.p4_sexto].filter(Boolean) as string[]} />
-            <PilotoSelect label="6º lugar" value={form.p4_sexto ?? ''}  onChange={v => setField('p4_sexto', v)}
-              excludeCodes={[form.p4_quarto, form.p4_quinto].filter(Boolean) as string[]} />
           </div>
         </div>
 
