@@ -296,36 +296,77 @@ export default async function HomePage() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+
+        {/* F1 Play Fanatics */}
         <div className="card text-center flex flex-col items-center">
           <div className="h-16 w-full flex items-center justify-center mb-3">
             <img src="/logos/f1-play.png" alt="F1 Play" className="h-14 w-auto object-contain rounded-xl" />
           </div>
           <div className="font-bold">F1 Play Fanatics</div>
           <div className="text-xs text-gray-500 mt-1">15 previsões · máx 20 pts por GP</div>
-          <Link href="/ranking/play" className="text-f1red text-sm mt-2 block hover:underline">
+          <Link href="/ranking/play" className="text-f1red text-sm mt-3 block hover:underline">
             Ver ranking
           </Link>
         </div>
+
+        {/* F1 Fantasy */}
         <div className="card text-center flex flex-col items-center">
-          <div className="h-16 w-full flex items-center justify-center mb-3">
+          {/* Logo → join link */}
+          <a
+            href="https://fantasy.formula1.com/en/leagues/join/C57XPPKP703"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="h-16 w-full flex items-center justify-center mb-3 hover:opacity-80 transition-opacity"
+            title="Juntar à liga F1 Fantasy"
+          >
             <img src="/logos/f1-fantasy.jpg" alt="F1 Fantasy" className="h-14 w-auto object-contain rounded-xl" />
-          </div>
+          </a>
           <div className="font-bold">F1 Fantasy</div>
-          <div className="text-xs text-gray-500 mt-1">fantasy.formula1.com · C57XPPKP703</div>
+          {/* League code highlighted */}
+          <a
+            href="https://fantasy.formula1.com/en/leagues/join/C57XPPKP703"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-2 px-3 py-1 rounded-lg bg-f1red/10 border border-f1red/30 hover:bg-f1red/20 transition-colors"
+          >
+            <span className="text-xs text-gray-400">Código: </span>
+            <span className="text-sm font-black text-yellow-400 tracking-widest">C57XPPKP703</span>
+          </a>
+          <div className="text-xs text-gray-600 mt-1">fantasy.formula1.com</div>
           <Link href="/ranking/fantasy" className="text-f1red text-sm mt-2 block hover:underline">
             Ver ranking
           </Link>
         </div>
+
+        {/* F1 Predict */}
         <div className="card text-center flex flex-col items-center">
-          <div className="h-16 w-full flex items-center justify-center mb-3">
+          {/* Logo → join link */}
+          <a
+            href="https://f1predict.formula1.com/en/leagues/join/C4MIFTXAH05"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="h-16 w-full flex items-center justify-center mb-3 hover:opacity-80 transition-opacity"
+            title="Juntar à liga F1 Predict"
+          >
             <img src="/logos/f1-predict.jpg" alt="F1 Predict" className="h-14 w-auto object-contain rounded-xl" />
-          </div>
+          </a>
           <div className="font-bold">F1 Predict</div>
-          <div className="text-xs text-gray-500 mt-1">f1predict.formula1.com · C4MIFTXAH05</div>
+          {/* League code highlighted */}
+          <a
+            href="https://f1predict.formula1.com/en/leagues/join/C4MIFTXAH05"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-2 px-3 py-1 rounded-lg bg-f1red/10 border border-f1red/30 hover:bg-f1red/20 transition-colors"
+          >
+            <span className="text-xs text-gray-400">Código: </span>
+            <span className="text-sm font-black text-yellow-400 tracking-widest">C4MIFTXAH05</span>
+          </a>
+          <div className="text-xs text-gray-600 mt-1">f1predict.formula1.com</div>
           <Link href="/ranking/predict" className="text-f1red text-sm mt-2 block hover:underline">
             Ver ranking
           </Link>
         </div>
+
       </div>
     </div>
   )
