@@ -13,6 +13,61 @@ import type { GpCalendar, GpAnswers } from '@/lib/supabase/types'
 
 type FormData = Omit<GpAnswers, 'gp_id' | 'inserido_por' | 'inserido_em'>
 
+// ─── All helper components OUTSIDE the main component ─────────────────────────
+// (defining them inside causes React to remount on every render → dropdowns close)
+
+function QHeader({ code, title, pts }: { code: string; title: string; pts: string }) {
+  return (
+    <div className="flex items-baseline justify-between mb-1">
+      <h3 className="font-bold text-f1red">{code} · {title}</h3>
+      <span className="text-xs font-bold text-yellow-400">{pts}</span>
+    </div>
+  )
+}
+
+function AnuladaCheck({ field, anuladas, onToggle }: {
+  field: string
+  anuladas: string[]
+  onToggle: (f: string) => void
+}) {
+  return (
+    <label className="flex items-center gap-2 text-xs text-gray-500 cursor-pointer mt-2">
+      <input
+        type="checkbox"
+        checked={anuladas.includes(field)}
+        onChange={() => onToggle(field)}
+        className="rounded"
+      />
+      Anular esta pergunta (0 pts para todos)
+    </label>
+  )
+}
+
+function PilotoSel({ label, value, onChange, includeNone = false, disabled = false }: {
+  label: string
+  value: string
+  onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void
+  includeNone?: boolean
+  disabled?: boolean
+}) {
+  return (
+    <div>
+      <label className="label">{label}</label>
+      <select
+        className={`select ${disabled ? 'opacity-40' : ''}`}
+        value={value}
+        onChange={onChange}
+      >
+        <option value="">Selecciona...</option>
+        {includeNone && <option value="NONE">Nenhum Piloto</option>}
+        {PILOTOS_2026.map(p => (
+          <option key={p.codigo} value={p.codigo}>{p.nome} ({p.equipa})</option>
+        ))}
+      </select>
+    </div>
+  )
+}
+
 // ─── Driver Photo Card ─────────────────────────────────────────────────────────
 function DriverCard({
   codigo, name, team, color, selected, onClick,
@@ -132,50 +187,23 @@ export default function AnswersForm({
     perguntas_anuladas: existing?.perguntas_anuladas ?? [],
   })
 
-  const set = (k: keyof FormData) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
-    setForm(f => ({ ...f, [k]: e.target.value || null }))
+  const anuladas = form.perguntas_anuladas ?? []
+
+  function setField(k: keyof FormData) {
+    return (e: React.ChangeEvent<HTMLSelectElement>) =>
+      setForm(f => ({ ...f, [k]: e.target.value || null }))
+  }
 
   function toggleAnulada(field: string) {
     setForm(f => {
       const cur = f.perguntas_anuladas ?? []
-      return { ...f, perguntas_anuladas: cur.includes(field) ? cur.filter(x => x !== field) : [...cur, field] }
+      return {
+        ...f,
+        perguntas_anuladas: cur.includes(field)
+          ? cur.filter(x => x !== field)
+          : [...cur, field],
+      }
     })
-  }
-
-  function AnuladaCheck({ field }: { field: string }) {
-    return (
-      <label className="flex items-center gap-2 text-xs text-gray-500 cursor-pointer mt-2">
-        <input type="checkbox" checked={(form.perguntas_anuladas ?? []).includes(field)} onChange={() => toggleAnulada(field)} className="rounded" />
-        Anular esta pergunta (0 pts para todos)
-      </label>
-    )
-  }
-
-  function PilotoSel({ field, label, includeNone = false }: { field: keyof FormData; label: string; includeNone?: boolean }) {
-    const anuladas = form.perguntas_anuladas ?? []
-    return (
-      <div>
-        <label className="label">{label}</label>
-        <select
-          className={`select ${anuladas.includes(field as string) ? 'opacity-40' : ''}`}
-          value={(form[field] as string) ?? ''}
-          onChange={set(field)}
-        >
-          <option value="">Selecciona...</option>
-          {includeNone && <option value="NONE">Nenhum Piloto</option>}
-          {PILOTOS_2026.map(p => <option key={p.codigo} value={p.codigo}>{p.nome} ({p.equipa})</option>)}
-        </select>
-      </div>
-    )
-  }
-
-  function QHeader({ code, title, pts }: { code: string; title: string; pts: string }) {
-    return (
-      <div className="flex items-baseline justify-between mb-1">
-        <h3 className="font-bold text-f1red">{code} · {title}</h3>
-        <span className="text-xs font-bold text-yellow-400">{pts}</span>
-      </div>
-    )
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -187,12 +215,14 @@ export default function AnswersForm({
 
     if (upsertErr) { setError(upsertErr.message); setLoading(false); return }
 
-    await (supabase as any).from('audit_log').insert({
-      admin_email: adminEmail,
-      accao: existing ? 'update_answers' : 'insert_answers',
-      tabela: 'gp_answers',
-      detalhe: { gp_id: gp.id, gp_nome: gp.nome },
-    })
+    try {
+      await (supabase as any).from('audit_log').insert({
+        admin_email: adminEmail,
+        accao: existing ? 'update_answers' : 'insert_answers',
+        tabela: 'gp_answers',
+        detalhe: { gp_id: gp.id, gp_nome: gp.nome },
+      })
+    } catch (_) { /* ignore audit errors */ }
 
     setSuccess(true)
     setTimeout(() => router.push(`/admin/scores/${gp.id}`), 1500)
@@ -208,8 +238,6 @@ export default function AnswersForm({
       </div>
     )
   }
-
-  const anuladas = form.perguntas_anuladas ?? []
 
   return (
     <div className="max-w-2xl mx-auto pb-12">
@@ -233,11 +261,11 @@ export default function AnswersForm({
             Qual é a previsão de pódio para o {gpNameFull}?
           </p>
           <div className="grid grid-cols-3 gap-3">
-            <PilotoSel field="p1_primeiro" label="1º lugar" />
-            <PilotoSel field="p1_segundo"  label="2º lugar" />
-            <PilotoSel field="p1_terceiro" label="3º lugar" />
+            <PilotoSel label="1º lugar" value={form.p1_primeiro ?? ''} onChange={setField('p1_primeiro')} disabled={anuladas.includes('p1_primeiro')} />
+            <PilotoSel label="2º lugar" value={form.p1_segundo  ?? ''} onChange={setField('p1_segundo')}  disabled={anuladas.includes('p1_primeiro')} />
+            <PilotoSel label="3º lugar" value={form.p1_terceiro ?? ''} onChange={setField('p1_terceiro')} disabled={anuladas.includes('p1_primeiro')} />
           </div>
-          <AnuladaCheck field="p1_primeiro" />
+          <AnuladaCheck field="p1_primeiro" anuladas={anuladas} onToggle={toggleAnulada} />
         </div>
 
         {/* P2 — Equipa */}
@@ -248,12 +276,12 @@ export default function AnswersForm({
           </p>
           <select
             className={`select ${anuladas.includes('p2_equipa') ? 'opacity-40' : ''}`}
-            value={form.p2_equipa ?? ''} onChange={set('p2_equipa')}
+            value={form.p2_equipa ?? ''} onChange={setField('p2_equipa')}
           >
             <option value="">Selecciona...</option>
             {EQUIPAS_2026.map(e => <option key={e} value={e}>{e}</option>)}
           </select>
-          <AnuladaCheck field="p2_equipa" />
+          <AnuladaCheck field="p2_equipa" anuladas={anuladas} onToggle={toggleAnulada} />
         </div>
 
         {/* P3 — Volta de Avanço */}
@@ -264,12 +292,12 @@ export default function AnswersForm({
           </p>
           <select
             className={`select ${anuladas.includes('p3_lap') ? 'opacity-40' : ''}`}
-            value={form.p3_lap ?? ''} onChange={set('p3_lap')}
+            value={form.p3_lap ?? ''} onChange={setField('p3_lap')}
           >
             <option value="">Selecciona...</option>
             {(config?.p3Options ?? P3_OPTIONS).map(o => <option key={o} value={o}>{o}</option>)}
           </select>
-          <AnuladaCheck field="p3_lap" />
+          <AnuladaCheck field="p3_lap" anuladas={anuladas} onToggle={toggleAnulada} />
         </div>
 
         {/* P4 — Posições 4-6 */}
@@ -279,11 +307,11 @@ export default function AnswersForm({
             Classificados segundo a ordem, no {gpNameFull}.
           </p>
           <div className="grid grid-cols-3 gap-3">
-            <PilotoSel field="p4_quarto" label="4º lugar" />
-            <PilotoSel field="p4_quinto" label="5º lugar" />
-            <PilotoSel field="p4_sexto"  label="6º lugar" />
+            <PilotoSel label="4º lugar" value={form.p4_quarto ?? ''} onChange={setField('p4_quarto')} disabled={anuladas.includes('p4_quarto')} />
+            <PilotoSel label="5º lugar" value={form.p4_quinto ?? ''} onChange={setField('p4_quinto')} disabled={anuladas.includes('p4_quarto')} />
+            <PilotoSel label="6º lugar" value={form.p4_sexto  ?? ''} onChange={setField('p4_sexto')}  disabled={anuladas.includes('p4_quarto')} />
           </div>
-          <AnuladaCheck field="p4_quarto" />
+          <AnuladaCheck field="p4_quarto" anuladas={anuladas} onToggle={toggleAnulada} />
         </div>
 
         {/* P5 — Duelo 1 */}
@@ -293,15 +321,10 @@ export default function AnswersForm({
             Qual piloto terminou na frente do outro no {gpNameFull}?
           </p>
           {config
-            ? <>
-                <DuelSelector cfg={config.p5} value={form.p5_duelo ?? ''} onChange={v => setForm(f => ({ ...f, p5_duelo: v }))} />
-                <AnuladaCheck field="p5_duelo" />
-              </>
-            : <>
-                <PilotoSel field="p5_duelo" label="Vencedor" />
-                <AnuladaCheck field="p5_duelo" />
-              </>
+            ? <DuelSelector cfg={config.p5} value={form.p5_duelo ?? ''} onChange={v => setForm(f => ({ ...f, p5_duelo: v }))} />
+            : <PilotoSel label="Vencedor" value={form.p5_duelo ?? ''} onChange={setField('p5_duelo')} disabled={anuladas.includes('p5_duelo')} />
           }
+          <AnuladaCheck field="p5_duelo" anuladas={anuladas} onToggle={toggleAnulada} />
         </div>
 
         {/* P6 — Duelo 2 */}
@@ -311,15 +334,10 @@ export default function AnswersForm({
             Qual piloto terminou na frente do outro no {gpNameFull}?
           </p>
           {config
-            ? <>
-                <DuelSelector cfg={config.p6} value={form.p6_duelo ?? ''} onChange={v => setForm(f => ({ ...f, p6_duelo: v }))} />
-                <AnuladaCheck field="p6_duelo" />
-              </>
-            : <>
-                <PilotoSel field="p6_duelo" label="Vencedor" />
-                <AnuladaCheck field="p6_duelo" />
-              </>
+            ? <DuelSelector cfg={config.p6} value={form.p6_duelo ?? ''} onChange={v => setForm(f => ({ ...f, p6_duelo: v }))} />
+            : <PilotoSel label="Vencedor" value={form.p6_duelo ?? ''} onChange={setField('p6_duelo')} disabled={anuladas.includes('p6_duelo')} />
           }
+          <AnuladaCheck field="p6_duelo" anuladas={anuladas} onToggle={toggleAnulada} />
         </div>
 
         {/* P7 — Duelo 3 */}
@@ -329,15 +347,10 @@ export default function AnswersForm({
             Qual piloto terminou na frente do outro no {gpNameFull}?
           </p>
           {config
-            ? <>
-                <DuelSelector cfg={config.p7} value={form.p7_duelo ?? ''} onChange={v => setForm(f => ({ ...f, p7_duelo: v }))} />
-                <AnuladaCheck field="p7_duelo" />
-              </>
-            : <>
-                <PilotoSel field="p7_duelo" label="Vencedor" />
-                <AnuladaCheck field="p7_duelo" />
-              </>
+            ? <DuelSelector cfg={config.p7} value={form.p7_duelo ?? ''} onChange={v => setForm(f => ({ ...f, p7_duelo: v }))} />
+            : <PilotoSel label="Vencedor" value={form.p7_duelo ?? ''} onChange={setField('p7_duelo')} disabled={anuladas.includes('p7_duelo')} />
           }
+          <AnuladaCheck field="p7_duelo" anuladas={anuladas} onToggle={toggleAnulada} />
         </div>
 
         {/* P8 — Margem de vitória */}
@@ -348,12 +361,12 @@ export default function AnswersForm({
           </p>
           <select
             className={`select ${anuladas.includes('p8_margem') ? 'opacity-40' : ''}`}
-            value={form.p8_margem ?? ''} onChange={set('p8_margem')}
+            value={form.p8_margem ?? ''} onChange={setField('p8_margem')}
           >
             <option value="">Selecciona...</option>
             {P8_MARGENS.map(m => <option key={m} value={m}>{m}</option>)}
           </select>
-          <AnuladaCheck field="p8_margem" />
+          <AnuladaCheck field="p8_margem" anuladas={anuladas} onToggle={toggleAnulada} />
         </div>
 
         {/* P9 — First to Retire */}
@@ -362,8 +375,8 @@ export default function AnswersForm({
           <p className="text-xs text-yellow-400/80 mb-3">
             Quem foi o primeiro piloto, First to Retire no {gpNameFull}?
           </p>
-          <PilotoSel field="p9_retire" label="Piloto" includeNone />
-          <AnuladaCheck field="p9_retire" />
+          <PilotoSel label="Piloto" value={form.p9_retire ?? ''} onChange={setField('p9_retire')} includeNone disabled={anuladas.includes('p9_retire')} />
+          <AnuladaCheck field="p9_retire" anuladas={anuladas} onToggle={toggleAnulada} />
         </div>
 
         {/* P10 — Driver of the Day */}
@@ -372,8 +385,8 @@ export default function AnswersForm({
           <p className="text-xs text-yellow-400/80 mb-3">
             Quem foi o piloto eleito 'Driver of the Day' no {gpNameFull}?
           </p>
-          <PilotoSel field="p10_dotd" label="Piloto" />
-          <AnuladaCheck field="p10_dotd" />
+          <PilotoSel label="Piloto" value={form.p10_dotd ?? ''} onChange={setField('p10_dotd')} disabled={anuladas.includes('p10_dotd')} />
+          <AnuladaCheck field="p10_dotd" anuladas={anuladas} onToggle={toggleAnulada} />
         </div>
 
         {/* P11 — Volta mais rápida */}
@@ -382,8 +395,8 @@ export default function AnswersForm({
           <p className="text-xs text-yellow-400/80 mb-3">
             Qual piloto fez a volta mais rápida no {gpNameFull}?
           </p>
-          <PilotoSel field="p11_fl" label="Piloto" />
-          <AnuladaCheck field="p11_fl" />
+          <PilotoSel label="Piloto" value={form.p11_fl ?? ''} onChange={setField('p11_fl')} disabled={anuladas.includes('p11_fl')} />
+          <AnuladaCheck field="p11_fl" anuladas={anuladas} onToggle={toggleAnulada} />
         </div>
 
         {/* P12 — Nº classificados */}
@@ -394,12 +407,12 @@ export default function AnswersForm({
           </p>
           <select
             className={`select ${anuladas.includes('p12_classif') ? 'opacity-40' : ''}`}
-            value={form.p12_classif ?? ''} onChange={set('p12_classif')}
+            value={form.p12_classif ?? ''} onChange={setField('p12_classif')}
           >
             <option value="">Selecciona...</option>
             {P12_OPTIONS.map(o => <option key={o} value={o}>{o}</option>)}
           </select>
-          <AnuladaCheck field="p12_classif" />
+          <AnuladaCheck field="p12_classif" anuladas={anuladas} onToggle={toggleAnulada} />
         </div>
 
         {/* P13 — Pergunta Especial */}
@@ -409,15 +422,10 @@ export default function AnswersForm({
             {config?.p13Label ?? "Qual piloto terminou na posição mais alta?"}
           </p>
           {config
-            ? <>
-                <DriverGrid options={config.p13Options} value={form.p13_especial ?? ''} onChange={v => setForm(f => ({ ...f, p13_especial: v }))} />
-                <AnuladaCheck field="p13_especial" />
-              </>
-            : <>
-                <PilotoSel field="p13_especial" label="Piloto" />
-                <AnuladaCheck field="p13_especial" />
-              </>
+            ? <DriverGrid options={config.p13Options} value={form.p13_especial ?? ''} onChange={v => setForm(f => ({ ...f, p13_especial: v }))} />
+            : <PilotoSel label="Piloto" value={form.p13_especial ?? ''} onChange={setField('p13_especial')} disabled={anuladas.includes('p13_especial')} />
           }
+          <AnuladaCheck field="p13_especial" anuladas={anuladas} onToggle={toggleAnulada} />
         </div>
 
         {/* P14 — Safety Car */}
@@ -427,7 +435,7 @@ export default function AnswersForm({
             Houve Safety Car na pista durante o {gpNameFull}?
           </p>
           <div className="grid grid-cols-2 gap-3">
-            {['Sim','Não'].map(opt => (
+            {(['Sim', 'Não'] as const).map(opt => (
               <button
                 key={opt} type="button"
                 onClick={() => setForm(f => ({ ...f, p14_sc: opt }))}
@@ -442,7 +450,7 @@ export default function AnswersForm({
               </button>
             ))}
           </div>
-          <AnuladaCheck field="p14_sc" />
+          <AnuladaCheck field="p14_sc" anuladas={anuladas} onToggle={toggleAnulada} />
         </div>
 
         {/* P15 — Outsider */}
@@ -452,15 +460,10 @@ export default function AnswersForm({
             {config?.p15Label ?? "Qual piloto terminou na posição mais alta?"}
           </p>
           {config
-            ? <>
-                <DriverGrid options={config.p15Options} value={form.p15_outsider ?? ''} onChange={v => setForm(f => ({ ...f, p15_outsider: v }))} />
-                <AnuladaCheck field="p15_outsider" />
-              </>
-            : <>
-                <PilotoSel field="p15_outsider" label="Piloto" />
-                <AnuladaCheck field="p15_outsider" />
-              </>
+            ? <DriverGrid options={config.p15Options} value={form.p15_outsider ?? ''} onChange={v => setForm(f => ({ ...f, p15_outsider: v }))} />
+            : <PilotoSel label="Piloto" value={form.p15_outsider ?? ''} onChange={setField('p15_outsider')} disabled={anuladas.includes('p15_outsider')} />
           }
+          <AnuladaCheck field="p15_outsider" anuladas={anuladas} onToggle={toggleAnulada} />
         </div>
 
         {error && <p className="text-red-400 bg-red-900/20 rounded-lg px-4 py-3">{error}</p>}

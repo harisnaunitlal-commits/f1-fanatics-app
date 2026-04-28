@@ -116,6 +116,34 @@ function DriverGrid({
   )
 }
 
+// ─── Helper components OUTSIDE main component (prevents remount on re-render) ──
+
+function PilotoSelect({ label, value, onChange, includeNone = false }: {
+  label: string; value: string; onChange: (v: string) => void; includeNone?: boolean
+}) {
+  return (
+    <div>
+      <label className="label">{label}</label>
+      <select className="select" value={value} onChange={e => onChange(e.target.value)}>
+        <option value="">Selecciona...</option>
+        {includeNone && <option value="NONE">Nenhum Piloto</option>}
+        {PILOTOS_2026.map(p => (
+          <option key={p.codigo} value={p.codigo}>{p.nome} ({p.equipa})</option>
+        ))}
+      </select>
+    </div>
+  )
+}
+
+function QHeader({ code, title, pts }: { code: string; title: string; pts: string }) {
+  return (
+    <div className="flex items-baseline justify-between mb-1">
+      <h3 className="font-bold text-f1red">{code} · {title}</h3>
+      <span className="text-xs font-bold text-yellow-400">{pts}</span>
+    </div>
+  )
+}
+
 // ─── Main Form ─────────────────────────────────────────────────────────────────
 export default function PredictForm({
   gp,
@@ -205,33 +233,6 @@ export default function PredictForm({
         <div className="text-6xl mb-4">✅</div>
         <h1 className="text-2xl font-bold mb-2">Previsão guardada!</h1>
         <p className="text-gray-400">Podes editar até ao início da corrida.</p>
-      </div>
-    )
-  }
-
-  // ── Helper selects ─────────────────────────────────────────────────────────
-  function PilotoSelect({ label, value, onChange, includeNone = false }: {
-    label: string; value: string; onChange: (v: string) => void; includeNone?: boolean
-  }) {
-    return (
-      <div>
-        <label className="label">{label}</label>
-        <select className="select" value={value} onChange={e => onChange(e.target.value)}>
-          <option value="">Selecciona...</option>
-          {includeNone && <option value="NONE">Nenhum Piloto</option>}
-          {PILOTOS_2026.map(p => (
-            <option key={p.codigo} value={p.codigo}>{p.nome} ({p.equipa})</option>
-          ))}
-        </select>
-      </div>
-    )
-  }
-
-  function QHeader({ code, title, pts }: { code: string; title: string; pts: string }) {
-    return (
-      <div className="flex items-baseline justify-between mb-1">
-        <h3 className="font-bold text-f1red">{code} · {title}</h3>
-        <span className="text-xs font-bold text-yellow-400">{pts}</span>
       </div>
     )
   }
