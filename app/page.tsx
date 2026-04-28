@@ -2,7 +2,8 @@ export const dynamic = 'force-dynamic'
 
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
-import { getTimeUntilDeadline, isDeadlinePassed } from '@/lib/scoring'
+import { isDeadlinePassed } from '@/lib/scoring'
+import { MiniCountdown } from '@/components/MiniCountdown'
 
 export default async function HomePage() {
   const supabase = await createClient()
@@ -106,24 +107,22 @@ export default async function HomePage() {
                     timeZone: 'Africa/Maputo',
                   })} (Maputo)
                 </p>
-                {!isDeadlinePassed((nextGp as any).deadline_play) && (
-                  <p className="text-f1red font-bold mt-1">
-                    ⏱ {getTimeUntilDeadline((nextGp as any).deadline_play)} para o deadline
-                  </p>
-                )}
               </div>
 
-              <div className="text-right">
+              <div className="text-right shrink-0">
                 {user ? (
                   isDeadlinePassed((nextGp as any).deadline_play) ? (
                     <div className="text-gray-500">Prazo encerrado</div>
                   ) : (
-                    <Link
-                      href={`/predict/${(nextGp as any).id}`}
-                      className={`btn-primary inline-block text-lg px-8 py-4 ${hasPredict ? 'opacity-80' : ''}`}
-                    >
-                      {hasPredict ? '✏️ Editar previsão' : '🏎️ Submeter previsão'}
-                    </Link>
+                    <>
+                      <Link
+                        href={`/predict/${(nextGp as any).id}`}
+                        className={`btn-primary inline-block text-lg px-8 py-4 ${hasPredict ? 'opacity-80' : ''}`}
+                      >
+                        {hasPredict ? '✏️ Editar previsão' : '🏎️ Submeter previsão'}
+                      </Link>
+                      <MiniCountdown deadline={(nextGp as any).deadline_play} />
+                    </>
                   )
                 ) : (
                   <Link href="/auth/login" className="btn-primary inline-block text-lg px-8 py-4">
