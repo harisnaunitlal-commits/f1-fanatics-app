@@ -192,6 +192,41 @@ const GP_QUESTIONS: Record<number, GpQuestions> = {
       { codigo: 'COL', nome: 'Franco Colapinto',equipa: 'Alpine',       color: TEAM_COLORS['Alpine'] },
     ],
   },
+
+  4: { // R04 — Miami
+    gpName: 'Miami',
+    gpPrep: 'de',
+    p2Label: "Qual será a TERCEIRA equipa, que vai pontuar mais no Grande Prémio de Miami?",
+    p3Options: P3_OPTIONS,
+    p5: {
+      driverA: 'HAM', nameA: 'Lewis Hamilton', teamA: 'Ferrari', colorA: TEAM_COLORS['Ferrari'],
+      driverB: 'LEC', nameB: 'Charles Leclerc',teamB: 'Ferrari', colorB: TEAM_COLORS['Ferrari'],
+    },
+    p6: {
+      driverA: 'ANT', nameA: 'Kimi Antonelli', teamA: 'Mercedes', colorA: TEAM_COLORS['Mercedes'],
+      driverB: 'RUS', nameB: 'George Russell', teamB: 'Mercedes', colorB: TEAM_COLORS['Mercedes'],
+    },
+    p7: {
+      driverA: 'BEA', nameA: 'Oliver Bearman', teamA: 'Haas',            colorA: TEAM_COLORS['Haas'],
+      driverB: 'HAD', nameB: 'Isack Hadjar',   teamB: 'Red Bull Racing', colorB: TEAM_COLORS['Red Bull Racing'],
+    },
+    p13Label: "Qual piloto terminará a corrida na posição mais alta?",
+    p13Options: [
+      { codigo: 'LAW', nome: 'Liam Lawson',    equipa: 'Racing Bulls',   color: TEAM_COLORS['Racing Bulls'] },
+      { codigo: 'HAD', nome: 'Isack Hadjar',   equipa: 'Red Bull Racing',color: TEAM_COLORS['Red Bull Racing'] },
+      { codigo: 'OCO', nome: 'Esteban Ocon',   equipa: 'Haas',           color: TEAM_COLORS['Haas'] },
+      { codigo: 'BEA', nome: 'Oliver Bearman', equipa: 'Haas',           color: TEAM_COLORS['Haas'] },
+      { codigo: 'GAS', nome: 'Pierre Gasly',   equipa: 'Alpine',         color: TEAM_COLORS['Alpine'] },
+    ],
+    p15Label: "Qual piloto terminará a corrida na posição mais alta?",
+    p15Options: [
+      { codigo: 'ALO', nome: 'Fernando Alonso', equipa: 'Aston Martin', color: TEAM_COLORS['Aston Martin'] },
+      { codigo: 'ALB', nome: 'Alexander Albon', equipa: 'Williams',     color: TEAM_COLORS['Williams'] },
+      { codigo: 'BOR', nome: 'Gabriel Bortoleto',equipa: 'Audi',        color: TEAM_COLORS['Audi'] },
+      { codigo: 'PER', nome: 'Sergio Perez',    equipa: 'Cadillac',     color: TEAM_COLORS['Cadillac'] },
+      { codigo: 'COL', nome: 'Franco Colapinto',equipa: 'Alpine',       color: TEAM_COLORS['Alpine'] },
+    ],
+  },
 }
 
 export function getGpQuestions(round: number): GpQuestions | undefined {
