@@ -92,3 +92,17 @@ export function getTimeUntilDeadline(deadline: string): string {
   if (hours > 0) return `${hours}h ${mins}m`
   return `${mins}m`
 }
+
+export function getDeadlineCountdown(deadline: string): {
+  days: number; hours: number; minutes: number; seconds: number; closed: boolean
+} {
+  const diff = new Date(deadline).getTime() - Date.now()
+  if (diff <= 0) return { days: 0, hours: 0, minutes: 0, seconds: 0, closed: true }
+  return {
+    days:    Math.floor(diff / 86400000),
+    hours:   Math.floor((diff % 86400000) / 3600000),
+    minutes: Math.floor((diff % 3600000) / 60000),
+    seconds: Math.floor((diff % 60000) / 1000),
+    closed:  false,
+  }
+}

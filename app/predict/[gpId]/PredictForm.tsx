@@ -10,7 +10,7 @@ import {
   type DuelConfig, type DriverOption,
 } from '@/lib/gp-questions'
 import type { GpCalendar, Prediction } from '@/lib/supabase/types'
-import { getTimeUntilDeadline, isDeadlinePassed } from '@/lib/scoring'
+import { getDeadlineCountdown, isDeadlinePassed } from '@/lib/scoring'
 
 type FormData = Omit<
   Prediction,
@@ -131,7 +131,7 @@ export default function PredictForm({
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
-  const [timeLeft, setTimeLeft] = useState(getTimeUntilDeadline(gp.deadline_play))
+  const [countdown, setCountdown] = useState(getDeadlineCountdown(gp.deadline_play))
 
   const config = getGpQuestions(gp.round)
   const gpNameFull = config ? `Grande Prémio ${config.gpPrep} ${config.gpName}` : gp.nome
@@ -174,9 +174,9 @@ export default function PredictForm({
         clearInterval(t)
         router.refresh()
       } else {
-        setTimeLeft(getTimeUntilDeadline(gp.deadline_play))
+        setCountdown(getDeadlineCountdown(gp.deadline_play))
       }
-    }, 10000)
+    }, 1000)
     return () => clearInterval(t)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -239,10 +239,40 @@ export default function PredictForm({
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <div className="max-w-2xl mx-auto pb-16">
-      {/* Deadline banner */}
-      <div className="mb-5 bg-white/5 rounded-xl px-4 py-3 flex items-center justify-between">
-        <span className="text-sm text-gray-400">Prazo para submissão</span>
-        <span className="font-mono font-bold text-yellow-400">{timeLeft}</span>
+      {/* Countdown timer */}
+      <div className="mb-6 bg-black/40 border border-white/10 rounded-2xl px-4 py-5 text-center">
+        <p className="text-xs text-gray-500 uppercase tracking-widest mb-4">
+          ⏱ Prazo para submissão
+        </p>
+        <div className="flex items-center justify-center gap-2 sm:gap-3">
+          {[
+            { value: countdown.days,    label: 'DIAS' },
+            { value: countdown.hours,   label: 'HRS'  },
+            { value: countdown.minutes, label: 'MIN'  },
+            { value: countdown.seconds, label: 'SEG'  },
+          ].map((unit, idx) => (
+            <div key={unit.label} className="flex items-center gap-2 sm:gap-3">
+              {idx > 0 && (
+                <span className="text-2xl sm:text-3xl font-black text-gray-600 leading-none mb-4">:</span>
+              )}
+              <div className="flex flex-col items-center">
+                <div className="bg-f1gray border border-white/10 rounded-xl px-3 sm:px-5 py-2 sm:py-3 min-w-[56px] sm:min-w-[72px]">
+                  <span className="text-3xl sm:text-5xl font-black tabular-nums text-white leading-none">
+                    {String(unit.value).padStart(2, '0')}
+                  </span>
+                </div>
+                <span className="text-[10px] sm:text-xs text-gray-500 font-bold tracking-widest mt-2">
+                  {unit.label}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+        {existing && (
+          <p className="text-xs text-green-400/80 mt-4">
+            ✏️ Já submeteste — podes alterar quantas vezes quiseres até ao prazo
+          </p>
+        )}
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-5">
