@@ -84,7 +84,7 @@ const PHOTO_FILES: Record<string, string> = {
 export function getDriverPhoto(codigo: string): string {
   const file = PHOTO_FILES[codigo]
   if (!file) return ''
-  return `/pilots/${file}.jpg`
+  return `/Pilotos/${file}.jpeg`
 }
 
 const GP_QUESTIONS: Record<number, GpQuestions> = {
