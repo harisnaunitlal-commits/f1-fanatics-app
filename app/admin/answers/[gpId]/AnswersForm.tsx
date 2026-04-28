@@ -43,12 +43,13 @@ function AnuladaCheck({ field, anuladas, onToggle }: {
   )
 }
 
-function PilotoSel({ label, value, onChange, includeNone = false, disabled = false }: {
+function PilotoSel({ label, value, onChange, includeNone = false, disabled = false, excludeCodes = [] }: {
   label: string
   value: string
   onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void
   includeNone?: boolean
   disabled?: boolean
+  excludeCodes?: string[]
 }) {
   return (
     <div>
@@ -60,9 +61,14 @@ function PilotoSel({ label, value, onChange, includeNone = false, disabled = fal
       >
         <option value="">Selecciona...</option>
         {includeNone && <option value="NONE">Nenhum Piloto</option>}
-        {PILOTOS_2026.map(p => (
-          <option key={p.codigo} value={p.codigo}>{p.nome} ({p.equipa})</option>
-        ))}
+        {PILOTOS_2026.map(p => {
+          const blocked = excludeCodes.includes(p.codigo)
+          return (
+            <option key={p.codigo} value={p.codigo} disabled={blocked}>
+              {blocked ? `— ${p.nome}` : `${p.nome} (${p.equipa})`}
+            </option>
+          )
+        })}
       </select>
     </div>
   )
@@ -261,9 +267,12 @@ export default function AnswersForm({
             Qual é a previsão de pódio para o {gpNameFull}?
           </p>
           <div className="grid grid-cols-3 gap-3">
-            <PilotoSel label="1º lugar" value={form.p1_primeiro ?? ''} onChange={setField('p1_primeiro')} disabled={anuladas.includes('p1_primeiro')} />
-            <PilotoSel label="2º lugar" value={form.p1_segundo  ?? ''} onChange={setField('p1_segundo')}  disabled={anuladas.includes('p1_primeiro')} />
-            <PilotoSel label="3º lugar" value={form.p1_terceiro ?? ''} onChange={setField('p1_terceiro')} disabled={anuladas.includes('p1_primeiro')} />
+            <PilotoSel label="1º lugar" value={form.p1_primeiro ?? ''} onChange={setField('p1_primeiro')} disabled={anuladas.includes('p1_primeiro')}
+              excludeCodes={[form.p1_segundo, form.p1_terceiro].filter(Boolean) as string[]} />
+            <PilotoSel label="2º lugar" value={form.p1_segundo  ?? ''} onChange={setField('p1_segundo')}  disabled={anuladas.includes('p1_primeiro')}
+              excludeCodes={[form.p1_primeiro, form.p1_terceiro].filter(Boolean) as string[]} />
+            <PilotoSel label="3º lugar" value={form.p1_terceiro ?? ''} onChange={setField('p1_terceiro')} disabled={anuladas.includes('p1_primeiro')}
+              excludeCodes={[form.p1_primeiro, form.p1_segundo].filter(Boolean) as string[]} />
           </div>
           <AnuladaCheck field="p1_primeiro" anuladas={anuladas} onToggle={toggleAnulada} />
         </div>
@@ -307,9 +316,12 @@ export default function AnswersForm({
             Classificados segundo a ordem, no {gpNameFull}.
           </p>
           <div className="grid grid-cols-3 gap-3">
-            <PilotoSel label="4º lugar" value={form.p4_quarto ?? ''} onChange={setField('p4_quarto')} disabled={anuladas.includes('p4_quarto')} />
-            <PilotoSel label="5º lugar" value={form.p4_quinto ?? ''} onChange={setField('p4_quinto')} disabled={anuladas.includes('p4_quarto')} />
-            <PilotoSel label="6º lugar" value={form.p4_sexto  ?? ''} onChange={setField('p4_sexto')}  disabled={anuladas.includes('p4_quarto')} />
+            <PilotoSel label="4º lugar" value={form.p4_quarto ?? ''} onChange={setField('p4_quarto')} disabled={anuladas.includes('p4_quarto')}
+              excludeCodes={[form.p4_quinto, form.p4_sexto].filter(Boolean) as string[]} />
+            <PilotoSel label="5º lugar" value={form.p4_quinto ?? ''} onChange={setField('p4_quinto')} disabled={anuladas.includes('p4_quarto')}
+              excludeCodes={[form.p4_quarto, form.p4_sexto].filter(Boolean) as string[]} />
+            <PilotoSel label="6º lugar" value={form.p4_sexto  ?? ''} onChange={setField('p4_sexto')}  disabled={anuladas.includes('p4_quarto')}
+              excludeCodes={[form.p4_quarto, form.p4_quinto].filter(Boolean) as string[]} />
           </div>
           <AnuladaCheck field="p4_quarto" anuladas={anuladas} onToggle={toggleAnulada} />
         </div>

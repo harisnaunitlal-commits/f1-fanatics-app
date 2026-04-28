@@ -118,8 +118,9 @@ function DriverGrid({
 
 // ─── Helper components OUTSIDE main component (prevents remount on re-render) ──
 
-function PilotoSelect({ label, value, onChange, includeNone = false }: {
-  label: string; value: string; onChange: (v: string) => void; includeNone?: boolean
+function PilotoSelect({ label, value, onChange, includeNone = false, excludeCodes = [] }: {
+  label: string; value: string; onChange: (v: string) => void
+  includeNone?: boolean; excludeCodes?: string[]
 }) {
   return (
     <div>
@@ -127,9 +128,14 @@ function PilotoSelect({ label, value, onChange, includeNone = false }: {
       <select className="select" value={value} onChange={e => onChange(e.target.value)}>
         <option value="">Selecciona...</option>
         {includeNone && <option value="NONE">Nenhum Piloto</option>}
-        {PILOTOS_2026.map(p => (
-          <option key={p.codigo} value={p.codigo}>{p.nome} ({p.equipa})</option>
-        ))}
+        {PILOTOS_2026.map(p => {
+          const blocked = excludeCodes.includes(p.codigo)
+          return (
+            <option key={p.codigo} value={p.codigo} disabled={blocked}>
+              {blocked ? `— ${p.nome}` : `${p.nome} (${p.equipa})`}
+            </option>
+          )
+        })}
       </select>
     </div>
   )
@@ -286,9 +292,12 @@ export default function PredictForm({
             Qual é a sua previsão de pódio para o {gpNameFull}?
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <PilotoSelect label="1º lugar" value={form.p1_primeiro ?? ''} onChange={v => setField('p1_primeiro', v)} />
-            <PilotoSelect label="2º lugar" value={form.p1_segundo ?? ''}  onChange={v => setField('p1_segundo', v)} />
-            <PilotoSelect label="3º lugar" value={form.p1_terceiro ?? ''} onChange={v => setField('p1_terceiro', v)} />
+            <PilotoSelect label="1º lugar" value={form.p1_primeiro ?? ''} onChange={v => setField('p1_primeiro', v)}
+              excludeCodes={[form.p1_segundo, form.p1_terceiro].filter(Boolean) as string[]} />
+            <PilotoSelect label="2º lugar" value={form.p1_segundo ?? ''}  onChange={v => setField('p1_segundo', v)}
+              excludeCodes={[form.p1_primeiro, form.p1_terceiro].filter(Boolean) as string[]} />
+            <PilotoSelect label="3º lugar" value={form.p1_terceiro ?? ''} onChange={v => setField('p1_terceiro', v)}
+              excludeCodes={[form.p1_primeiro, form.p1_segundo].filter(Boolean) as string[]} />
           </div>
         </div>
 
@@ -329,9 +338,12 @@ export default function PredictForm({
             Escolha os classificados segundo a ordem abaixo, para o {gpNameFull}?
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <PilotoSelect label="4º lugar" value={form.p4_quarto ?? ''} onChange={v => setField('p4_quarto', v)} />
-            <PilotoSelect label="5º lugar" value={form.p4_quinto ?? ''} onChange={v => setField('p4_quinto', v)} />
-            <PilotoSelect label="6º lugar" value={form.p4_sexto ?? ''}  onChange={v => setField('p4_sexto', v)} />
+            <PilotoSelect label="4º lugar" value={form.p4_quarto ?? ''} onChange={v => setField('p4_quarto', v)}
+              excludeCodes={[form.p4_quinto, form.p4_sexto].filter(Boolean) as string[]} />
+            <PilotoSelect label="5º lugar" value={form.p4_quinto ?? ''} onChange={v => setField('p4_quinto', v)}
+              excludeCodes={[form.p4_quarto, form.p4_sexto].filter(Boolean) as string[]} />
+            <PilotoSelect label="6º lugar" value={form.p4_sexto ?? ''}  onChange={v => setField('p4_sexto', v)}
+              excludeCodes={[form.p4_quarto, form.p4_quinto].filter(Boolean) as string[]} />
           </div>
         </div>
 
