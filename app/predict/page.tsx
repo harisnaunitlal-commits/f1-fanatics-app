@@ -21,7 +21,12 @@ export default async function PredictPage() {
     .select('gp_id')
     .eq('member_email', user!.email!)
 
+  const { data: answeredGps } = await (supabase as any)
+    .from('gp_answers')
+    .select('gp_id')
+
   const submitted = new Set(myPredictions?.map((p: any) => p.gp_id) ?? [])
+  const hasAnswers = new Set(answeredGps?.map((a: any) => a.gp_id) ?? [])
 
   return (
     <div>
@@ -66,6 +71,16 @@ export default async function PredictPage() {
               </div>
 
               <div className="flex items-center gap-3 shrink-0">
+                {/* Ver respostas — available whenever answers exist AND player submitted */}
+                {hasPred && hasAnswers.has(gp.id) && (
+                  <Link
+                    href={`/predict/${gp.id}/results`}
+                    className="text-sm text-yellow-400 hover:text-yellow-300 font-medium"
+                  >
+                    📊 Ver resultados
+                  </Link>
+                )}
+
                 {scored && hasPred && (
                   <Link
                     href={`/ranking/play?gp=${gp.id}`}
