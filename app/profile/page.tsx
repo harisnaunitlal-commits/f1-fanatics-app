@@ -54,7 +54,7 @@ export default async function ProfilePage() {
           </div>
         </div>
         <div className="flex gap-2 self-start">
-          <Link href="/register" className="btn-secondary text-sm py-2 px-4">
+          <Link href="/profile/edit" className="btn-secondary text-sm py-2 px-4">
             ✏️ Editar perfil
           </Link>
           <SignOutButton />

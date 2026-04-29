@@ -55,7 +55,7 @@ export default function RegisterPage() {
         password: form.password,
         options: {
           // Skip email confirmation for this invite-only community
-          emailRedirectTo: `https://app.beiraf1fanatics.com/auth/callback`,
+          emailRedirectTo: `https://af1fanatics.com/auth/callback`,
         },
       })
 
