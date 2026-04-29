@@ -22,7 +22,7 @@ export default async function AdminPage() {
     { data: playScores },
   ] = await Promise.all([
     (supabase as any).from('gp_calendar').select('*').eq('temporada', 2026).order('round'),
-    (supabase as any).from('members').select('email, nickname, foto_url, is_admin, activo').order('nickname'),
+    (supabase as any).from('members').select('email, nickname, foto_url, is_admin, activo, criado_em, ultimo_acesso').order('nickname'),
     (supabase as any).from('predictions').select('member_email, gp_id'),
     (supabase as any).from('scores_play').select('member_email, total'),
   ])
@@ -57,6 +57,36 @@ export default async function AdminPage() {
   for (const s of playScores ?? []) {
     playPts.set(s.member_email, (playPts.get(s.member_email) ?? 0) + (s.total ?? 0))
   }
+
+  // ── Activity stats ────────────────────────────────────────────────────────
+  const now = Date.now()
+  const active24h  = members?.filter((m: any) => m.ultimo_acesso && (now - new Date(m.ultimo_acesso).getTime()) < 86400000).length ?? 0
+  const active7d   = members?.filter((m: any) => m.ultimo_acesso && (now - new Date(m.ultimo_acesso).getTime()) < 7 * 86400000).length ?? 0
+  const active30d  = members?.filter((m: any) => m.ultimo_acesso && (now - new Date(m.ultimo_acesso).getTime()) < 30 * 86400000).length ?? 0
+
+  // New members by month (last 6 months)
+  const monthLabels: string[] = []
+  const monthCounts: number[] = []
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date()
+    d.setMonth(d.getMonth() - i)
+    const y = d.getFullYear()
+    const mo = d.getMonth()
+    const label = d.toLocaleDateString('pt-MZ', { month: 'short', year: '2-digit' })
+    monthLabels.push(label)
+    const count = members?.filter((m: any) => {
+      const created = new Date(m.criado_em)
+      return created.getFullYear() === y && created.getMonth() === mo
+    }).length ?? 0
+    monthCounts.push(count)
+  }
+  const maxMonthCount = Math.max(...monthCounts, 1)
+
+  // Recently joined (last 30 days)
+  const thirtyDaysAgo = new Date(now - 30 * 86400000).toISOString()
+  const recentMembers = (members ?? [])
+    .filter((m: any) => m.criado_em > thirtyDaysAgo)
+    .sort((a: any, b: any) => b.criado_em.localeCompare(a.criado_em))
 
   return (
     <div className="space-y-8">
@@ -205,6 +235,70 @@ export default async function AdminPage() {
           })}
         </div>
       </div>
+
+      {/* ── Activity stats ──────────────────────────────────────────────── */}
+      <div>
+        <h2 className="font-bold text-lg mb-3">📈 Actividade</h2>
+        <div className="grid grid-cols-3 gap-3 mb-4">
+          {[
+            { label: 'Últimas 24h',  value: active24h,  color: 'text-green-400' },
+            { label: 'Últimos 7 dias', value: active7d, color: 'text-yellow-400' },
+            { label: 'Últimos 30 dias', value: active30d, color: 'text-blue-400' },
+          ].map(s => (
+            <div key={s.label} className="card text-center py-4">
+              <div className={`text-3xl font-black ${s.color}`}>{s.value}</div>
+              <div className="text-xs text-gray-500 mt-1">{s.label}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* New members by month bar chart */}
+        <div className="card">
+          <h3 className="font-bold text-sm text-gray-400 mb-4">👥 Novos membros por mês</h3>
+          <div className="flex items-end gap-2 h-24">
+            {monthLabels.map((label, i) => (
+              <div key={label} className="flex-1 flex flex-col items-center gap-1">
+                <div className="text-xs font-bold text-gray-400">
+                  {monthCounts[i] > 0 ? monthCounts[i] : ''}
+                </div>
+                <div
+                  className="w-full rounded-t-md bg-f1red/70 transition-all"
+                  style={{ height: `${Math.max((monthCounts[i] / maxMonthCount) * 72, monthCounts[i] > 0 ? 8 : 2)}px` }}
+                />
+                <div className="text-[9px] text-gray-600 text-center">{label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ── Recently joined ─────────────────────────────────────────────── */}
+      {recentMembers.length > 0 && (
+        <div>
+          <h2 className="font-bold text-lg mb-3">🆕 Novos membros (últimos 30 dias)</h2>
+          <div className="card divide-y divide-gray-800">
+            {recentMembers.map((m: any) => (
+              <div key={m.email} className="flex items-center justify-between py-2.5 first:pt-0 last:pb-0">
+                <div className="flex items-center gap-2.5">
+                  {m.foto_url
+                    ? <img src={m.foto_url} alt="" className="w-7 h-7 rounded-full object-cover shrink-0" />
+                    : <div className="w-7 h-7 rounded-full bg-f1red/20 text-f1red flex items-center justify-center text-xs font-bold shrink-0">
+                        {m.nickname.charAt(0).toUpperCase()}
+                      </div>
+                  }
+                  <div>
+                    <span className="text-sm font-medium text-white">{m.nickname}</span>
+                    <span className="text-xs text-gray-500 ml-2">{m.email}</span>
+                  </div>
+                </div>
+                <span className="text-xs text-gray-500">
+                  {new Date(m.criado_em).toLocaleDateString('pt-MZ', { day: '2-digit', month: 'short' })}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* ── Quick links ─────────────────────────────────────────────────── */}
       <div>

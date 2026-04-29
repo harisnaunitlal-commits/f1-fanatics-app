@@ -17,6 +17,11 @@ export default function Navbar() {
       const { data } = await (supabase as any)
         .from('members').select('*').eq('email', email).single()
       setMember(data ?? null)
+      // Track last access
+      await (supabase as any)
+        .from('members')
+        .update({ ultimo_acesso: new Date().toISOString() })
+        .eq('email', email)
     }
 
     // Check on first load
