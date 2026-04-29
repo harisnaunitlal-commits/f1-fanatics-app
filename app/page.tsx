@@ -119,14 +119,14 @@ export default async function HomePage() {
                         href={`/predict/${(nextGp as any).id}`}
                         className={`btn-primary inline-block text-lg px-8 py-4 ${hasPredict ? 'opacity-80' : ''}`}
                       >
-                        {hasPredict ? '✏️ Editar previsão' : '🏎️ Submeter previsão'}
+                        {hasPredict ? '✏️ Editar F1 Play' : '🏎️ Submeter previsão'}
                       </Link>
                       <MiniCountdown deadline={(nextGp as any).deadline_play} />
                     </>
                   )
                 ) : (
                   <Link href="/auth/login" className="btn-primary inline-block text-lg px-8 py-4">
-                    Entrar para jogar
+                    Entrar para F1 Play
                   </Link>
                 )}
               </div>
