@@ -22,7 +22,7 @@ export default async function AdminPage() {
     { data: playScores },
   ] = await Promise.all([
     (supabase as any).from('gp_calendar').select('*').eq('temporada', 2026).order('round'),
-    (supabase as any).from('members').select('email, nickname, foto_url, is_admin, activo, criado_em, ultimo_acesso').order('nickname'),
+    (supabase as any).from('members').select('*').order('nickname'),
     (supabase as any).from('predictions').select('member_email, gp_id'),
     (supabase as any).from('scores_play').select('member_email, total'),
   ])
