@@ -29,8 +29,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <main className="max-w-5xl mx-auto px-4 py-6">
           {children}
         </main>
-        <footer className="text-center text-gray-500 text-sm py-8 mt-12">
+        <footer className="text-center text-gray-500 text-sm py-8 mt-12 space-y-1.5">
           <p>🏎️ Beira F1 Fanatics · Fundada 27 Mar 2021 · Beira, Moçambique</p>
+          <p>
+            Site desenvolvido por <span className="text-gray-400">Harishkumar Naunitlal</span>
+            {' · '}
+            <a
+              href="mailto:haris.naunitlal@gmail.com"
+              className="text-gray-400 hover:text-white transition-colors underline underline-offset-2"
+            >
+              haris.naunitlal@gmail.com
+            </a>
+          </p>
         </footer>
       </body>
     </html>
