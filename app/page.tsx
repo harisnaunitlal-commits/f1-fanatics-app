@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { isDeadlinePassed } from '@/lib/scoring'
 import { MiniCountdown } from '@/components/MiniCountdown'
+import { FantasyCountdown } from '@/components/FantasyCountdown'
 
 export default async function HomePage() {
   const supabase = await createClient()
@@ -131,6 +132,14 @@ export default async function HomePage() {
                 )}
               </div>
             </div>
+
+            {/* Fantasy & Predict deadline */}
+            {(nextGp as any).deadline_fantasy && (
+              <FantasyCountdown
+                deadline={(nextGp as any).deadline_fantasy}
+                isSprint={!!(nextGp as any).is_sprint}
+              />
+            )}
           </div>
         </div>
       )}
