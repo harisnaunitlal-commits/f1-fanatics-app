@@ -168,8 +168,16 @@ export default function RegisterPage() {
     })
 
     if (signInErr) {
-      // Account created but auto-login failed — send to login page
-      setError('Conta criada! Vai a "Entrar" para fazer login com a tua password.')
+      if (
+        signInErr.message.toLowerCase().includes('security purposes') ||
+        signInErr.message.toLowerCase().includes('after') ||
+        signInErr.message.toLowerCase().includes('rate')
+      ) {
+        // Rate limited — account was created, just can't sign in yet
+        setError('Conta criada! O Supabase tem um limite de segurança. Aguarda 60 segundos e faz login em "Entrar".')
+      } else {
+        setError('Conta criada com sucesso! Vai a "Entrar" para fazer login com a tua password.')
+      }
       setLoading(false)
       return
     }

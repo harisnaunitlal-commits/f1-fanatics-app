@@ -24,28 +24,37 @@ export async function POST(req: NextRequest) {
 
     const userEmail = (email as string).toLowerCase().trim()
 
-    // ── Step 1: Create or update auth user ──────────────────────
-    // Try to create — if already exists, continue (they may be re-registering)
-    const { data: authData, error: createErr } = await supabaseAdmin.auth.admin.createUser({
-      email: userEmail,
-      password,
-      email_confirm: true, // auto-confirm, no email verification needed
-    })
+    // ── Step 1: Find existing user or create new ─────────────────
+    // First check if user already exists — avoids triggering rate limits
+    const { data: listData } = await supabaseAdmin.auth.admin.listUsers({ perPage: 1000 })
+    const existingUser = listData?.users?.find(u => u.email === userEmail)
 
-    if (createErr) {
-      // If user already exists in auth, just update their password
-      if (createErr.message.includes('already been registered') || createErr.message.includes('already exists')) {
-        // User exists — try to get their ID and update password
-        const { data: listData } = await supabaseAdmin.auth.admin.listUsers()
-        const existingUser = listData?.users?.find(u => u.email === userEmail)
+    if (existingUser) {
+      // User exists — update password and confirm email
+      await supabaseAdmin.auth.admin.updateUserById(existingUser.id, {
+        password,
+        email_confirm: true,
+      })
+    } else {
+      // New user — create with auto-confirmed email
+      const { error: createErr } = await supabaseAdmin.auth.admin.createUser({
+        email: userEmail,
+        password,
+        email_confirm: true,
+      })
 
-        if (existingUser) {
-          await supabaseAdmin.auth.admin.updateUserById(existingUser.id, {
-            password,
-            email_confirm: true,
-          })
+      if (createErr) {
+        // Rate limit or other error — return friendly message
+        if (
+          createErr.message.toLowerCase().includes('security purposes') ||
+          createErr.message.toLowerCase().includes('rate limit') ||
+          createErr.message.toLowerCase().includes('after')
+        ) {
+          return NextResponse.json(
+            { error: 'Demasiadas tentativas. Aguarda 60 segundos e tenta novamente.' },
+            { status: 429 }
+          )
         }
-      } else {
         return NextResponse.json({ error: createErr.message }, { status: 400 })
       }
     }
