@@ -107,59 +107,7 @@ export default function RegisterPage() {
 
     const userEmail = form.email.toLowerCase().trim()
 
-    // ── Step 1: Sign up (or sign in if already exists) ──────────
-    let sessionEstablished = false
-
-    const { data: signUpData, error: signUpErr } = await supabase.auth.signUp({
-      email: userEmail,
-      password: form.password,
-      options: {
-        emailRedirectTo: `https://app.beiraf1fanatics.com/auth/callback`,
-      },
-    })
-
-    if (signUpErr) {
-      if (signUpErr.message.includes('already registered')) {
-        // Try signing in
-        const { error: signInErr } = await supabase.auth.signInWithPassword({
-          email: userEmail,
-          password: form.password,
-        })
-        if (signInErr) {
-          setError('Este email já está registado. Usa o login com a tua password.')
-          setLoading(false)
-          return
-        }
-        sessionEstablished = true
-      } else {
-        setError(signUpErr.message)
-        setLoading(false)
-        return
-      }
-    } else {
-      // If email confirmation is disabled, signUp gives a session directly
-      // If enabled, we need to sign in immediately
-      if (signUpData.session) {
-        sessionEstablished = true
-      } else {
-        // Try signing in to get a session (works if email confirmation is disabled in Supabase)
-        const { error: signInErr } = await supabase.auth.signInWithPassword({
-          email: userEmail,
-          password: form.password,
-        })
-        if (!signInErr) {
-          sessionEstablished = true
-        }
-      }
-    }
-
-    if (!sessionEstablished) {
-      setError('Erro ao autenticar. Tenta novamente ou contacta o admin.')
-      setLoading(false)
-      return
-    }
-
-    // ── Step 2: Upload photo if provided ────────────────────────
+    // ── Step 1: Upload photo first (no auth needed for public upload) ──
     let fotoUrl: string | undefined = undefined
 
     if (photoFile) {
@@ -179,37 +127,49 @@ export default function RegisterPage() {
           fotoUrl = urlData.publicUrl
         }
       } catch {
-        // Photo upload failed — continue without photo, user can add later
+        // Photo upload failed — continue without photo
       }
     }
 
-    // ── Step 3: Save member profile ──────────────────────────────
-    const memberData: Record<string, unknown> = {
+    // ── Step 2: Call server API to create auth user + member ─────
+    // Uses service role key server-side — bypasses RLS and email confirmation
+    const res = await fetch('/api/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email:         userEmail,
+        password:      form.password,
+        nickname:      form.nickname.trim(),
+        nome_completo: form.nome_completo.trim() || null,
+        cidade:        form.cidade.trim() || null,
+        pais:          form.pais.trim() || null,
+        whatsapp:      form.whatsapp.trim() || null,
+        piloto_fav:    form.piloto_fav || null,
+        equipa_fav:    form.equipa_fav || null,
+        fantasy_nick:  form.fantasy_nick.trim() || null,
+        predict_nick:  form.predict_nick.trim() || null,
+        bio:           form.bio.trim() || null,
+        foto_url:      fotoUrl ?? null,
+      }),
+    })
+
+    const result = await res.json()
+
+    if (!res.ok || result.error) {
+      setError(result.error ?? 'Erro ao criar conta.')
+      setLoading(false)
+      return
+    }
+
+    // ── Step 3: Sign in on client to establish session ───────────
+    const { error: signInErr } = await supabase.auth.signInWithPassword({
       email: userEmail,
-      nickname: form.nickname.trim(),
-      nome_completo: form.nome_completo.trim() || null,
-      cidade: form.cidade.trim() || null,
-      pais: form.pais.trim() || null,
-      whatsapp: form.whatsapp.trim() || null,
-      piloto_fav: form.piloto_fav || null,
-      equipa_fav: form.equipa_fav || null,
-      fantasy_nick: form.fantasy_nick.trim() || null,
-      predict_nick: form.predict_nick.trim() || null,
-      bio: form.bio.trim() || null,
-      activo: true,
-      actualizado_em: new Date().toISOString(),
-    }
+      password: form.password,
+    })
 
-    if (fotoUrl) {
-      memberData.foto_url = fotoUrl
-    }
-
-    const { error: profileErr } = await (supabase as any)
-      .from('members')
-      .upsert(memberData, { onConflict: 'email' })
-
-    if (profileErr) {
-      setError(profileErr.message)
+    if (signInErr) {
+      // Account created but auto-login failed — send to login page
+      setError('Conta criada! Vai a "Entrar" para fazer login com a tua password.')
       setLoading(false)
       return
     }
