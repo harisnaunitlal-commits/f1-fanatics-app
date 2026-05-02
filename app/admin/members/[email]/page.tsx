@@ -97,6 +97,7 @@ export default async function AdminMemberDetailPage({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
           {[
             { label: '📧 Email',           value: m.email },
+            { label: '📱 WhatsApp',         value: m.whatsapp },
             { label: '📍 Localização',      value: m.cidade ? `${m.cidade}, ${m.pais}` : m.pais },
             { label: '🏎️ Piloto favorito',  value: m.piloto_fav },
             { label: '🏁 Equipa favorita',  value: m.equipa_fav },

@@ -4,12 +4,51 @@ import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 
+const DRIVERS = [
+  { value: '', label: 'Nenhum' },
+  { value: 'VER', label: 'Max Verstappen (Red Bull)' },
+  { value: 'TSU', label: 'Yuki Tsunoda (Red Bull)' },
+  { value: 'NOR', label: 'Lando Norris (McLaren)' },
+  { value: 'PIA', label: 'Oscar Piastri (McLaren)' },
+  { value: 'LEC', label: 'Charles Leclerc (Ferrari)' },
+  { value: 'HAM', label: 'Lewis Hamilton (Ferrari)' },
+  { value: 'RUS', label: 'George Russell (Mercedes)' },
+  { value: 'ANT', label: 'Kimi Antonelli (Mercedes)' },
+  { value: 'ALO', label: 'Fernando Alonso (Aston Martin)' },
+  { value: 'STR', label: 'Lance Stroll (Aston Martin)' },
+  { value: 'GAS', label: 'Pierre Gasly (Alpine)' },
+  { value: 'DOO', label: 'Jack Doohan (Alpine)' },
+  { value: 'HUL', label: 'Nico Hülkenberg (Sauber)' },
+  { value: 'BOR', label: 'Gabriel Bortoleto (Sauber)' },
+  { value: 'ALB', label: 'Alexander Albon (Williams)' },
+  { value: 'SAI', label: 'Carlos Sainz (Williams)' },
+  { value: 'BEA', label: 'Oliver Bearman (Haas)' },
+  { value: 'OCO', label: 'Esteban Ocon (Haas)' },
+  { value: 'HAD', label: 'Isack Hadjar (Racing Bulls)' },
+  { value: 'LAW', label: 'Liam Lawson (Racing Bulls)' },
+]
+
+const TEAMS = [
+  { value: '', label: 'Nenhuma' },
+  { value: 'Red Bull Racing', label: 'Red Bull Racing' },
+  { value: 'McLaren', label: 'McLaren' },
+  { value: 'Ferrari', label: 'Ferrari' },
+  { value: 'Mercedes', label: 'Mercedes' },
+  { value: 'Aston Martin', label: 'Aston Martin' },
+  { value: 'Alpine', label: 'Alpine' },
+  { value: 'Sauber', label: 'Sauber (Kick)' },
+  { value: 'Williams', label: 'Williams' },
+  { value: 'Haas', label: 'Haas' },
+  { value: 'Racing Bulls', label: 'Racing Bulls' },
+]
+
 interface Member {
   email: string
   nickname: string
   nome_completo: string | null
   cidade: string | null
   pais: string | null
+  whatsapp: string | null
   piloto_fav: string | null
   equipa_fav: string | null
   fantasy_nick: string | null
@@ -30,6 +69,7 @@ export default function EditProfileForm({ member }: { member: Member }) {
     nome_completo: member.nome_completo   ?? '',
     cidade:        member.cidade          ?? '',
     pais:          member.pais            ?? 'Moçambique',
+    whatsapp:      member.whatsapp        ?? '',
     piloto_fav:    member.piloto_fav      ?? '',
     equipa_fav:    member.equipa_fav      ?? '',
     fantasy_nick:  member.fantasy_nick    ?? '',
@@ -37,7 +77,7 @@ export default function EditProfileForm({ member }: { member: Member }) {
     bio:           member.bio             ?? '',
   })
 
-  function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
+  function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
     setForm(f => ({ ...f, [e.target.name]: e.target.value }))
   }
 
@@ -59,8 +99,9 @@ export default function EditProfileForm({ member }: { member: Member }) {
         nome_completo: form.nome_completo.trim() || null,
         cidade:        form.cidade.trim()        || null,
         pais:          form.pais.trim()          || null,
-        piloto_fav:    form.piloto_fav.trim()    || null,
-        equipa_fav:    form.equipa_fav.trim()    || null,
+        whatsapp:      form.whatsapp.trim()      || null,
+        piloto_fav:    form.piloto_fav           || null,
+        equipa_fav:    form.equipa_fav           || null,
         fantasy_nick:  form.fantasy_nick.trim()  || null,
         predict_nick:  form.predict_nick.trim()  || null,
         bio:           form.bio.trim()           || null,
@@ -141,6 +182,24 @@ export default function EditProfileForm({ member }: { member: Member }) {
             />
           </div>
         </div>
+
+        <div>
+          <label className="label">
+            WhatsApp
+            <span className="text-gray-500 font-normal text-xs ml-1">(com código do país)</span>
+          </label>
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm select-none">📱</span>
+            <input
+              name="whatsapp"
+              type="tel"
+              placeholder="+258 84 000 0000"
+              className="input pl-9"
+              value={form.whatsapp}
+              onChange={handleChange}
+            />
+          </div>
+        </div>
       </div>
 
       {/* F1 */}
@@ -150,23 +209,29 @@ export default function EditProfileForm({ member }: { member: Member }) {
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="label">Piloto favorito</label>
-            <input
+            <select
               name="piloto_fav"
-              placeholder="ex: Norris"
               className="input"
               value={form.piloto_fav}
               onChange={handleChange}
-            />
+            >
+              {DRIVERS.map(d => (
+                <option key={d.value} value={d.value}>{d.label}</option>
+              ))}
+            </select>
           </div>
           <div>
             <label className="label">Equipa favorita</label>
-            <input
+            <select
               name="equipa_fav"
-              placeholder="ex: McLaren"
               className="input"
               value={form.equipa_fav}
               onChange={handleChange}
-            />
+            >
+              {TEAMS.map(t => (
+                <option key={t.value} value={t.value}>{t.label}</option>
+              ))}
+            </select>
           </div>
         </div>
 

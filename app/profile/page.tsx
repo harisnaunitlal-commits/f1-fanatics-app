@@ -105,6 +105,21 @@ export default async function ProfilePage() {
               <span className="font-mono text-xs">{member.predict_nick}</span>
             </>
           )}
+          {member.whatsapp && (
+            <>
+              <span className="text-gray-500">WhatsApp</span>
+              <span>
+                <a
+                  href={`https://wa.me/${member.whatsapp.replace(/\D/g, '')}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-green-400 hover:text-green-300 transition-colors"
+                >
+                  📱 {member.whatsapp}
+                </a>
+              </span>
+            </>
+          )}
           {member.cidade && (
             <>
               <span className="text-gray-500">Cidade</span>
