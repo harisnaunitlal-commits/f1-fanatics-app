@@ -226,7 +226,10 @@ export default function PredictForm({
 
     const { error: upsertErr } = await (supabase as any)
       .from('predictions')
-      .upsert({ member_email: userEmail, gp_id: gp.id, ...form, editado_em: new Date().toISOString() })
+      .upsert(
+        { member_email: userEmail, gp_id: gp.id, ...form, editado_em: new Date().toISOString() },
+        { onConflict: 'member_email,gp_id' }
+      )
 
     if (upsertErr) { setError(upsertErr.message) }
     else { setSuccess(true); setTimeout(() => router.push('/predict'), 2000) }
