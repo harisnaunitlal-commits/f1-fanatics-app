@@ -37,12 +37,35 @@ export default async function FantasyRankingPage({
         .eq('gp_id', queryGpId)
     : { data: null }
 
-  // Sort: Acumulado → by pontos_acum; per-GP → by pontos_gp
-  const scores = rawScores
-    ? [...rawScores].sort((a: any, b: any) =>
-        isAccumulado ? b.pontos_acum - a.pontos_acum : b.pontos_gp - a.pontos_gp
-      )
-    : null
+  // For per-GP view: calculate individual GP score = pontos_acum - prev_pontos_acum (same as Predict)
+  let scores: any[] | null = null
+
+  if (rawScores) {
+    if (isAccumulado) {
+      scores = [...rawScores].sort((a: any, b: any) => b.pontos_acum - a.pontos_acum)
+    } else {
+      const selectedIdx = scoredGpsAsc.findIndex((g: any) => g.id === selectedGpId)
+      const prevGp = selectedIdx > 0 ? scoredGpsAsc[selectedIdx - 1] : null
+
+      const prevAcumMap = new Map<string, number>()
+      if (prevGp) {
+        const { data: prevScores } = await (supabase as any)
+          .from('scores_fantasy')
+          .select('member_email, pontos_acum')
+          .eq('gp_id', prevGp.id)
+        ;((prevScores ?? []) as any[]).forEach((s: any) => {
+          prevAcumMap.set(s.member_email, s.pontos_acum)
+        })
+      }
+
+      scores = rawScores
+        .map((s: any) => ({
+          ...s,
+          pontos_gp: s.pontos_acum - (prevAcumMap.get(s.member_email) ?? 0),
+        }))
+        .sort((a: any, b: any) => b.pontos_gp - a.pontos_gp)
+    }
+  }
 
   return (
     <div>
@@ -57,7 +80,7 @@ export default async function FantasyRankingPage({
 
       <p className="text-gray-500 text-sm mb-6">
         Liga: <span className="font-mono text-gray-400">C57XPPKP703</span> · ID: 696205 ·
-        Pontos {isAccumulado ? 'acumulados do site oficial' : 'individuais deste GP'}
+        Pontos {isAccumulado ? 'acumulados do site oficial' : 'individuais deste GP (acum. actual − acum. anterior)'}
       </p>
 
       {!scores || scores.length === 0 ? (
