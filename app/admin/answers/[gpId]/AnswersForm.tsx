@@ -217,18 +217,15 @@ export default function AnswersForm({
     setLoading(true); setError('')
 
     const payload = { gp_id: gp.id, ...form, inserido_por: adminEmail, inserido_em: new Date().toISOString() }
-    const { error: upsertErr } = await (supabase as any).from('gp_answers').upsert(payload)
 
-    if (upsertErr) { setError(upsertErr.message); setLoading(false); return }
+    const res = await fetch('/api/admin/save-answers', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ payload, admin_email: adminEmail, existing: !!existing }),
+    })
+    const result = await res.json()
 
-    try {
-      await (supabase as any).from('audit_log').insert({
-        admin_email: adminEmail,
-        accao: existing ? 'update_answers' : 'insert_answers',
-        tabela: 'gp_answers',
-        detalhe: { gp_id: gp.id, gp_nome: gp.nome },
-      })
-    } catch (_) { /* ignore audit errors */ }
+    if (!res.ok || result.error) { setError(result.error ?? 'Erro ao guardar.'); setLoading(false); return }
 
     setSuccess(true)
     setTimeout(() => router.push(`/admin/scores/${gp.id}`), 1500)

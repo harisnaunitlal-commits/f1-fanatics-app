@@ -78,15 +78,13 @@ export default function PredictImport({
       pontos_acum: parseInt(r.pontos_acum),
     }))
 
-    const { error: err } = await (supabase as any).from('scores_predict').upsert(toInsert)
-    if (err) { setError(err.message); setLoading(false); return }
-
-    await (supabase as any).from('audit_log').insert({
-      admin_email: adminEmail,
-      accao: 'import_predict',
-      gp_id: selectedGp as number,
-      detalhes: { n_rows: toInsert.length, gp_nome: gp.nome },
+    const res = await fetch('/api/admin/save-predict', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ rows: toInsert, gp_id: selectedGp, gp_nome: gp.nome, admin_email: adminEmail }),
     })
+    const result = await res.json()
+    if (!res.ok || result.error) { setError(result.error ?? 'Erro ao guardar.'); setLoading(false); return }
 
     setSuccess(true)
     setLoading(false)

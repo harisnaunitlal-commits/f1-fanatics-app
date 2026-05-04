@@ -72,27 +72,20 @@ export default function CalculateScores({
       calculado_em: new Date().toISOString(),
     }))
 
-    const { error: scoresErr } = await (supabase as any)
-      .from('scores_play')
-      .upsert(scores)
+    // Use server API route with service role to bypass RLS
+    const res = await fetch('/api/admin/save-scores', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ scores, gp_id: gp.id, admin_email: adminEmail }),
+    })
 
-    if (scoresErr) {
-      setError(scoresErr.message)
+    const result = await res.json()
+
+    if (!res.ok || result.error) {
+      setError(result.error ?? 'Erro ao guardar.')
       setLoading(false)
       return
     }
-
-    await (supabase as any)
-      .from('gp_calendar')
-      .update({ status: 'scored' })
-      .eq('id', gp.id)
-
-    await (supabase as any).from('audit_log').insert({
-      admin_email: adminEmail,
-      accao: 'calculate_scores',
-      tabela: 'scores_play',
-      detalhe: { gp_id: gp.id, n_predictions: predictions.length, gp_nome: gp.nome },
-    })
 
     router.push(`/ranking/play?gp=${gp.id}`)
     setLoading(false)
