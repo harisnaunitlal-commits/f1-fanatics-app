@@ -22,12 +22,14 @@ export async function POST(req: NextRequest) {
     const { error: upsertErr } = await supabaseAdmin.from('gp_answers').upsert(payload)
     if (upsertErr) return NextResponse.json({ error: upsertErr.message }, { status: 400 })
 
-    await supabaseAdmin.from('audit_log').insert({
-      admin_email,
-      accao: existing ? 'update_answers' : 'insert_answers',
-      tabela: 'gp_answers',
-      detalhe: { gp_id: payload.gp_id },
-    }).catch(() => {})
+    try {
+      await supabaseAdmin.from('audit_log').insert({
+        admin_email,
+        accao: existing ? 'update_answers' : 'insert_answers',
+        tabela: 'gp_answers',
+        detalhe: { gp_id: payload.gp_id },
+      })
+    } catch (_) { /* ignore audit errors */ }
 
     return NextResponse.json({ success: true })
   } catch (err: any) {

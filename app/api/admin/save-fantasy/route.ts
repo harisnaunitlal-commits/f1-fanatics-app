@@ -22,12 +22,14 @@ export async function POST(req: NextRequest) {
     const { error: err } = await supabaseAdmin.from('scores_fantasy').upsert(rows)
     if (err) return NextResponse.json({ error: err.message }, { status: 400 })
 
-    await supabaseAdmin.from('audit_log').insert({
-      admin_email,
-      accao: 'import_fantasy',
-      gp_id,
-      detalhes: { n_rows: rows.length, gp_nome },
-    }).catch(() => {})
+    try {
+      await supabaseAdmin.from('audit_log').insert({
+        admin_email,
+        accao: 'import_fantasy',
+        gp_id,
+        detalhes: { n_rows: rows.length, gp_nome },
+      })
+    } catch (_) { /* ignore audit errors */ }
 
     return NextResponse.json({ success: true })
   } catch (err: any) {
