@@ -413,6 +413,14 @@ export default function RegisterPage() {
             </div>
           </div>
 
+          <div className="bg-yellow-900/20 border border-yellow-700/30 rounded-lg px-3 py-2.5">
+            <p className="text-xs text-yellow-400 font-bold mb-0.5">⚠️ Nick Fantasy e Nick Predict</p>
+            <p className="text-xs text-yellow-300/80">
+              Copia o nome <span className="font-bold">exactamente como aparece</span> nos sites da Formula 1.
+              Se alterares o nome no site da F1, actualiza aqui também — caso contrário os teus pontos não serão contabilizados.
+            </p>
+          </div>
+
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="label">
@@ -421,11 +429,12 @@ export default function RegisterPage() {
               </label>
               <input
                 name="fantasy_nick"
-                placeholder="fantasy.formula1.com"
+                placeholder="Nome exacto no site Fantasy"
                 className="input"
                 value={form.fantasy_nick}
                 onChange={handleChange}
               />
+              <p className="text-[11px] text-gray-600 mt-1">ex: "ABx Racing"</p>
             </div>
             <div>
               <label className="label">
@@ -434,11 +443,12 @@ export default function RegisterPage() {
               </label>
               <input
                 name="predict_nick"
-                placeholder="f1predict.formula1.com"
+                placeholder="Nome exacto no site Predict"
                 className="input"
                 value={form.predict_nick}
                 onChange={handleChange}
               />
+              <p className="text-[11px] text-gray-600 mt-1">ex: "VirgoF1"</p>
             </div>
           </div>
 
