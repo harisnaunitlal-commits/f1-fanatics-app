@@ -58,10 +58,10 @@ export async function POST(req: NextRequest) {
     }
 
     // 4. Todos os emails únicos
-    const allEmails = new Set([
-      ...playMap.keys(),
-      ...fantasyMap.keys(),
-      ...predictMap.keys(),
+    const allEmails = new Set<string>([
+      ...Array.from(playMap.keys()),
+      ...Array.from(fantasyMap.keys()),
+      ...Array.from(predictMap.keys()),
     ])
 
     if (allEmails.size === 0) {
