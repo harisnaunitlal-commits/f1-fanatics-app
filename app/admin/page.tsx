@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { isDeadlinePassed } from '@/lib/scoring'
+import CalcRankingButton from './CalcRankingButton'
 
 export default async function AdminPage() {
   const supabase = await createClient()
@@ -222,13 +223,20 @@ export default async function AdminPage() {
                     </div>
                   </div>
                 </div>
-                <div className="flex gap-2 shrink-0">
+                <div className="flex gap-2 shrink-0 flex-wrap justify-end">
                   <Link href={`/admin/answers/${gp.id}`} className="btn-secondary text-sm py-2 px-3">
                     Respostas
                   </Link>
                   <Link href={`/admin/scores/${gp.id}`} className="btn-primary text-sm py-2 px-3">
                     Calcular pts
                   </Link>
+                  {(gp.status === 'scored' || gp.status === 'closed') && (
+                    <CalcRankingButton
+                      gpId={gp.id}
+                      gpNome={gp.nome}
+                      adminEmail={user.email!}
+                    />
+                  )}
                 </div>
               </div>
             )

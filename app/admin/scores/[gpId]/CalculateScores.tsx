@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { calculatePlayScore } from '@/lib/scoring'
 import type { GpCalendar, GpAnswers, Prediction, ScorePlay } from '@/lib/supabase/types'
+import CalcRankingButton from '@/app/admin/CalcRankingButton'
 
 type PreviewRow = ReturnType<typeof calculatePlayScore> & { email: string }
 
@@ -23,6 +24,7 @@ export default function CalculateScores({
   const [error, setError] = useState('')
   const [preview, setPreview] = useState<PreviewRow[]>([])
   const [calculated, setCalculated] = useState(false)
+  const [saved, setSaved] = useState(false)
 
   function doPreview() {
     if (!answers) {
@@ -87,7 +89,7 @@ export default function CalculateScores({
       return
     }
 
-    router.push(`/ranking/play?gp=${gp.id}`)
+    setSaved(true)
     setLoading(false)
   }
 
@@ -166,14 +168,34 @@ export default function CalculateScores({
 
           {error && <p className="text-red-400 bg-red-900/20 rounded-lg px-4 py-3 mb-4">{error}</p>}
 
-          <div className="flex gap-3">
-            <button onClick={() => setCalculated(false)} className="btn-secondary flex-1">
-              ← Recalcular
-            </button>
-            <button onClick={doSave} disabled={loading} className="btn-primary flex-1">
-              {loading ? 'A guardar...' : '✅ Confirmar e guardar'}
-            </button>
-          </div>
+          {!saved ? (
+            <div className="flex gap-3">
+              <button onClick={() => setCalculated(false)} className="btn-secondary flex-1">
+                ← Recalcular
+              </button>
+              <button onClick={doSave} disabled={loading} className="btn-primary flex-1">
+                {loading ? 'A guardar...' : '✅ Confirmar e guardar'}
+              </button>
+            </div>
+          ) : (
+            <div className="card bg-green-900/20 border-green-700/40 space-y-3">
+              <p className="text-green-400 font-bold text-center">✅ Pontuações Play guardadas!</p>
+              <p className="text-gray-400 text-sm text-center">
+                Agora podes calcular o Ranking Global para este GP.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => router.push(`/ranking/play?gp=${gp.id}`)}
+                  className="btn-secondary flex-1 text-sm"
+                >
+                  Ver ranking Play
+                </button>
+                <div className="flex-1">
+                  <CalcRankingButton gpId={gp.id} gpNome={gp.nome} adminEmail={adminEmail} />
+                </div>
+              </div>
+            </div>
+          )}
         </>
       )}
     </div>
