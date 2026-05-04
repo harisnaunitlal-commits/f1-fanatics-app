@@ -21,7 +21,7 @@ export default async function AdminPredictPage() {
   const { data: gps } = await (supabase as any)
     .from('gp_calendar')
     .select('*')
-    .in('status', ['closed', 'scored'])
+    .in('status', ['closed', 'scored', 'upcoming', 'active'])
     .order('round')
 
   const { data: members } = await (supabase as any)
