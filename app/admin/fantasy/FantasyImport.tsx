@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
 import type { GpCalendar, Member } from '@/lib/supabase/types'
 
 type MemberRow = Pick<Member, 'email' | 'nickname' | 'fantasy_nick'>
@@ -11,39 +10,43 @@ export default function FantasyImport({
 }: {
   gps: GpCalendar[]; members: MemberRow[]; adminEmail: string
 }) {
-  const supabase = createClient()
   const [selectedGp, setSelectedGp] = useState<number | ''>('')
-  const [rows, setRows] = useState<{ email: string; equipa_nome: string; pontos_acum: string }[]>(
-    members.map(m => ({ email: m.email, equipa_nome: m.fantasy_nick ?? '', pontos_acum: '' }))
+  const [rows, setRows] = useState<{ email: string; equipa_nome: string; pontos_gp: string; pontos_acum: string }[]>(
+    members.map(m => ({ email: m.email, equipa_nome: m.fantasy_nick ?? '', pontos_gp: '', pontos_acum: '' }))
   )
   const [csvText, setCsvText] = useState('')
   const [csvMode, setCsvMode] = useState(false)
-  const [csvPreview, setCsvPreview] = useState<{ nick: string; pontos: number; matched: string | null }[]>([])
+  const [csvPreview, setCsvPreview] = useState<{ nick: string; pontos_gp: number; pontos_acum: number; matched: string | null }[]>([])
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState('')
 
-  // Parse CSV/paste: each line = "NickEquipa,pontos" or "NickEquipa pontos"
+  // Parse CSV: "NickEquipa,pontos_gp,pontos_acum" (3 cols) OR "NickEquipa,pontos_acum" (2 cols)
   function parseCsv(text: string) {
     const lines = text.trim().split('\n').filter(l => l.trim())
     const parsed = lines.map(line => {
-      // Support comma, semicolon, or tab as separator
       const parts = line.split(/[,;\t]/).map(p => p.trim())
-      if (parts.length >= 2) {
+      if (parts.length >= 3) {
+        // 3 columns: nick, pontos_gp, pontos_acum
         const nick = parts[0]
-        const pontos = parseInt(parts[parts.length - 1].replace(/[^\d-]/g, ''))
-        return { nick, pontos: isNaN(pontos) ? 0 : pontos }
+        const pontos_gp   = parseInt(parts[1].replace(/[^\d-]/g, ''))
+        const pontos_acum = parseInt(parts[2].replace(/[^\d-]/g, ''))
+        return { nick, pontos_gp: isNaN(pontos_gp) ? 0 : pontos_gp, pontos_acum: isNaN(pontos_acum) ? 0 : pontos_acum }
+      } else if (parts.length === 2) {
+        // 2 columns: nick, pontos_acum (pontos_gp will be null)
+        const nick = parts[0]
+        const pontos_acum = parseInt(parts[1].replace(/[^\d-]/g, ''))
+        return { nick, pontos_gp: 0, pontos_acum: isNaN(pontos_acum) ? 0 : pontos_acum }
       }
       return null
-    }).filter(Boolean) as { nick: string; pontos: number }[]
+    }).filter(Boolean) as { nick: string; pontos_gp: number; pontos_acum: number }[]
 
-    // Try to match each nick to a member
-    const preview = parsed.map(({ nick, pontos }) => {
+    const preview = parsed.map(({ nick, pontos_gp, pontos_acum }) => {
       const matched = members.find(m =>
         m.fantasy_nick?.toLowerCase() === nick.toLowerCase() ||
         m.nickname?.toLowerCase() === nick.toLowerCase()
       )
-      return { nick, pontos, matched: matched?.email ?? null }
+      return { nick, pontos_gp, pontos_acum, matched: matched?.email ?? null }
     })
 
     setCsvPreview(preview)
@@ -51,11 +54,11 @@ export default function FantasyImport({
 
   function applyCsvToRows() {
     const updated = [...rows]
-    csvPreview.forEach(({ nick, pontos, matched }) => {
+    csvPreview.forEach(({ nick, pontos_gp, pontos_acum, matched }) => {
       if (!matched) return
       const idx = updated.findIndex(r => r.email === matched)
       if (idx >= 0) {
-        updated[idx] = { ...updated[idx], equipa_nome: nick, pontos_acum: String(pontos) }
+        updated[idx] = { ...updated[idx], equipa_nome: nick, pontos_gp: String(pontos_gp), pontos_acum: String(pontos_acum) }
       }
     })
     setRows(updated)
@@ -78,8 +81,8 @@ export default function FantasyImport({
       member_email: r.email,
       gp_id: selectedGp as number,
       equipa_nome: r.equipa_nome,
+      pontos_gp:   r.pontos_gp !== '' ? parseInt(r.pontos_gp) : null,
       pontos_acum: parseInt(r.pontos_acum),
-      pontos_gp: null,
     }))
 
     const res = await fetch('/api/admin/save-fantasy', {
@@ -95,14 +98,14 @@ export default function FantasyImport({
   }
 
   const unmatched = csvPreview.filter(r => !r.matched)
-  const matched = csvPreview.filter(r => r.matched)
+  const matched   = csvPreview.filter(r =>  r.matched)
 
   return (
     <div className="max-w-3xl mx-auto">
       <div className="mb-6">
         <a href="/admin" className="text-gray-500 hover:text-white text-sm">← Admin</a>
         <h1 className="text-2xl font-bold mt-2">Importar F1 Fantasy</h1>
-        <p className="text-gray-400 text-sm">Introduz os pontos acumulados do site para cada membro.</p>
+        <p className="text-gray-400 text-sm">Introduz os pontos do GP e acumulados do site para cada membro.</p>
       </div>
 
       {/* GP selector */}
@@ -139,7 +142,7 @@ export default function FantasyImport({
               onClick={() => setCsvMode(true)}
               className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors ${csvMode ? 'bg-f1red text-white' : 'bg-gray-800 text-gray-400 hover:text-white'}`}
             >
-              📋 Colar CSV / Tabela
+              📋 Colar CSV
             </button>
           </div>
 
@@ -147,13 +150,18 @@ export default function FantasyImport({
           {csvMode && (
             <div className="card mb-4 space-y-4">
               <div>
-                <p className="text-sm text-gray-400 mb-2">
-                  Cola aqui os dados directamente do site F1 Fantasy ou de uma folha Excel.<br />
-                  <span className="text-gray-500 text-xs">Formato: <code className="bg-black/40 px-1 rounded">Nome Equipa , Pontos</code> — uma linha por jogador</span>
+                <p className="text-sm text-gray-400 mb-1">
+                  Cola os dados do site F1 Fantasy.
                 </p>
+                <div className="bg-yellow-900/20 border border-yellow-700/30 rounded-lg px-3 py-2 mb-3">
+                  <p className="text-xs text-yellow-400 font-bold mb-0.5">📋 Formato com pontos do GP</p>
+                  <code className="text-xs text-yellow-300/80">NomeEquipa , pontos_GP , pontos_Acumulado</code>
+                  <p className="text-xs text-yellow-300/60 mt-0.5">ex: <code>ABx Racing,202,850</code></p>
+                  <p className="text-xs text-gray-500 mt-1">Também aceita 2 colunas (só acumulado): <code>ABx Racing,850</code></p>
+                </div>
                 <textarea
-                  className="input resize-none h-40 font-mono text-sm"
-                  placeholder={"ABx Racing, 312\nAlexFer#1, 287\nVirgo F1, 301\n..."}
+                  className="input resize-none h-44 font-mono text-sm"
+                  placeholder={"DP F1 Team,356,1162\nRtF1Team1,356,925\nABx Racing,202,850\n..."}
                   value={csvText}
                   onChange={e => setCsvText(e.target.value)}
                 />
@@ -169,31 +177,30 @@ export default function FantasyImport({
               {csvPreview.length > 0 && (
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <p className="text-sm font-bold text-green-400">✅ {matched.length} correspondências encontradas</p>
+                    <p className="text-sm font-bold text-green-400">✅ {matched.length} correspondências</p>
                     {unmatched.length > 0 && (
                       <p className="text-sm text-yellow-400">⚠️ {unmatched.length} sem correspondência</p>
                     )}
                   </div>
 
-                  {/* Unmatched warning */}
                   {unmatched.length > 0 && (
                     <div className="bg-yellow-900/20 border border-yellow-700/30 rounded-lg p-3">
-                      <p className="text-xs text-yellow-400 font-bold mb-1">Não encontrados (verifica o Nick Fantasy no perfil):</p>
+                      <p className="text-xs text-yellow-400 font-bold mb-1">Não encontrados:</p>
                       {unmatched.map(r => (
                         <p key={r.nick} className="text-xs text-yellow-300">• {r.nick}</p>
                       ))}
                     </div>
                   )}
 
-                  {/* Preview table */}
-                  <div className="max-h-48 overflow-y-auto space-y-1">
+                  <div className="max-h-52 overflow-y-auto space-y-1">
                     {matched.map(r => {
                       const member = members.find(m => m.email === r.matched)
                       return (
-                        <div key={r.nick} className="flex justify-between text-sm bg-black/20 rounded px-3 py-1.5">
-                          <span className="text-gray-300">{member?.nickname}</span>
-                          <span className="text-gray-500 text-xs">{r.nick}</span>
-                          <span className="text-green-400 font-bold">{r.pontos} pts</span>
+                        <div key={r.nick} className="flex justify-between items-center text-sm bg-black/20 rounded px-3 py-1.5">
+                          <span className="text-gray-300 w-28 truncate">{member?.nickname}</span>
+                          <span className="text-gray-500 text-xs flex-1 truncate px-2">{r.nick}</span>
+                          <span className="text-blue-400 font-bold text-xs mr-3">GP: {r.pontos_gp}</span>
+                          <span className="text-green-400 font-bold">Acum: {r.pontos_acum}</span>
                         </div>
                       )
                     })}
@@ -210,33 +217,41 @@ export default function FantasyImport({
           {/* Manual table */}
           {!csvMode && (
             <div className="card space-y-2">
-              <p className="text-gray-500 text-xs mb-2">
-                Nota: introduz o valor acumulado real do site (total desde o início da época).
-              </p>
+              <div className="grid grid-cols-4 gap-2 text-xs text-gray-500 font-bold uppercase px-1 mb-1">
+                <span>Membro</span>
+                <span>Equipa</span>
+                <span>Pts GP</span>
+                <span>Pts Acum</span>
+              </div>
               {rows.map((row, i) => {
                 const member = members.find(m => m.email === row.email)
                 return (
-                  <div key={row.email} className="grid grid-cols-3 gap-2 items-center">
-                    <span className="text-sm text-gray-300">{member?.nickname}</span>
+                  <div key={row.email} className="grid grid-cols-4 gap-2 items-center">
+                    <span className="text-sm text-gray-300 truncate">{member?.nickname}</span>
                     <input
                       className="input text-sm py-2"
                       placeholder="Nome equipa"
                       value={row.equipa_nome}
                       onChange={e => {
-                        const copy = [...rows]
-                        copy[i] = { ...copy[i], equipa_nome: e.target.value }
-                        setRows(copy)
+                        const copy = [...rows]; copy[i] = { ...copy[i], equipa_nome: e.target.value }; setRows(copy)
                       }}
                     />
                     <input
                       className="input text-sm py-2"
                       type="number"
-                      placeholder="Pontos acum."
+                      placeholder="Pts GP"
+                      value={row.pontos_gp}
+                      onChange={e => {
+                        const copy = [...rows]; copy[i] = { ...copy[i], pontos_gp: e.target.value }; setRows(copy)
+                      }}
+                    />
+                    <input
+                      className="input text-sm py-2"
+                      type="number"
+                      placeholder="Pts Acum"
                       value={row.pontos_acum}
                       onChange={e => {
-                        const copy = [...rows]
-                        copy[i] = { ...copy[i], pontos_acum: e.target.value }
-                        setRows(copy)
+                        const copy = [...rows]; copy[i] = { ...copy[i], pontos_acum: e.target.value }; setRows(copy)
                       }}
                     />
                   </div>
