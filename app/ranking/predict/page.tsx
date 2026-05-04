@@ -33,37 +33,41 @@ export default async function PredictRankingPage({
   const { data: rawScores } = queryGpId
     ? await (supabase as any)
         .from('scores_predict')
-        .select('member_email, nick_predict, pontos_acum, members(nickname, foto_url)')
+        .select('member_email, nick_predict, pontos_acum, pontos_gp, members(nickname, foto_url)')
         .eq('gp_id', queryGpId)
     : { data: null }
 
-  // For per-GP view: calculate individual GP score = pontos_acum - prev_pontos_acum
+  // For per-GP: use stored pontos_gp if available, else calculate delta from pontos_acum
   let scores: any[] | null = null
 
   if (rawScores) {
     if (isAccumulado) {
       scores = [...rawScores].sort((a: any, b: any) => b.pontos_acum - a.pontos_acum)
     } else {
-      // Find the previous scored GP
-      const selectedIdx = scoredGpsAsc.findIndex((g: any) => g.id === selectedGpId)
-      const prevGp = selectedIdx > 0 ? scoredGpsAsc[selectedIdx - 1] : null
-
-      // Fetch previous GP's cumulative scores to compute delta
+      // Only fetch prev GP data if any row lacks stored pontos_gp
+      const needsDelta = rawScores.some((s: any) => s.pontos_gp === null || s.pontos_gp === undefined)
       const prevAcumMap = new Map<string, number>()
-      if (prevGp) {
-        const { data: prevScores } = await (supabase as any)
-          .from('scores_predict')
-          .select('member_email, pontos_acum')
-          .eq('gp_id', prevGp.id)
-        ;((prevScores ?? []) as any[]).forEach((s: any) => {
-          prevAcumMap.set(s.member_email, s.pontos_acum)
-        })
+
+      if (needsDelta) {
+        const selectedIdx = scoredGpsAsc.findIndex((g: any) => g.id === selectedGpId)
+        const prevGp = selectedIdx > 0 ? scoredGpsAsc[selectedIdx - 1] : null
+        if (prevGp) {
+          const { data: prevScores } = await (supabase as any)
+            .from('scores_predict')
+            .select('member_email, pontos_acum')
+            .eq('gp_id', prevGp.id)
+          ;((prevScores ?? []) as any[]).forEach((s: any) => {
+            prevAcumMap.set(s.member_email, s.pontos_acum)
+          })
+        }
       }
 
       scores = rawScores
         .map((s: any) => ({
           ...s,
-          pontos_gp: s.pontos_acum - (prevAcumMap.get(s.member_email) ?? 0),
+          pontos_gp: s.pontos_gp !== null && s.pontos_gp !== undefined
+            ? s.pontos_gp
+            : s.pontos_acum - (prevAcumMap.get(s.member_email) ?? 0),
         }))
         .sort((a: any, b: any) => b.pontos_gp - a.pontos_gp)
     }
