@@ -3,7 +3,7 @@ import Link from 'next/link'
 type Tab = 'global' | 'play' | 'fantasy' | 'predict'
 
 const TABS: { id: Tab; label: string; base: string }[] = [
-  { id: 'global',  label: 'Global',   base: '/ranking' },
+  { id: 'global',  label: 'Triatlo',  base: '/ranking' },
   { id: 'play',    label: 'F1 Play',  base: '/ranking/play' },
   { id: 'fantasy', label: 'Fantasy',  base: '/ranking/fantasy' },
   { id: 'predict', label: 'Predict',  base: '/ranking/predict' },

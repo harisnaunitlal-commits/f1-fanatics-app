@@ -78,12 +78,11 @@ export default async function GlobalRankingPage({
     ? await (supabase as any)
         .from('global_ranking')
         .select(
-          'member_email, play_pts, fantasy_pts, predict_pts, play_gpts, fantasy_gpts, predict_gpts, global_score, n_ligas, members(nickname, foto_url)'
+          'member_email, play_pts, fantasy_pts, predict_pts, play_gp_pts, fantasy_gp_pts, predict_gp_pts, play_gpts, fantasy_gpts, predict_gpts, global_score, n_ligas, members(nickname, foto_url)'
         )
         .eq('gp_id', queryGpId)
     : { data: null }
 
-  // For per-GP: fetch previous GP snapshot to compute deltas
   let rows: any[] | null = null
 
   if (currRows) {
@@ -92,32 +91,12 @@ export default async function GlobalRankingPage({
         b.global_score - a.global_score || a.member_email.localeCompare(b.member_email)
       )
     } else {
-      // Find previous GP
-      const selectedIdx = scoredGpsAsc.findIndex((g: any) => g.id === selectedGpId)
-      const prevGp = selectedIdx > 0 ? scoredGpsAsc[selectedIdx - 1] : null
-
-      // Fetch previous snapshot
-      const prevMap = new Map<string, { play_pts: number; fantasy_pts: number; predict_pts: number }>()
-      if (prevGp) {
-        const { data: prevRows } = await (supabase as any)
-          .from('global_ranking')
-          .select('member_email, play_pts, fantasy_pts, predict_pts')
-          .eq('gp_id', prevGp.id)
-        ;((prevRows ?? []) as any[]).forEach((r: any) => {
-          prevMap.set(r.member_email, {
-            play_pts: r.play_pts ?? 0,
-            fantasy_pts: r.fantasy_pts ?? 0,
-            predict_pts: r.predict_pts ?? 0,
-          })
-        })
-      }
-
+      // Use stored per-GP points directly (avoids delta issues for new players)
       rows = currRows
         .map((r: any) => {
-          const prev = prevMap.get(r.member_email) ?? { play_pts: 0, fantasy_pts: 0, predict_pts: 0 }
-          const play_gp    = (r.play_pts    ?? 0) - prev.play_pts
-          const fantasy_gp = (r.fantasy_pts ?? 0) - prev.fantasy_pts
-          const predict_gp = (r.predict_pts ?? 0) - prev.predict_pts
+          const play_gp    = r.play_gp_pts    ?? 0
+          const fantasy_gp = r.fantasy_gp_pts ?? 0
+          const predict_gp = r.predict_gp_pts ?? 0
           const total_gp   = play_gp + fantasy_gp + predict_gp
           return { ...r, play_gp, fantasy_gp, predict_gp, total_gp }
         })
@@ -129,9 +108,43 @@ export default async function GlobalRankingPage({
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-2 flex-wrap gap-3">
-        <h1 className="text-3xl font-bold">Ranking Global</h1>
+      {/* Header */}
+      <div className="flex items-start justify-between mb-4 flex-wrap gap-3">
+        <div>
+          <div className="flex items-center gap-3 mb-1">
+            <h1 className="text-3xl font-bold">Triatlo Ranking</h1>
+            <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-f1red/20 text-f1red border border-f1red/30 tracking-wider uppercase">
+              3 Ligas
+            </span>
+          </div>
+          <p className="text-gray-400 text-sm">
+            O jogador mais completo das 3 ligas · Score normalizado 0–100 por liga
+          </p>
+        </div>
         <RankingTabs active="global" gpId={selectedGpId} />
+      </div>
+
+      {/* League trio badges */}
+      <div className="flex gap-2 mb-4 flex-wrap">
+        <div className="flex items-center gap-1.5 bg-blue-500/10 border border-blue-500/20 rounded-lg px-3 py-1.5">
+          <span className="text-base">🎮</span>
+          <span className="text-xs font-semibold text-blue-300">F1 Play</span>
+        </div>
+        <div className="text-gray-600 flex items-center text-sm font-bold">+</div>
+        <div className="flex items-center gap-1.5 bg-green-500/10 border border-green-500/20 rounded-lg px-3 py-1.5">
+          <span className="text-base">💰</span>
+          <span className="text-xs font-semibold text-green-300">F1 Fantasy</span>
+        </div>
+        <div className="text-gray-600 flex items-center text-sm font-bold">+</div>
+        <div className="flex items-center gap-1.5 bg-purple-500/10 border border-purple-500/20 rounded-lg px-3 py-1.5">
+          <span className="text-base">🎯</span>
+          <span className="text-xs font-semibold text-purple-300">F1 Predict</span>
+        </div>
+        <div className="text-gray-600 flex items-center text-sm font-bold">=</div>
+        <div className="flex items-center gap-1.5 bg-f1red/10 border border-f1red/30 rounded-lg px-3 py-1.5">
+          <span className="text-base">🏆</span>
+          <span className="text-xs font-bold text-f1red">Triatlo Score</span>
+        </div>
       </div>
 
       {scoredGpsAsc.length > 0 && (
@@ -144,8 +157,8 @@ export default async function GlobalRankingPage({
 
       <p className="text-gray-500 text-sm mb-6">
         {isAccumulado
-          ? 'Score normalizado 0–100 · média das 3 ligas · acumulado'
-          : 'Pontos individuais deste GP por liga'}
+          ? 'Score = média dos % normalizados de cada liga · ausência numa liga penaliza'
+          : 'Pontos brutos deste GP em cada liga'}
       </p>
 
       {!rows || rows.length === 0 ? (
@@ -274,8 +287,8 @@ export default async function GlobalRankingPage({
 
           <p className="text-xs text-gray-600 mt-3 text-center">
             {isAccumulado
-              ? 'Score = (Play% + Fantasy% + Predict%) ÷ 3 · Ausência = 0 · Máx 100.0'
-              : 'Total GP = Play + Fantasy + Predict (pontos brutos deste GP)'}
+              ? '🏆 Triatlo Score = (Play% + Fantasy% + Predict%) ÷ nº ligas participadas · Máx 100.0'
+              : '⚡ Total GP = pontos brutos de F1 Play + Fantasy + Predict neste GP'}
           </p>
         </>
       )}
