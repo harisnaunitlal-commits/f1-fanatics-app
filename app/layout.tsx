@@ -10,6 +10,13 @@ export const metadata: Metadata = {
   title: 'Beira F1',
   description: 'A liga de previsões F1 da Beira, Moçambique. Fundada em 2021.',
   manifest: '/manifest.json',
+  icons: {
+    icon: [
+      { url: '/logos/beira-f1.png', type: 'image/png' },
+    ],
+    apple: '/logos/beira-f1.png',
+    shortcut: '/logos/beira-f1.png',
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
@@ -21,6 +28,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="pt">
       <head>
+        <link rel="icon" href="/logos/beira-f1.png" type="image/png" />
         <link rel="apple-touch-icon" href="/logos/beira-f1.png" />
         <meta name="mobile-web-app-capable" content="yes" />
       </head>
