@@ -199,19 +199,19 @@ export default async function GlobalRankingPage({
                         }
                       : i === 1
                       ? {
-                          ring: 'bg-yellow-300/10 text-yellow-300',
-                          name: 'text-yellow-200',
-                          score: 'text-yellow-300',
-                          av: 'bg-yellow-300/15 text-yellow-300',
-                          row: 'bg-yellow-300/[0.04] border-l-2 border-l-yellow-300',
+                          ring: 'bg-yellow-400/10 text-yellow-400',
+                          name: 'text-yellow-300',
+                          score: 'text-yellow-400',
+                          av: 'bg-yellow-400/15 text-yellow-400',
+                          row: 'bg-yellow-400/[0.04] border-l-2 border-l-yellow-400',
                         }
                       : i === 2
                       ? {
-                          ring: 'bg-amber-600/10 text-amber-500',
-                          name: 'text-amber-300',
-                          score: 'text-amber-500',
-                          av: 'bg-amber-600/15 text-amber-500',
-                          row: 'bg-amber-600/[0.04] border-l-2 border-l-amber-600',
+                          ring: 'bg-yellow-400/10 text-yellow-400',
+                          name: 'text-yellow-300',
+                          score: 'text-yellow-400',
+                          av: 'bg-yellow-400/15 text-yellow-400',
+                          row: 'bg-yellow-400/[0.04] border-l-2 border-l-yellow-400',
                         }
                       : {
                           ring: 'text-gray-500',
