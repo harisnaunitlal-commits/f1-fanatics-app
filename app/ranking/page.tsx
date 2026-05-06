@@ -199,11 +199,11 @@ export default async function GlobalRankingPage({
                         }
                       : i === 1
                       ? {
-                          ring: 'bg-gray-400/10 text-gray-300',
-                          name: 'text-gray-100',
-                          score: 'text-gray-300',
-                          av: 'bg-gray-400/15 text-gray-300',
-                          row: 'bg-gray-400/[0.04] border-l-2 border-l-gray-400',
+                          ring: 'bg-yellow-300/10 text-yellow-300',
+                          name: 'text-yellow-200',
+                          score: 'text-yellow-300',
+                          av: 'bg-yellow-300/15 text-yellow-300',
+                          row: 'bg-yellow-300/[0.04] border-l-2 border-l-yellow-300',
                         }
                       : i === 2
                       ? {
