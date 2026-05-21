@@ -7,7 +7,7 @@ import { PILOTOS_2026, EQUIPAS_2026 } from '@/lib/supabase/types'
 import {
   P8_MARGENS, P3_OPTIONS, P12_OPTIONS,
   getGpQuestions, getDriverPhoto,
-  type DuelConfig, type DriverOption,
+  type DuelConfig, type DriverOption, type GpQuestions,
 } from '@/lib/gp-questions'
 import type { GpCalendar, GpAnswers } from '@/lib/supabase/types'
 
@@ -157,9 +157,9 @@ function DriverGrid({ options, value, onChange }: {
 
 // ─── Main Form ─────────────────────────────────────────────────────────────────
 export default function AnswersForm({
-  gp, existing, adminEmail
+  gp, existing, adminEmail, config: configProp
 }: {
-  gp: GpCalendar; existing: GpAnswers | null; adminEmail: string
+  gp: GpCalendar; existing: GpAnswers | null; adminEmail: string; config?: GpQuestions
 }) {
   const router = useRouter()
   const supabase = createClient()
@@ -167,7 +167,7 @@ export default function AnswersForm({
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState('')
 
-  const config = getGpQuestions(gp.round)
+  const config = configProp ?? getGpQuestions(gp.round)
   const gpNameFull = config ? `Grande Prémio ${config.gpPrep} ${config.gpName}` : gp.nome
 
   const [form, setForm] = useState<FormData>({

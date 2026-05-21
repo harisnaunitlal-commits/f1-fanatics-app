@@ -7,7 +7,7 @@ import { PILOTOS_2026, EQUIPAS_2026 } from '@/lib/supabase/types'
 import {
   P8_MARGENS, P3_OPTIONS, P12_OPTIONS,
   getGpQuestions, getDriverPhoto,
-  type DuelConfig, type DriverOption,
+  type DuelConfig, type DriverOption, type GpQuestions,
 } from '@/lib/gp-questions'
 import type { GpCalendar, Prediction } from '@/lib/supabase/types'
 import { getDeadlineCountdown, isDeadlinePassed } from '@/lib/scoring'
@@ -155,10 +155,12 @@ export default function PredictForm({
   gp,
   userEmail,
   existing,
+  config: configProp,
 }: {
   gp: GpCalendar
   userEmail: string
   existing: Prediction | null
+  config?: GpQuestions
 }) {
   const router = useRouter()
   const supabase = createClient()
@@ -167,7 +169,7 @@ export default function PredictForm({
   const [success, setSuccess] = useState(false)
   const [countdown, setCountdown] = useState(getDeadlineCountdown(gp.deadline_play))
 
-  const config = getGpQuestions(gp.round)
+  const config = configProp ?? getGpQuestions(gp.round)
   const gpNameFull = config ? `Grande Prémio ${config.gpPrep} ${config.gpName}` : gp.nome
 
   const blank: FormData = {

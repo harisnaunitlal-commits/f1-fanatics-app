@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
 import { isDeadlinePassed } from '@/lib/scoring'
 import PredictForm from './PredictForm'
+import { getEffectiveGpConfig } from '@/lib/gp-config'
 
 export default async function PredictGpPage({ params }: { params: { gpId: string } }) {
   const supabase = await createClient()
@@ -30,12 +31,10 @@ export default async function PredictGpPage({ params }: { params: { gpId: string
     )
   }
 
-  const { data: existing } = await (supabase as any)
-    .from('predictions')
-    .select('*')
-    .eq('member_email', user.email)
-    .eq('gp_id', gpId)
-    .single()
+  const [{ data: existing }, config] = await Promise.all([
+    (supabase as any).from('predictions').select('*').eq('member_email', user.email).eq('gp_id', gpId).single(),
+    getEffectiveGpConfig(supabase, gpId, gp.round),
+  ])
 
-  return <PredictForm gp={gp} userEmail={user.email} existing={existing} />
+  return <PredictForm gp={gp} userEmail={user.email} existing={existing} config={config} />
 }

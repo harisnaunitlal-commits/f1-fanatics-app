@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
 import AnswersForm from './AnswersForm'
+import { getEffectiveGpConfig } from '@/lib/gp-config'
 
 export default async function AdminAnswersPage({ params }: { params: { gpId: string } }) {
   const supabase = await createClient()
@@ -29,11 +30,10 @@ export default async function AdminAnswersPage({ params }: { params: { gpId: str
 
   if (!gp) notFound()
 
-  const { data: existing } = await (supabase as any)
-    .from('gp_answers')
-    .select('*')
-    .eq('gp_id', gpId)
-    .single()
+  const [{ data: existing }, config] = await Promise.all([
+    (supabase as any).from('gp_answers').select('*').eq('gp_id', gpId).single(),
+    getEffectiveGpConfig(supabase, gpId, gp.round),
+  ])
 
-  return <AnswersForm gp={gp} existing={existing} adminEmail={user.email} />
+  return <AnswersForm gp={gp} existing={existing} adminEmail={user.email} config={config} />
 }

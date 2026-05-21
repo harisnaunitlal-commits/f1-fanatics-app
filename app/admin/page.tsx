@@ -224,6 +224,9 @@ export default async function AdminPage() {
                   </div>
                 </div>
                 <div className="flex gap-2 shrink-0 flex-wrap justify-end">
+                  <Link href={`/admin/gp-questions/${gp.id}`} className="text-sm py-2 px-3 rounded-lg bg-gray-800 text-gray-300 hover:text-white transition-colors">
+                    ✏️ Perguntas
+                  </Link>
                   <Link href={`/admin/answers/${gp.id}`} className="btn-secondary text-sm py-2 px-3">
                     Respostas
                   </Link>
