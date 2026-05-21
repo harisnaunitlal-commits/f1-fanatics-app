@@ -92,6 +92,7 @@ export interface GpCalendar {
   pais: string
   emoji_bandeira: string | null
   data_corrida: string
+  fp1_start: string | null
   deadline_play: string
   deadline_predict: string | null
   status: 'upcoming' | 'active' | 'closed' | 'scored'

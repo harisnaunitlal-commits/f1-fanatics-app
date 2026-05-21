@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic'
 
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
-import { isDeadlinePassed, getTimeUntilDeadline } from '@/lib/scoring'
+import { isDeadlinePassed, isBeforeFP1, getTimeUntilDeadline, getTimeUntilFP1 } from '@/lib/scoring'
 
 // Convert emoji flag or 2-letter code to local flag image
 function toFlag(code: string) {
@@ -45,11 +45,13 @@ export default async function PredictPage() {
 
       <div className="grid gap-3">
         {(gps as any[])?.map((gp: any) => {
-          const closed   = isDeadlinePassed(gp.deadline_play)
-          const scored   = gp.status === 'scored'
-          const hasPred  = submitted.has(gp.id)
-          const hasAns   = hasAnswers.has(gp.id)
-          const timeLeft = !closed ? getTimeUntilDeadline(gp.deadline_play) : null
+          const closed      = isDeadlinePassed(gp.deadline_play)
+          const notYetOpen  = !closed && isBeforeFP1(gp.fp1_start)
+          const scored      = gp.status === 'scored'
+          const hasPred     = submitted.has(gp.id)
+          const hasAns      = hasAnswers.has(gp.id)
+          const timeLeft    = !closed && !notYetOpen ? getTimeUntilDeadline(gp.deadline_play) : null
+          const timeToOpen  = notYetOpen && gp.fp1_start ? getTimeUntilFP1(gp.fp1_start) : null
 
           return (
             <div
@@ -76,6 +78,9 @@ export default async function PredictPage() {
                     {timeLeft && (
                       <span className="ml-2 text-f1red font-medium">⏱ {timeLeft}</span>
                     )}
+                    {timeToOpen && (
+                      <span className="ml-2 text-blue-400 font-medium">🔒 Abre em {timeToOpen}</span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -94,13 +99,20 @@ export default async function PredictPage() {
                 )}
 
                 {/* Submit / Edit */}
-                {!closed && (
+                {!closed && !notYetOpen && (
                   <Link
                     href={`/predict/${gp.id}`}
                     className={`btn-primary text-sm py-2 px-4 ${hasPred ? 'opacity-80' : ''}`}
                   >
                     {hasPred ? '✏️ Editar' : '🏎️ Submeter'}
                   </Link>
+                )}
+
+                {/* Not yet open */}
+                {notYetOpen && (
+                  <span className="text-sm text-blue-400 bg-blue-900/20 border border-blue-700/30 px-3 py-1.5 rounded-lg">
+                    🔒 Abre no FP1
+                  </span>
                 )}
 
                 {/* Status badge */}

@@ -82,6 +82,24 @@ export function isDeadlinePassed(deadline: string): boolean {
   return new Date() >= new Date(deadline)
 }
 
+/** Returns true when FP1 has NOT yet started (submissions not yet open) */
+export function isBeforeFP1(fp1Start: string | null | undefined): boolean {
+  if (!fp1Start) return false // no FP1 date set → treat as always open
+  return new Date() < new Date(fp1Start)
+}
+
+/** Returns a human-readable countdown string until FP1 */
+export function getTimeUntilFP1(fp1Start: string): string {
+  const diff = new Date(fp1Start).getTime() - Date.now()
+  if (diff <= 0) return ''
+  const days  = Math.floor(diff / 86400000)
+  const hours = Math.floor((diff % 86400000) / 3600000)
+  const mins  = Math.floor((diff % 3600000) / 60000)
+  if (days > 0) return `${days}d ${hours}h`
+  if (hours > 0) return `${hours}h ${mins}m`
+  return `${mins}m`
+}
+
 export function getTimeUntilDeadline(deadline: string): string {
   const diff = new Date(deadline).getTime() - Date.now()
   if (diff <= 0) return 'Prazo encerrado'
