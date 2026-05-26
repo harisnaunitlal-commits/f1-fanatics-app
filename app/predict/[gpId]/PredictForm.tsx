@@ -226,14 +226,14 @@ export default function PredictForm({
     if (isDeadlinePassed(gp.deadline_play)) { setError('O prazo expirou.'); return }
     setLoading(true); setError('')
 
-    const { error: upsertErr } = await (supabase as any)
-      .from('predictions')
-      .upsert(
-        { member_email: userEmail, gp_id: gp.id, ...form, editado_em: new Date().toISOString() },
-        { onConflict: 'member_email,gp_id' }
-      )
+    const res = await fetch('/api/predict/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ gp_id: gp.id, ...form }),
+    })
+    const result = await res.json()
 
-    if (upsertErr) { setError(upsertErr.message) }
+    if (!res.ok || result.error) { setError(result.error ?? 'Erro ao guardar.') }
     else { setSuccess(true); setTimeout(() => router.push('/predict'), 2000) }
     setLoading(false)
   }
