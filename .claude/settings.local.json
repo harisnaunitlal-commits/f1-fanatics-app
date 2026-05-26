@@ -30,7 +30,14 @@
       "Bash(\"/c/Program Files/nodejs/node.exe\" \"/c/Program Files/nodejs/node_modules/npm/bin/npm-cli.js\" run dev)",
       "Bash(dir \"app\\\\players\\\\[nickname]\")",
       "mcp__Claude_in_Chrome__tabs_context_mcp",
-      "WebFetch(domain:app.beiraf1fanatics.com)"
+      "WebFetch(domain:app.beiraf1fanatics.com)",
+      "Bash(python3 -c ' *)",
+      "Bash(node -e ' *)",
+      "WebSearch",
+      "WebFetch(domain:docs.google.com)",
+      "Bash(npm install *)",
+      "Bash(npm list *)",
+      "Bash(npx next *)"
     ]
   }
 }
