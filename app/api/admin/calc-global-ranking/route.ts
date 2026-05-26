@@ -180,10 +180,11 @@ async function sendTriatloEmails({
   const gpName = config ? `${config.gpPrep} ${config.gpName}` : gp.nome
 
   // Fetch member info
+  type MemberInfo = { email: string; nickname: string; nome_completo: string | null }
   const emails = rows.map(r => r.member_email)
   const { data: members } = await supabaseAdmin
     .from('members').select('email, nickname, nome_completo').in('email', emails)
-  const memberMap = new Map((members ?? []).map((m: any) => [m.email, m]))
+  const memberMap = new Map<string, MemberInfo>((members ?? []).map((m: any) => [m.email, m as MemberInfo]))
 
   // Sort rows by global_score desc to get positions
   const sorted = [...rows].sort((a, b) => b.global_score - a.global_score)
