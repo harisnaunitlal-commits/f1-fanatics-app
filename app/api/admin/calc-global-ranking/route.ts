@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient as createServerClient } from '@/lib/supabase/server'
 import { createClient } from '@supabase/supabase-js'
+import { sendTriatloResults } from '@/lib/email'
+import { getEffectiveGpConfig } from '@/lib/gp-config'
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -139,8 +141,114 @@ export async function POST(req: NextRequest) {
       })
     } catch (_) { /* ignore */ }
 
+    // ── Send results emails (non-blocking) ────────────────────────────────────
+    sendTriatloEmails({ supabaseAdmin, gp_id, rows, playScores: playScores ?? [] })
+      .catch(err => console.error('Triatlo emails failed:', err))
+
     return NextResponse.json({ success: true, n_rows: rows.length })
   } catch (err: any) {
     return NextResponse.json({ error: err.message ?? 'Erro interno.' }, { status: 500 })
+  }
+}
+
+// ── Send Triatlo results emails to all participants ────────────────────────────
+const SCORE_FIELD_LABELS: Record<string, string> = {
+  pts_p1a: '🥇 1º Lugar',   pts_p1b: '🥈 2º Lugar',   pts_p1c: '🥉 3º Lugar',
+  pts_p4a: '4º Lugar',       pts_p4b: '5º Lugar',       pts_p4c: '6º Lugar',
+  pts_p2:  'P2 · Equipa',    pts_p3:  'P3 · Volta de Avanço',
+  pts_p5:  'P5 · Duelo 1',   pts_p6:  'P6 · Duelo 2',   pts_p7:  'P7 · Duelo 3',
+  pts_p8:  'P8 · Margem',    pts_p9:  'P9 · First to Retire',
+  pts_p10: 'P10 · DOTD',     pts_p11: 'P11 · Volta Rápida',
+  pts_p12: 'P12 · Classificados', pts_p13: 'P13 · Especial',
+  pts_p14: 'P14 · Safety Car', pts_p15: 'P15 · Outsider',
+}
+
+async function sendTriatloEmails({
+  supabaseAdmin, gp_id, rows, playScores,
+}: {
+  supabaseAdmin: any
+  gp_id: number
+  rows: any[]
+  playScores: any[]
+}) {
+  // Fetch GP info
+  const { data: gp } = await supabaseAdmin
+    .from('gp_calendar').select('*').eq('id', gp_id).single()
+  if (!gp) return
+
+  const config = await getEffectiveGpConfig(null, gp_id, gp.round)
+  const gpName = config ? `${config.gpPrep} ${config.gpName}` : gp.nome
+
+  // Fetch member info
+  const emails = rows.map(r => r.member_email)
+  const { data: members } = await supabaseAdmin
+    .from('members').select('email, nickname, nome_completo').in('email', emails)
+  const memberMap = new Map((members ?? []).map((m: any) => [m.email, m]))
+
+  // Sort rows by global_score desc to get positions
+  const sorted = [...rows].sort((a, b) => b.global_score - a.global_score)
+  const globalPosMap = new Map(sorted.map((r, i) => [r.member_email, i + 1]))
+
+  // Sort each league for positions
+  const playSorted    = [...rows].filter(r => r.play_pts > 0).sort((a, b) => b.play_pts - a.play_pts)
+  const fantasySorted = [...rows].filter(r => r.fantasy_pts > 0).sort((a, b) => b.fantasy_pts - a.fantasy_pts)
+  const predictSorted = [...rows].filter(r => r.predict_pts > 0).sort((a, b) => b.predict_pts - a.predict_pts)
+
+  const playPosMap    = new Map(playSorted.map((r, i) => [r.member_email, i + 1]))
+  const fantasyPosMap = new Map(fantasySorted.map((r, i) => [r.member_email, i + 1]))
+  const predictPosMap = new Map(predictSorted.map((r, i) => [r.member_email, i + 1]))
+
+  // Podium (top 3 global)
+  const podium = sorted.slice(0, 3).map((r, i) => {
+    const m = memberMap.get(r.member_email)
+    return { pos: i + 1, nome: m?.nome_completo || m?.nickname || r.member_email, score: r.global_score }
+  })
+
+  // Fetch Play score breakdowns for this GP
+  const playGpScores = (playScores ?? []).filter(s => s.gp_id === gp_id)
+  const playScoreMap = new Map(playGpScores.map((s: any) => [s.member_email, s]))
+
+  // Send one email per member
+  for (let i = 0; i < sorted.length; i++) {
+    const row = sorted[i]
+    const member = memberMap.get(row.member_email)
+    if (!member) continue
+
+    // Build F1 Play breakdown if they participated
+    const playScore = playScoreMap.get(row.member_email)
+    const breakdown = playScore
+      ? Object.entries(SCORE_FIELD_LABELS).map(([key, label]) => ({
+          label,
+          acertou: (playScore[key] ?? 0) > 0,
+          pts: playScore[key] ?? 0,
+        }))
+      : []
+
+    try {
+      await sendTriatloResults({
+        toEmail: row.member_email,
+        toName: member.nome_completo || member.nickname || 'Piloto',
+        gpNome: gpName,
+        gpEmoji: gp.emoji_bandeira || '🏎️',
+        globalPosition: globalPosMap.get(row.member_email) ?? 0,
+        totalMembers: sorted.length,
+        globalScore: row.global_score,
+        playGpPts:      row.play_gp_pts ?? 0,
+        playTotalPts:   row.play_pts ?? 0,
+        playPosition:   playPosMap.get(row.member_email) ?? 0,
+        playBreakdown:  breakdown,
+        fantasyGpPts:   row.fantasy_gp_pts ?? 0,
+        fantasyTotalPts: row.fantasy_pts ?? 0,
+        fantasyPosition: fantasyPosMap.get(row.member_email) ?? 0,
+        predictGpPts:   row.predict_gp_pts ?? 0,
+        predictTotalPts: row.predict_pts ?? 0,
+        predictPosition: predictPosMap.get(row.member_email) ?? 0,
+        podium,
+      })
+      // Small delay between emails to avoid rate limiting
+      if (i < sorted.length - 1) await new Promise(r => setTimeout(r, 300))
+    } catch (err) {
+      console.error(`Email failed for ${row.member_email}:`, err)
+    }
   }
 }

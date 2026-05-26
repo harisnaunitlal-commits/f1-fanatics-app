@@ -5,7 +5,6 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { isDeadlinePassed } from '@/lib/scoring'
 import CalcRankingButton from './CalcRankingButton'
-import SendResultsButton from './SendResultsButton'
 
 export default async function AdminPage() {
   const supabase = await createClient()
@@ -240,9 +239,6 @@ export default async function AdminPage() {
                       gpNome={gp.nome}
                       adminEmail={user.email!}
                     />
-                  )}
-                  {gp.status === 'scored' && (
-                    <SendResultsButton gpId={gp.id} gpNome={gp.nome} />
                   )}
                 </div>
               </div>
