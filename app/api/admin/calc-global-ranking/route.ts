@@ -261,12 +261,14 @@ async function sendTriatloEmails({
     const breakdown = playScore
       ? Object.entries(SCORE_FIELD_LABELS).map(([key, label]) => {
           const predField = SCORE_TO_PREDICTION[key]
+          const pred = prediction as Record<string, any>
+          const ans  = gpAnswers  as Record<string, any>
           return {
             label,
             acertou:       (playScore[key] ?? 0) > 0,
             pts:           playScore[key] ?? 0,
-            playerAnswer:  prediction?.[predField] ?? '',
-            correctAnswer: gpAnswers?.[predField]  ?? '',
+            playerAnswer:  pred?.[predField] ?? '',
+            correctAnswer: ans?.[predField]  ?? '',
           }
         })
       : []
