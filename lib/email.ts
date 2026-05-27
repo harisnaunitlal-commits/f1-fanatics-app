@@ -400,6 +400,12 @@ function buildTriatloHtml({
     </table>
     ${playBreakdown.length > 0 ? `
     <h3 style="color:#e10600;font-size:13px;font-weight:700;margin:0 0 10px;text-transform:uppercase;letter-spacing:1px;">🎮 F1 Play — Detalhe</h3>
+    <table width="100%" cellpadding="0" cellspacing="0" style="background:#1c1a08;border:2px solid #fbbf2455;border-radius:12px;margin-bottom:10px;">
+      <tr>
+        <td style="padding:14px 18px;color:#9ca3af;font-size:13px;">Os teus pontos neste GP</td>
+        <td style="padding:14px 18px;text-align:right;color:#fbbf24;font-size:28px;font-weight:900;line-height:1;">+${playGpPts} <span style="font-size:13px;color:#6b7280;font-weight:400;">pts</span></td>
+      </tr>
+    </table>
     <table width="100%" cellpadding="0" cellspacing="0" style="background:#0f172a;border-radius:12px;overflow:hidden;margin-bottom:20px;">
       <tr style="background:#1e293b;">
         <td style="padding:8px 12px;color:#6b7280;font-size:10px;font-weight:700;text-transform:uppercase;">Pergunta</td>
