@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient as createServerClient } from '@/lib/supabase/server'
 import { createClient } from '@supabase/supabase-js'
 import { Resend } from 'resend'
-import { sendTriatloResults, buildTriatloEmailPayload } from '@/lib/email'
+import { buildTriatloEmailPayload } from '@/lib/email'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 import { getEffectiveGpConfig } from '@/lib/gp-config'
@@ -181,7 +181,7 @@ async function sendTriatloEmails({
   // Fetch GP info
   const { data: gp } = await supabaseAdmin
     .from('gp_calendar').select('*').eq('id', gp_id).single()
-  if (!gp) return
+  if (!gp) return 0
 
   const config = await getEffectiveGpConfig(null, gp_id, gp.round)
   const gpName = config ? `${config.gpPrep} ${config.gpName}` : gp.nome
