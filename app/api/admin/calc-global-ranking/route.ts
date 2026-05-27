@@ -147,7 +147,7 @@ export async function POST(req: NextRequest) {
     // ── Send results emails (awaited — must complete before response) ─────────
     let emailsSent = 0
     try {
-      emailsSent = await sendTriatloEmails({ supabaseAdmin, gp_id, rows, playScores: playScores ?? [], send_only_to: send_only_to ?? null })
+      emailsSent = await sendTriatloEmails({ supabaseAdmin, gp_id, rows, playScores: playScores ?? [], send_only_to: send_only_to ?? null, is_test: !!send_only_to })
     } catch (err) {
       console.error('Triatlo emails failed:', err)
     }
@@ -183,13 +183,14 @@ const SCORE_TO_PREDICTION: Record<string, string> = {
 }
 
 async function sendTriatloEmails({
-  supabaseAdmin, gp_id, rows, playScores, send_only_to,
+  supabaseAdmin, gp_id, rows, playScores, send_only_to, is_test,
 }: {
   supabaseAdmin: any
   gp_id: number
   rows: any[]
   playScores: any[]
   send_only_to: string | null
+  is_test: boolean
 }) {
   // Fetch GP info
   const { data: gp } = await supabaseAdmin
@@ -294,6 +295,7 @@ async function sendTriatloEmails({
       podium,
       playGpRanking,
       currentEmail:   row.member_email,
+      isTest:         is_test,
     })
     emailPayloads.push(payload)
   }

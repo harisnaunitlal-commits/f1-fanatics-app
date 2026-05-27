@@ -289,6 +289,7 @@ export async function sendTriatloResults({
 export function buildTriatloEmailPayload(params: Parameters<typeof sendTriatloResults>[0] & {
   playGpRanking: { pos: number; nome: string; pts: number; email: string }[]
   currentEmail: string
+  isTest?: boolean
 }) {
   const {
     toEmail, toName, gpNome, gpEmoji,
@@ -296,7 +297,7 @@ export function buildTriatloEmailPayload(params: Parameters<typeof sendTriatloRe
     playGpPts, playTotalPts, playPosition, playBreakdown,
     fantasyGpPts, fantasyTotalPts, fantasyPosition,
     predictGpPts, predictTotalPts, predictPosition,
-    podium, playGpRanking, currentEmail,
+    podium, playGpRanking, currentEmail, isTest,
   } = params
 
   const medal = globalPosition === 1 ? '🥇' : globalPosition === 2 ? '🥈' : globalPosition === 3 ? '🥉' : `#${globalPosition}`
@@ -310,10 +311,15 @@ export function buildTriatloEmailPayload(params: Parameters<typeof sendTriatloRe
     podium, playGpRanking, currentPlayerEmail: currentEmail,
   })
 
+  const now = new Date().toLocaleTimeString('pt-MZ', { hour: '2-digit', minute: '2-digit', timeZone: 'Africa/Maputo' })
+  const subject = isTest
+    ? `📧 [TESTE ${now}] ${medal} GP ${gpNome} — Os teus resultados Triatlo`
+    : `${medal} GP ${gpNome} — Os teus resultados Triatlo`
+
   return {
     from: FROM,
     to: toEmail,
-    subject: `${medal} GP ${gpNome} — Os teus resultados Triatlo`,
+    subject,
     html,
   }
 }
