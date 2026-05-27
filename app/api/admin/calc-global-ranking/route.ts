@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
       .from('members').select('is_admin').eq('email', user.email).single()
     if (!member?.is_admin) return NextResponse.json({ error: 'Sem permissão.' }, { status: 403 })
 
-    const { gp_id, admin_email } = await req.json()
+    const { gp_id, admin_email, send_only_to } = await req.json()
     if (!gp_id) return NextResponse.json({ error: 'gp_id obrigatório.' }, { status: 400 })
 
     // 1a. Play acumulado (soma de todos os GPs até gp_id inclusive)
@@ -147,7 +147,7 @@ export async function POST(req: NextRequest) {
     // ── Send results emails (awaited — must complete before response) ─────────
     let emailsSent = 0
     try {
-      emailsSent = await sendTriatloEmails({ supabaseAdmin, gp_id, rows, playScores: playScores ?? [] })
+      emailsSent = await sendTriatloEmails({ supabaseAdmin, gp_id, rows, playScores: playScores ?? [], send_only_to: send_only_to ?? null })
     } catch (err) {
       console.error('Triatlo emails failed:', err)
     }
@@ -171,12 +171,13 @@ const SCORE_FIELD_LABELS: Record<string, string> = {
 }
 
 async function sendTriatloEmails({
-  supabaseAdmin, gp_id, rows, playScores,
+  supabaseAdmin, gp_id, rows, playScores, send_only_to,
 }: {
   supabaseAdmin: any
   gp_id: number
   rows: any[]
   playScores: any[]
+  send_only_to: string | null
 }) {
   // Fetch GP info
   const { data: gp } = await supabaseAdmin
@@ -270,10 +271,14 @@ async function sendTriatloEmails({
     emailPayloads.push(payload)
   }
 
-  // Batch send all emails at once (Resend supports up to 100 per batch)
-  if (emailPayloads.length > 0) {
-    await resend.batch.send(emailPayloads)
+  // Batch send — optionally restrict to a single test email
+  const payloadsToSend = send_only_to
+    ? emailPayloads.filter(p => p.to === send_only_to)
+    : emailPayloads
+
+  if (payloadsToSend.length > 0) {
+    await resend.batch.send(payloadsToSend)
   }
 
-  return emailPayloads.length
+  return payloadsToSend.length
 }
