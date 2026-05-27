@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
     // 1a. Play acumulado (soma de todos os GPs até gp_id inclusive)
     const { data: playScores, error: playErr } = await supabaseAdmin
       .from('scores_play')
-      .select('member_email, gp_id, total')
+      .select('*')
       .lte('gp_id', gp_id)
     if (playErr) return NextResponse.json({ error: playErr.message }, { status: 400 })
 
@@ -216,6 +216,20 @@ async function sendTriatloEmails({
   const playGpScores = (playScores ?? []).filter(s => s.gp_id === gp_id)
   const playScoreMap = new Map(playGpScores.map((s: any) => [s.member_email, s]))
 
+  // Build F1 Play GP ranking (all participants sorted by GP points)
+  const playGpRanking = [...rows]
+    .filter(r => playScoreMap.has(r.member_email))
+    .sort((a, b) => b.play_gp_pts - a.play_gp_pts)
+    .map((r, i) => {
+      const m = memberMap.get(r.member_email)
+      return {
+        pos: i + 1,
+        nome: m?.nome_completo || m?.nickname || r.member_email,
+        pts: r.play_gp_pts,
+        email: r.member_email,
+      }
+    })
+
   // Build all email payloads
   const emailPayloads = []
   for (const row of sorted) {
@@ -250,6 +264,8 @@ async function sendTriatloEmails({
       predictTotalPts: row.predict_pts ?? 0,
       predictPosition: predictPosMap.get(row.member_email) ?? 0,
       podium,
+      playGpRanking,
+      currentEmail:   row.member_email,
     })
     emailPayloads.push(payload)
   }

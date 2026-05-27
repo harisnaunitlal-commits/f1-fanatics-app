@@ -286,26 +286,28 @@ export async function sendTriatloResults({
 }
 
 // ─── Build payload for batch sending ──────────────────────────────────────────
-export function buildTriatloEmailPayload(params: Parameters<typeof sendTriatloResults>[0]) {
+export function buildTriatloEmailPayload(params: Parameters<typeof sendTriatloResults>[0] & {
+  playGpRanking: { pos: number; nome: string; pts: number; email: string }[]
+  currentEmail: string
+}) {
   const {
     toEmail, toName, gpNome, gpEmoji,
     globalPosition, totalMembers, globalScore,
     playGpPts, playTotalPts, playPosition, playBreakdown,
     fantasyGpPts, fantasyTotalPts, fantasyPosition,
     predictGpPts, predictTotalPts, predictPosition,
-    podium,
+    podium, playGpRanking, currentEmail,
   } = params
 
   const medal = globalPosition === 1 ? '🥇' : globalPosition === 2 ? '🥈' : globalPosition === 3 ? '🥉' : `#${globalPosition}`
 
-  // Reuse the same HTML generation logic
   const html = buildTriatloHtml({
     toName, gpNome, gpEmoji, medal,
     globalPosition, totalMembers, globalScore,
     playGpPts, playTotalPts, playPosition, playBreakdown,
     fantasyGpPts, fantasyTotalPts, fantasyPosition,
     predictGpPts, predictTotalPts, predictPosition,
-    podium,
+    podium, playGpRanking, currentPlayerEmail: currentEmail,
   })
 
   return {
@@ -323,7 +325,7 @@ function buildTriatloHtml({
   playGpPts, playTotalPts, playPosition, playBreakdown,
   fantasyGpPts, fantasyTotalPts, fantasyPosition,
   predictGpPts, predictTotalPts, predictPosition,
-  podium,
+  podium, playGpRanking, currentPlayerEmail,
 }: {
   toName: string; gpNome: string; gpEmoji: string; medal: string
   globalPosition: number; totalMembers: number; globalScore: number
@@ -332,6 +334,8 @@ function buildTriatloHtml({
   fantasyGpPts: number; fantasyTotalPts: number; fantasyPosition: number
   predictGpPts: number; predictTotalPts: number; predictPosition: number
   podium: { pos: number; nome: string; score: number }[]
+  playGpRanking: { pos: number; nome: string; pts: number; email: string }[]
+  currentPlayerEmail: string
 }) {
   function leagueCard(icon: string, name: string, color: string, gpPts: number, totalPts: number, pos: number) {
     if (totalPts === 0 && gpPts === 0) return `
@@ -404,6 +408,31 @@ function buildTriatloHtml({
       </tr>
       ${breakdownRows}
     </table>` : ''}
+
+    ${playGpRanking.length > 0 ? `
+    <h3 style="color:#e10600;font-size:13px;font-weight:700;margin:0 0 10px;text-transform:uppercase;letter-spacing:1px;">🏁 F1 Play — Ranking do GP</h3>
+    <table width="100%" cellpadding="0" cellspacing="0" style="background:#0f172a;border-radius:12px;overflow:hidden;margin-bottom:20px;">
+      <tr style="background:#1e293b;">
+        <td style="padding:8px 12px;color:#6b7280;font-size:10px;font-weight:700;text-transform:uppercase;width:36px;">#</td>
+        <td style="padding:8px 12px;color:#6b7280;font-size:10px;font-weight:700;text-transform:uppercase;">Piloto</td>
+        <td style="padding:8px 12px;text-align:right;color:#6b7280;font-size:10px;font-weight:700;text-transform:uppercase;">Pts GP</td>
+      </tr>
+      ${playGpRanking.map(r => {
+        const isMe = r.email === currentPlayerEmail
+        const rowBg   = isMe ? 'background:#1c1a08;' : ''
+        const posColor = isMe ? '#fbbf24' : '#6b7280'
+        const nameColor = isMe ? '#fbbf24' : '#f9fafb'
+        const nameBold  = isMe ? 'font-weight:900;' : ''
+        const ptsColor  = isMe ? '#fbbf24' : '#e10600'
+        const medal = r.pos === 1 ? '🥇 ' : r.pos === 2 ? '🥈 ' : r.pos === 3 ? '🥉 ' : ''
+        return `<tr style="${rowBg}">
+          <td style="padding:7px 12px;color:${posColor};font-size:12px;font-weight:700;border-bottom:1px solid #1f2937;">${r.pos}º</td>
+          <td style="padding:7px 12px;color:${nameColor};font-size:12px;${nameBold}border-bottom:1px solid #1f2937;">${medal}${r.nome}${isMe ? ' &larr; Tu' : ''}</td>
+          <td style="padding:7px 12px;text-align:right;color:${ptsColor};font-size:13px;font-weight:900;border-bottom:1px solid #1f2937;">${r.pts}</td>
+        </tr>`
+      }).join('')}
+    </table>` : ''}
+
     <div style="text-align:center;">
       <a href="https://app.beiraf1fanatics.com/ranking" style="display:inline-block;background:#e10600;color:#fff;font-weight:700;font-size:14px;padding:12px 28px;border-radius:10px;text-decoration:none;">
         Ver Triatlo Ranking →
