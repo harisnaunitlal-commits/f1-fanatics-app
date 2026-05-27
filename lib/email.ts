@@ -360,23 +360,15 @@ function buildTriatloHtml({
       </td>`
   }
 
-  const hasAnswers = playBreakdown.length > 0 && (playBreakdown[0].playerAnswer !== undefined)
   const breakdownRows = playBreakdown.map(b => {
     const pColor = b.acertou ? '#10b981' : '#f9fafb'
-    const cColor = '#fbbf24'
-    if (hasAnswers) return `
+    return `
     <tr>
       <td style="padding:6px 10px;color:#9ca3af;font-size:11px;border-bottom:1px solid #1f2937;width:26%;">${b.label}</td>
       <td style="padding:6px 10px;color:${pColor};font-size:11px;font-weight:700;border-bottom:1px solid #1f2937;width:24%;">${b.playerAnswer || '—'}</td>
-      <td style="padding:6px 10px;color:${cColor};font-size:11px;font-weight:700;border-bottom:1px solid #1f2937;width:24%;">${b.correctAnswer || '—'}</td>
+      <td style="padding:6px 10px;color:#fbbf24;font-size:11px;font-weight:700;border-bottom:1px solid #1f2937;width:24%;">${b.correctAnswer || '—'}</td>
       <td style="padding:6px 8px;text-align:center;font-size:12px;border-bottom:1px solid #1f2937;width:12%;">${b.acertou ? '✅' : '❌'}</td>
       <td style="padding:6px 8px;text-align:right;color:${b.acertou ? '#10b981' : '#4b5563'};font-weight:700;font-size:11px;border-bottom:1px solid #1f2937;width:14%;">+${b.pts}</td>
-    </tr>`
-    return `
-    <tr>
-      <td style="padding:6px 12px;color:#9ca3af;font-size:11px;border-bottom:1px solid #1f2937;">${b.label}</td>
-      <td style="padding:6px 12px;text-align:center;font-size:13px;border-bottom:1px solid #1f2937;">${b.acertou ? '✅' : '❌'}</td>
-      <td style="padding:6px 12px;text-align:right;color:${b.acertou ? '#10b981' : '#4b5563'};font-weight:700;font-size:11px;border-bottom:1px solid #1f2937;">+${b.pts}</td>
     </tr>`
   }).join('')
 
@@ -423,15 +415,10 @@ function buildTriatloHtml({
     <table width="100%" cellpadding="0" cellspacing="0" style="background:#0f172a;border-radius:12px;overflow:hidden;margin-bottom:20px;">
       <tr style="background:#1e293b;">
         <td style="padding:8px 10px;color:#6b7280;font-size:10px;font-weight:700;text-transform:uppercase;width:26%;">Pergunta</td>
-        ${hasAnswers ? `
         <td style="padding:8px 10px;color:#10b981;font-size:10px;font-weight:700;text-transform:uppercase;width:24%;">A tua resposta</td>
         <td style="padding:8px 10px;color:#fbbf24;font-size:10px;font-weight:700;text-transform:uppercase;width:24%;">Resposta correcta</td>
         <td style="padding:8px 8px;text-align:center;color:#6b7280;font-size:10px;width:12%;"></td>
         <td style="padding:8px 8px;text-align:right;color:#6b7280;font-size:10px;font-weight:700;text-transform:uppercase;width:14%;">Pts</td>
-        ` : `
-        <td style="padding:8px 12px;text-align:center;color:#6b7280;font-size:10px;font-weight:700;">Resultado</td>
-        <td style="padding:8px 12px;text-align:right;color:#6b7280;font-size:10px;font-weight:700;">Pts</td>
-        `}
       </tr>
       ${breakdownRows}
     </table>` : ''}
