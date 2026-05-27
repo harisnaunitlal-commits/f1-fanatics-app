@@ -284,3 +284,130 @@ export async function sendTriatloResults({
     html,
   })
 }
+
+// ─── Build payload for batch sending ──────────────────────────────────────────
+export function buildTriatloEmailPayload(params: Parameters<typeof sendTriatloResults>[0]) {
+  const {
+    toEmail, toName, gpNome, gpEmoji,
+    globalPosition, totalMembers, globalScore,
+    playGpPts, playTotalPts, playPosition, playBreakdown,
+    fantasyGpPts, fantasyTotalPts, fantasyPosition,
+    predictGpPts, predictTotalPts, predictPosition,
+    podium,
+  } = params
+
+  const medal = globalPosition === 1 ? '🥇' : globalPosition === 2 ? '🥈' : globalPosition === 3 ? '🥉' : `#${globalPosition}`
+
+  // Reuse the same HTML generation logic
+  const html = buildTriatloHtml({
+    toName, gpNome, gpEmoji, medal,
+    globalPosition, totalMembers, globalScore,
+    playGpPts, playTotalPts, playPosition, playBreakdown,
+    fantasyGpPts, fantasyTotalPts, fantasyPosition,
+    predictGpPts, predictTotalPts, predictPosition,
+    podium,
+  })
+
+  return {
+    from: FROM,
+    to: toEmail,
+    subject: `${medal} GP ${gpNome} — Os teus resultados Triatlo`,
+    html,
+  }
+}
+
+// ─── Shared HTML builder ───────────────────────────────────────────────────────
+function buildTriatloHtml({
+  toName, gpNome, gpEmoji, medal,
+  globalPosition, totalMembers, globalScore,
+  playGpPts, playTotalPts, playPosition, playBreakdown,
+  fantasyGpPts, fantasyTotalPts, fantasyPosition,
+  predictGpPts, predictTotalPts, predictPosition,
+  podium,
+}: {
+  toName: string; gpNome: string; gpEmoji: string; medal: string
+  globalPosition: number; totalMembers: number; globalScore: number
+  playGpPts: number; playTotalPts: number; playPosition: number
+  playBreakdown: { label: string; acertou: boolean; pts: number }[]
+  fantasyGpPts: number; fantasyTotalPts: number; fantasyPosition: number
+  predictGpPts: number; predictTotalPts: number; predictPosition: number
+  podium: { pos: number; nome: string; score: number }[]
+}) {
+  function leagueCard(icon: string, name: string, color: string, gpPts: number, totalPts: number, pos: number) {
+    if (totalPts === 0 && gpPts === 0) return `
+      <td width="33%" style="padding:0 4px;">
+        <div style="background:#0f172a;border-radius:12px;padding:14px 10px;text-align:center;border:1px solid #1f2937;">
+          <div style="font-size:20px;">${icon}</div>
+          <div style="color:#374151;font-size:11px;font-weight:700;margin-top:4px;">${name}</div>
+          <div style="color:#374151;font-size:12px;margin-top:8px;">—</div>
+          <div style="color:#374151;font-size:10px;">Não participou</div>
+        </div>
+      </td>`
+    return `
+      <td width="33%" style="padding:0 4px;">
+        <div style="background:#0f172a;border-radius:12px;padding:14px 10px;text-align:center;border:1px solid ${color}44;">
+          <div style="font-size:20px;">${icon}</div>
+          <div style="color:${color};font-size:11px;font-weight:700;margin-top:4px;">${name}</div>
+          <div style="color:#f9fafb;font-size:20px;font-weight:900;margin-top:6px;">+${gpPts}</div>
+          <div style="color:#6b7280;font-size:10px;">este GP</div>
+          <div style="color:${color};font-size:12px;font-weight:700;margin-top:6px;">${totalPts} total</div>
+          <div style="color:#6b7280;font-size:10px;">#${pos} no ranking</div>
+        </div>
+      </td>`
+  }
+
+  const breakdownRows = playBreakdown.map(b => `
+    <tr>
+      <td style="padding:6px 12px;color:#9ca3af;font-size:11px;border-bottom:1px solid #1f2937;">${b.label}</td>
+      <td style="padding:6px 12px;text-align:center;font-size:13px;border-bottom:1px solid #1f2937;">${b.acertou ? '✅' : '❌'}</td>
+      <td style="padding:6px 12px;text-align:right;color:${b.acertou ? '#10b981' : '#4b5563'};font-weight:700;font-size:11px;border-bottom:1px solid #1f2937;">+${b.pts}</td>
+    </tr>`).join('')
+
+  const podiumRows = podium.map(p => `
+    <tr>
+      <td style="padding:8px 12px;color:#f9fafb;font-size:13px;border-bottom:1px solid #1f2937;">
+        ${p.pos === 1 ? '🥇' : p.pos === 2 ? '🥈' : '🥉'} ${p.nome}
+      </td>
+      <td style="padding:8px 12px;text-align:right;color:#fbbf24;font-weight:900;font-size:13px;border-bottom:1px solid #1f2937;">${p.score.toFixed(1)} gpts</td>
+    </tr>`).join('')
+
+  return baseHtml(`
+    <div style="text-align:center;margin-bottom:24px;">
+      <div style="font-size:36px;margin-bottom:8px;">${gpEmoji}</div>
+      <h1 style="margin:0;color:#f9fafb;font-size:22px;font-weight:900;">Resultados — GP ${gpNome}</h1>
+      <p style="color:#6b7280;font-size:13px;margin-top:6px;">Olá <strong style="color:#f9fafb;">${toName}</strong>! Aqui estão os teus resultados completos.</p>
+    </div>
+    <div style="background:linear-gradient(135deg,#1e1a00,#0f172a);border:2px solid #fbbf24;border-radius:16px;padding:20px;text-align:center;margin-bottom:20px;">
+      <div style="color:#fbbf24;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:2px;margin-bottom:8px;">🏆 Triatlo Ranking</div>
+      <div style="font-size:52px;font-weight:900;color:#fbbf24;line-height:1;">${medal}</div>
+      <div style="color:#9ca3af;font-size:13px;margin-top:6px;">${globalPosition}º de ${totalMembers} membros</div>
+      <div style="color:#f9fafb;font-size:28px;font-weight:900;margin-top:8px;">${globalScore.toFixed(1)} <span style="font-size:14px;color:#6b7280;">gpts</span></div>
+    </div>
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:20px;">
+      <tr>
+        ${leagueCard('🎮', 'F1 PLAY', '#e10600', playGpPts, playTotalPts, playPosition)}
+        ${leagueCard('💰', 'FANTASY', '#8b5cf6', fantasyGpPts, fantasyTotalPts, fantasyPosition)}
+        ${leagueCard('🎯', 'PREDICT', '#0ea5e9', predictGpPts, predictTotalPts, predictPosition)}
+      </tr>
+    </table>
+    <h3 style="color:#fbbf24;font-size:13px;font-weight:700;margin:0 0 10px;text-transform:uppercase;letter-spacing:1px;">🏆 Pódio Triatlo</h3>
+    <table width="100%" cellpadding="0" cellspacing="0" style="background:#0f172a;border-radius:12px;overflow:hidden;margin-bottom:20px;">
+      ${podiumRows}
+    </table>
+    ${playBreakdown.length > 0 ? `
+    <h3 style="color:#e10600;font-size:13px;font-weight:700;margin:0 0 10px;text-transform:uppercase;letter-spacing:1px;">🎮 F1 Play — Detalhe</h3>
+    <table width="100%" cellpadding="0" cellspacing="0" style="background:#0f172a;border-radius:12px;overflow:hidden;margin-bottom:20px;">
+      <tr style="background:#1e293b;">
+        <td style="padding:8px 12px;color:#6b7280;font-size:10px;font-weight:700;text-transform:uppercase;">Pergunta</td>
+        <td style="padding:8px 12px;text-align:center;color:#6b7280;font-size:10px;font-weight:700;">Resultado</td>
+        <td style="padding:8px 12px;text-align:right;color:#6b7280;font-size:10px;font-weight:700;">Pts</td>
+      </tr>
+      ${breakdownRows}
+    </table>` : ''}
+    <div style="text-align:center;">
+      <a href="https://app.beiraf1fanatics.com/ranking" style="display:inline-block;background:#e10600;color:#fff;font-weight:700;font-size:14px;padding:12px 28px;border-radius:10px;text-decoration:none;">
+        Ver Triatlo Ranking →
+      </a>
+    </div>
+  `)
+}

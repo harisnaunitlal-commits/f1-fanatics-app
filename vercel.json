@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "app/api/admin/calc-global-ranking/route.ts": {
+      "maxDuration": 60
+    }
+  }
+}

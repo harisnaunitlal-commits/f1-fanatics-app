@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient as createServerClient } from '@/lib/supabase/server'
 import { createClient } from '@supabase/supabase-js'
-import { sendTriatloResults } from '@/lib/email'
+import { Resend } from 'resend'
+import { sendTriatloResults, buildTriatloEmailPayload } from '@/lib/email'
+
+const resend = new Resend(process.env.RESEND_API_KEY)
 import { getEffectiveGpConfig } from '@/lib/gp-config'
 
 const supabaseAdmin = createClient(
@@ -141,11 +144,15 @@ export async function POST(req: NextRequest) {
       })
     } catch (_) { /* ignore */ }
 
-    // ── Send results emails (non-blocking) ────────────────────────────────────
-    sendTriatloEmails({ supabaseAdmin, gp_id, rows, playScores: playScores ?? [] })
-      .catch(err => console.error('Triatlo emails failed:', err))
+    // ── Send results emails (awaited — must complete before response) ─────────
+    let emailsSent = 0
+    try {
+      emailsSent = await sendTriatloEmails({ supabaseAdmin, gp_id, rows, playScores: playScores ?? [] })
+    } catch (err) {
+      console.error('Triatlo emails failed:', err)
+    }
 
-    return NextResponse.json({ success: true, n_rows: rows.length })
+    return NextResponse.json({ success: true, n_rows: rows.length, emails_sent: emailsSent })
   } catch (err: any) {
     return NextResponse.json({ error: err.message ?? 'Erro interno.' }, { status: 500 })
   }
@@ -209,13 +216,12 @@ async function sendTriatloEmails({
   const playGpScores = (playScores ?? []).filter(s => s.gp_id === gp_id)
   const playScoreMap = new Map(playGpScores.map((s: any) => [s.member_email, s]))
 
-  // Send one email per member
-  for (let i = 0; i < sorted.length; i++) {
-    const row = sorted[i]
+  // Build all email payloads
+  const emailPayloads = []
+  for (const row of sorted) {
     const member = memberMap.get(row.member_email)
     if (!member) continue
 
-    // Build F1 Play breakdown if they participated
     const playScore = playScoreMap.get(row.member_email)
     const breakdown = playScore
       ? Object.entries(SCORE_FIELD_LABELS).map(([key, label]) => ({
@@ -225,31 +231,33 @@ async function sendTriatloEmails({
         }))
       : []
 
-    try {
-      await sendTriatloResults({
-        toEmail: row.member_email,
-        toName: member.nome_completo || member.nickname || 'Piloto',
-        gpNome: gpName,
-        gpEmoji: gp.emoji_bandeira || '🏎️',
-        globalPosition: globalPosMap.get(row.member_email) ?? 0,
-        totalMembers: sorted.length,
-        globalScore: row.global_score,
-        playGpPts:      row.play_gp_pts ?? 0,
-        playTotalPts:   row.play_pts ?? 0,
-        playPosition:   playPosMap.get(row.member_email) ?? 0,
-        playBreakdown:  breakdown,
-        fantasyGpPts:   row.fantasy_gp_pts ?? 0,
-        fantasyTotalPts: row.fantasy_pts ?? 0,
-        fantasyPosition: fantasyPosMap.get(row.member_email) ?? 0,
-        predictGpPts:   row.predict_gp_pts ?? 0,
-        predictTotalPts: row.predict_pts ?? 0,
-        predictPosition: predictPosMap.get(row.member_email) ?? 0,
-        podium,
-      })
-      // Small delay between emails to avoid rate limiting
-      if (i < sorted.length - 1) await new Promise(r => setTimeout(r, 300))
-    } catch (err) {
-      console.error(`Email failed for ${row.member_email}:`, err)
-    }
+    const payload = buildTriatloEmailPayload({
+      toEmail: row.member_email,
+      toName: member.nome_completo || member.nickname || 'Piloto',
+      gpNome: gpName,
+      gpEmoji: gp.emoji_bandeira || '🏎️',
+      globalPosition: globalPosMap.get(row.member_email) ?? 0,
+      totalMembers: sorted.length,
+      globalScore: row.global_score,
+      playGpPts:      row.play_gp_pts ?? 0,
+      playTotalPts:   row.play_pts ?? 0,
+      playPosition:   playPosMap.get(row.member_email) ?? 0,
+      playBreakdown:  breakdown,
+      fantasyGpPts:   row.fantasy_gp_pts ?? 0,
+      fantasyTotalPts: row.fantasy_pts ?? 0,
+      fantasyPosition: fantasyPosMap.get(row.member_email) ?? 0,
+      predictGpPts:   row.predict_gp_pts ?? 0,
+      predictTotalPts: row.predict_pts ?? 0,
+      predictPosition: predictPosMap.get(row.member_email) ?? 0,
+      podium,
+    })
+    emailPayloads.push(payload)
   }
+
+  // Batch send all emails at once (Resend supports up to 100 per batch)
+  if (emailPayloads.length > 0) {
+    await resend.batch.send(emailPayloads)
+  }
+
+  return emailPayloads.length
 }
