@@ -387,16 +387,17 @@ function buildTriatloHtml({
       <div style="color:#9ca3af;font-size:13px;margin-top:6px;">${globalPosition}º de ${totalMembers} membros</div>
       <div style="color:#f9fafb;font-size:28px;font-weight:900;margin-top:8px;">${globalScore.toFixed(1)} <span style="font-size:14px;color:#6b7280;">gpts</span></div>
     </div>
+    <h3 style="color:#fbbf24;font-size:13px;font-weight:700;margin:0 0 10px;text-transform:uppercase;letter-spacing:1px;">🏆 Pódio Triatlo</h3>
+    <table width="100%" cellpadding="0" cellspacing="0" style="background:#0f172a;border-radius:12px;overflow:hidden;margin-bottom:20px;">
+      ${podiumRows}
+    </table>
+    <h3 style="color:#9ca3af;font-size:13px;font-weight:700;margin:0 0 10px;text-transform:uppercase;letter-spacing:1px;">📊 Os teus pontos</h3>
     <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:20px;">
       <tr>
         ${leagueCard('🎮', 'F1 PLAY', '#e10600', playGpPts, playTotalPts, playPosition)}
         ${leagueCard('💰', 'FANTASY', '#8b5cf6', fantasyGpPts, fantasyTotalPts, fantasyPosition)}
         ${leagueCard('🎯', 'PREDICT', '#0ea5e9', predictGpPts, predictTotalPts, predictPosition)}
       </tr>
-    </table>
-    <h3 style="color:#fbbf24;font-size:13px;font-weight:700;margin:0 0 10px;text-transform:uppercase;letter-spacing:1px;">🏆 Pódio Triatlo</h3>
-    <table width="100%" cellpadding="0" cellspacing="0" style="background:#0f172a;border-radius:12px;overflow:hidden;margin-bottom:20px;">
-      ${podiumRows}
     </table>
     ${playBreakdown.length > 0 ? `
     <h3 style="color:#e10600;font-size:13px;font-weight:700;margin:0 0 10px;text-transform:uppercase;letter-spacing:1px;">🎮 F1 Play — Detalhe</h3>
