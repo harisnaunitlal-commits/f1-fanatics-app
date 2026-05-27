@@ -170,6 +170,18 @@ const SCORE_FIELD_LABELS: Record<string, string> = {
   pts_p14: 'P14 · Safety Car', pts_p15: 'P15 · Outsider',
 }
 
+// Maps score field → prediction/answer field name (same in both tables)
+const SCORE_TO_PREDICTION: Record<string, string> = {
+  pts_p1a: 'p1_primeiro', pts_p1b: 'p1_segundo',  pts_p1c: 'p1_terceiro',
+  pts_p4a: 'p4_quarto',   pts_p4b: 'p4_quinto',   pts_p4c: 'p4_sexto',
+  pts_p2:  'p2_equipa',   pts_p3:  'p3_lap',
+  pts_p5:  'p5_duelo',    pts_p6:  'p6_duelo',    pts_p7:  'p7_duelo',
+  pts_p8:  'p8_margem',   pts_p9:  'p9_retire',
+  pts_p10: 'p10_dotd',    pts_p11: 'p11_fl',
+  pts_p12: 'p12_classif', pts_p13: 'p13_especial',
+  pts_p14: 'p14_sc',      pts_p15: 'p15_outsider',
+}
+
 async function sendTriatloEmails({
   supabaseAdmin, gp_id, rows, playScores, send_only_to,
 }: {
@@ -186,6 +198,13 @@ async function sendTriatloEmails({
 
   const config = await getEffectiveGpConfig(null, gp_id, gp.round)
   const gpName = config ? `${config.gpPrep} ${config.gpName}` : gp.nome
+
+  // Fetch correct answers and all player predictions for this GP
+  const [{ data: gpAnswers }, { data: allPredictions }] = await Promise.all([
+    supabaseAdmin.from('gp_answers').select('*').eq('gp_id', gp_id).single(),
+    supabaseAdmin.from('predictions').select('*').eq('gp_id', gp_id),
+  ])
+  const predictionMap = new Map((allPredictions ?? []).map((p: any) => [p.member_email, p]))
 
   // Fetch member info
   type MemberInfo = { email: string; nickname: string; nome_completo: string | null }
@@ -237,13 +256,19 @@ async function sendTriatloEmails({
     const member = memberMap.get(row.member_email)
     if (!member) continue
 
-    const playScore = playScoreMap.get(row.member_email)
+    const playScore  = playScoreMap.get(row.member_email)
+    const prediction = predictionMap.get(row.member_email)
     const breakdown = playScore
-      ? Object.entries(SCORE_FIELD_LABELS).map(([key, label]) => ({
-          label,
-          acertou: (playScore[key] ?? 0) > 0,
-          pts: playScore[key] ?? 0,
-        }))
+      ? Object.entries(SCORE_FIELD_LABELS).map(([key, label]) => {
+          const predField = SCORE_TO_PREDICTION[key]
+          return {
+            label,
+            acertou:       (playScore[key] ?? 0) > 0,
+            pts:           playScore[key] ?? 0,
+            playerAnswer:  prediction?.[predField] ?? '',
+            correctAnswer: gpAnswers?.[predField]  ?? '',
+          }
+        })
       : []
 
     const payload = buildTriatloEmailPayload({
