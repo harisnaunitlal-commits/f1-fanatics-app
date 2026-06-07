@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { isDeadlinePassed } from '@/lib/scoring'
 import { MiniCountdown } from '@/components/MiniCountdown'
 import { FantasyCountdown } from '@/components/FantasyCountdown'
+import LocalDateTime from '@/components/LocalDateTime'
 
 export default async function HomePage() {
   const supabase = await createClient()
@@ -98,15 +99,7 @@ export default async function HomePage() {
                   <span>GP {(nextGp as any).nome}</span>
                 </h1>
                 <p className="text-gray-400 mt-2">
-                  {new Date((nextGp as any).data_corrida).toLocaleDateString('pt-MZ', {
-                    weekday: 'long',
-                    day: '2-digit',
-                    month: 'long',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    timeZone: 'Africa/Maputo',
-                  })} (Maputo)
+                  <LocalDateTime isoDate={(nextGp as any).data_corrida} />
                 </p>
               </div>
 
