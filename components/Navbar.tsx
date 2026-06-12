@@ -44,10 +44,11 @@ export default function Navbar() {
   }, [])
 
   const nav = [
-    { href: '/',           label: 'Início' },
-    { href: '/ranking',    label: 'Ranking' },
-    { href: '/predict',    label: 'Previsões' },
-    { href: '/instalar',   label: '📲 App' },
+    { href: '/',             label: 'Início' },
+    { href: '/ranking',      label: 'Ranking' },
+    { href: '/predict',      label: 'Previsões' },
+    { href: '/instrucoes',   label: 'Como Jogar' },
+    { href: '/instalar',     label: '📲 App' },
   ]
 
   return (

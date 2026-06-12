@@ -296,9 +296,9 @@ const GP_QUESTIONS: Record<number, GpQuestions> = {
     ],
   },
 
-  7: { // R07 — Espanha
-    gpName: 'Espanha', gpPrep: 'de',
-    p2Label: "Qual será a TERCEIRA equipa, que vai pontuar mais no Grande Prémio de Espanha?",
+  7: { // R07 — Barcelona
+    gpName: 'Barcelona', gpPrep: 'de',
+    p2Label: "Qual será a TERCEIRA equipa, que vai pontuar mais no Grande Prémio de Barcelona?",
     p3Options: P3_OPTIONS,
     p5: {
       driverA: 'NOR', nameA: 'Lando Norris',  teamA: 'McLaren', colorA: TEAM_COLORS['McLaren'],
