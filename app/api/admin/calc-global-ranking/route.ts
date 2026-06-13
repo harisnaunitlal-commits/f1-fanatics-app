@@ -4,7 +4,7 @@ import { createClient } from '@supabase/supabase-js'
 import { Resend } from 'resend'
 import { buildTriatloEmailPayload } from '@/lib/email'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+const getResend = () => new Resend(process.env.RESEND_API_KEY!)
 import { getEffectiveGpConfig } from '@/lib/gp-config'
 
 const supabaseAdmin = createClient(
@@ -306,7 +306,7 @@ async function sendTriatloEmails({
     : emailPayloads
 
   if (payloadsToSend.length > 0) {
-    await resend.batch.send(payloadsToSend)
+    await getResend().batch.send(payloadsToSend)
   }
 
   return payloadsToSend.length

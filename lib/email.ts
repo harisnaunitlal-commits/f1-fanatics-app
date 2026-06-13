@@ -1,6 +1,6 @@
 import { Resend } from 'resend'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+const getResend = () => new Resend(process.env.RESEND_API_KEY!)
 
 const FROM = 'Beira F1 Fanatics <noreply@beiraf1fanatics.com>'
 
@@ -134,7 +134,7 @@ export async function sendPredictionConfirmation({
     </div>
   `)
 
-  return resend.emails.send({
+  return getResend().emails.send({
     from: FROM,
     to: toEmail,
     subject: `${isEdit ? '✏️ Editado' : '✅ Confirmado'} — F1 Play · GP ${gpNome}`,
@@ -277,7 +277,7 @@ export async function sendTriatloResults({
     </div>
   `)
 
-  return resend.emails.send({
+  return getResend().emails.send({
     from: FROM,
     to: toEmail,
     subject: `${medal} GP ${gpNome} — Os teus resultados Triatlo`,

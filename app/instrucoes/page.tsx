@@ -41,7 +41,7 @@ export default function InstrucoesPage() {
         {/* F1 Play */}
         <div className="bg-f1dark border border-f1gray rounded-2xl p-6 space-y-3">
           <div className="flex items-center gap-3">
-            <img src="/logos/f1-play.png" alt="F1 Play" className="h-10 w-10 object-contain" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }} />
+            <div className="h-10 w-10 bg-gray-700 rounded-lg flex items-center justify-center text-white font-black text-xs">F1P</div>
             <div>
               <h3 className="font-bold text-white text-lg">F1 Play Fanatics</h3>
               <span className="text-xs text-gray-400">Jogado aqui nesta plataforma</span>
