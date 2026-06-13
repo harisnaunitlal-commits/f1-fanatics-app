@@ -19,7 +19,7 @@ export default function InstrucoesPage() {
         <ol className="space-y-3 text-gray-300 text-sm">
           <li className="flex gap-3 items-start">
             <span className="bg-red-500/20 text-f1red rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">①</span>
-            <span>Clica em <strong className="text-white">Entrar</strong> no menu e regista-te com o teu email Google ou cria uma conta com email e senha.</span>
+            <span>Clica em <a href="/auth/login" className="text-white font-bold underline hover:text-f1red transition-colors">Entrar</a> no menu e regista-te com o teu email Google ou cria uma conta com email e senha.</span>
           </li>
           <li className="flex gap-3 items-start">
             <span className="bg-red-500/20 text-f1red rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">②</span>
