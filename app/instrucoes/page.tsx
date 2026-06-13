@@ -11,22 +11,22 @@ export default function InstrucoesPage() {
       </div>
 
       {/* ── 1. Registar ─────────────────────────────────────── */}
-      <section className="bg-f1dark border-l-4 border-blue-500 rounded-2xl p-6 space-y-4">
-        <h2 className="text-xl font-bold text-blue-400 flex items-center gap-2">
-          <span className="bg-blue-500 text-white rounded-full w-7 h-7 flex items-center justify-center text-sm font-black shrink-0">1</span>
+      <section className="bg-f1dark border-l-4 border-f1red rounded-2xl p-6 space-y-4">
+        <h2 className="text-xl font-bold text-f1red flex items-center gap-2">
+          <span className="bg-f1red text-white rounded-full w-7 h-7 flex items-center justify-center text-sm font-black shrink-0">1</span>
           Registar na plataforma
         </h2>
         <ol className="space-y-3 text-gray-300 text-sm">
           <li className="flex gap-3 items-start">
-            <span className="bg-blue-500/20 text-blue-400 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">①</span>
+            <span className="bg-red-500/20 text-f1red rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">①</span>
             Clica em <strong className="text-white mx-1">Entrar</strong> no menu e regista-te com o teu email Google ou cria uma conta com email e senha.
           </li>
           <li className="flex gap-3 items-start">
-            <span className="bg-blue-500/20 text-blue-400 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">②</span>
+            <span className="bg-red-500/20 text-f1red rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">②</span>
             Após o registo, o administrador activa a tua conta. Receberás um email de boas-vindas quando estiveres activo.
           </li>
           <li className="flex gap-3 items-start">
-            <span className="bg-blue-500/20 text-blue-400 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">③</span>
+            <span className="bg-red-500/20 text-f1red rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">③</span>
             Depois de activado, já podes submeter previsões e ver o ranking global.
           </li>
         </ol>
