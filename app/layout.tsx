@@ -41,12 +41,21 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <p>🏎️ Beira F1 Fanatics · Fundada 27 Mar 2021 · Beira, Moçambique</p>
           <p>
             Site desenvolvido por <span className="text-gray-400">Harishkumar Naunitlal</span>
-            {' · '}
+          </p>
+          <p className="flex items-center justify-center gap-4 flex-wrap">
             <a
-              href="mailto:haris.naunitlal@gmail.com"
+              href="mailto:info@beiraf1fanatics.com"
               className="text-gray-400 hover:text-white transition-colors underline underline-offset-2"
             >
-              haris.naunitlal@gmail.com
+              info@beiraf1fanatics.com
+            </a>
+            <a
+              href="https://wa.me/258825029170"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-gray-400 hover:text-green-400 transition-colors"
+            >
+              💬 +258 82 502 9170
             </a>
           </p>
         </footer>
