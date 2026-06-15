@@ -19,16 +19,23 @@ export default async function PredictGpPage({ params }: { params: { gpId: string
   if (!gp) notFound()
 
   if (isDeadlinePassed(gp.deadline_play)) {
-    return (
-      <div className="max-w-lg mx-auto mt-16 text-center">
-        <div className="text-5xl mb-4">🏁</div>
-        <h1 className="text-2xl font-bold mb-2">Prazo encerrado</h1>
-        <p className="text-gray-400">
-          O prazo para o {gp.emoji_bandeira} GP {gp.nome} já terminou.
-        </p>
-        <a href="/predict" className="btn-primary inline-block mt-6">Ver outros GPs</a>
-      </div>
-    )
+    const [{ data: existing }, config] = await Promise.all([
+      (supabase as any).from('predictions').select('*').eq('member_email', user.email).eq('gp_id', gpId).single(),
+      getEffectiveGpConfig(supabase, gpId, gp.round),
+    ])
+    if (!existing) {
+      return (
+        <div className="max-w-lg mx-auto mt-16 text-center">
+          <div className="text-5xl mb-4">🏁</div>
+          <h1 className="text-2xl font-bold mb-2">Prazo encerrado</h1>
+          <p className="text-gray-400">
+            O prazo para o {gp.emoji_bandeira} GP {gp.nome} já terminou e não submeteste nenhuma previsão.
+          </p>
+          <a href="/predict" className="btn-primary inline-block mt-6">Ver outros GPs</a>
+        </div>
+      )
+    }
+    return <PredictForm gp={gp} userEmail={user.email} existing={existing} config={config} readOnly={true} />
   }
 
   if (isBeforeFP1(gp.fp1_start)) {

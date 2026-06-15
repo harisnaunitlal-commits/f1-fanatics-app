@@ -156,11 +156,13 @@ export default function PredictForm({
   userEmail,
   existing,
   config: configProp,
+  readOnly = false,
 }: {
   gp: GpCalendar
   userEmail: string
   existing: Prediction | null
   config?: GpQuestions
+  readOnly?: boolean
 }) {
   const router = useRouter()
   const supabase = createClient()
@@ -205,6 +207,7 @@ export default function PredictForm({
   } : blank)
 
   useEffect(() => {
+    if (readOnly) return
     const t = setInterval(() => {
       if (isDeadlinePassed(gp.deadline_play)) {
         clearInterval(t)
@@ -251,43 +254,51 @@ export default function PredictForm({
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <div className="max-w-2xl mx-auto pb-16">
-      {/* Countdown timer */}
-      <div className="mb-6 bg-black/40 border border-white/10 rounded-2xl px-4 py-5 text-center">
-        <p className="text-xs text-gray-500 uppercase tracking-widest mb-4">
-          ⏱ Prazo para submissão
-        </p>
-        <div className="flex items-center justify-center gap-2 sm:gap-3">
-          {[
-            { value: countdown.days,    label: 'DIAS' },
-            { value: countdown.hours,   label: 'HRS'  },
-            { value: countdown.minutes, label: 'MIN'  },
-            { value: countdown.seconds, label: 'SEG'  },
-          ].map((unit, idx) => (
-            <div key={unit.label} className="flex items-center gap-2 sm:gap-3">
-              {idx > 0 && (
-                <span className="text-2xl sm:text-3xl font-black text-gray-600 leading-none mb-4">:</span>
-              )}
-              <div className="flex flex-col items-center">
-                <div className="bg-f1gray border border-white/10 rounded-xl px-3 sm:px-5 py-2 sm:py-3 min-w-[56px] sm:min-w-[72px]">
-                  <span className="text-3xl sm:text-5xl font-black tabular-nums text-white leading-none">
-                    {String(unit.value).padStart(2, '0')}
+      {/* Banner: countdown ou prazo encerrado */}
+      {readOnly ? (
+        <div className="mb-6 bg-black/40 border border-f1red/30 rounded-2xl px-4 py-5 text-center space-y-1">
+          <p className="text-2xl">🏁</p>
+          <p className="text-white font-bold">Prazo encerrado — as tuas escolhas</p>
+          <p className="text-xs text-gray-400">Estas são as respostas que submeteste. Já não é possível editar.</p>
+        </div>
+      ) : (
+        <div className="mb-6 bg-black/40 border border-white/10 rounded-2xl px-4 py-5 text-center">
+          <p className="text-xs text-gray-500 uppercase tracking-widest mb-4">
+            ⏱ Prazo para submissão
+          </p>
+          <div className="flex items-center justify-center gap-2 sm:gap-3">
+            {[
+              { value: countdown.days,    label: 'DIAS' },
+              { value: countdown.hours,   label: 'HRS'  },
+              { value: countdown.minutes, label: 'MIN'  },
+              { value: countdown.seconds, label: 'SEG'  },
+            ].map((unit, idx) => (
+              <div key={unit.label} className="flex items-center gap-2 sm:gap-3">
+                {idx > 0 && (
+                  <span className="text-2xl sm:text-3xl font-black text-gray-600 leading-none mb-4">:</span>
+                )}
+                <div className="flex flex-col items-center">
+                  <div className="bg-f1gray border border-white/10 rounded-xl px-3 sm:px-5 py-2 sm:py-3 min-w-[56px] sm:min-w-[72px]">
+                    <span className="text-3xl sm:text-5xl font-black tabular-nums text-white leading-none">
+                      {String(unit.value).padStart(2, '0')}
+                    </span>
+                  </div>
+                  <span className="text-[10px] sm:text-xs text-gray-500 font-bold tracking-widest mt-2">
+                    {unit.label}
                   </span>
                 </div>
-                <span className="text-[10px] sm:text-xs text-gray-500 font-bold tracking-widest mt-2">
-                  {unit.label}
-                </span>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
+          {existing && (
+            <p className="text-xs text-green-400/80 mt-4">
+              ✏️ Já submeteste — podes alterar quantas vezes quiseres até ao prazo
+            </p>
+          )}
         </div>
-        {existing && (
-          <p className="text-xs text-green-400/80 mt-4">
-            ✏️ Já submeteste — podes alterar quantas vezes quiseres até ao prazo
-          </p>
-        )}
-      </div>
+      )}
 
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form onSubmit={handleSubmit} className={`space-y-5 ${readOnly ? 'pointer-events-none opacity-80' : ''}`}>
         {error && <p className="text-red-400 bg-red-900/20 rounded-lg px-4 py-3">{error}</p>}
 
         {/* P1 — Top 6 Classificados (formerly P1 + P4) */}
@@ -490,9 +501,11 @@ export default function PredictForm({
 
         {error && <p className="text-red-400 bg-red-900/20 rounded-lg px-4 py-3">{error}</p>}
 
-        <button type="submit" disabled={loading} className="btn-primary w-full text-lg py-4">
-          {loading ? 'A guardar...' : '🏎️ Submeter previsão'}
-        </button>
+        {!readOnly && (
+          <button type="submit" disabled={loading} className="btn-primary w-full text-lg py-4">
+            {loading ? 'A guardar...' : '🏎️ Submeter previsão'}
+          </button>
+        )}
       </form>
     </div>
   )
