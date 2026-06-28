@@ -84,7 +84,7 @@ export function isDeadlinePassed(deadline: string): boolean {
 
 /** Returns true when FP1 has NOT yet started (submissions not yet open) */
 export function isBeforeFP1(fp1Start: string | null | undefined): boolean {
-  if (!fp1Start) return false // no FP1 date set → treat as always open
+  if (!fp1Start) return true // no FP1 date set → block submissions until admin sets it
   return new Date() < new Date(fp1Start)
 }
 
