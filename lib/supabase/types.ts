@@ -97,6 +97,7 @@ export interface GpCalendar {
   deadline_predict: string | null
   status: 'upcoming' | 'active' | 'closed' | 'scored'
   resultado_oficial_url?: string | null
+  historia_circuito?: string | null
 }
 
 export interface Prediction {

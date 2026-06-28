@@ -264,9 +264,10 @@ export default async function HomePage() {
             const isUpcoming = gp.status === 'upcoming'
 
             return (
-              <div
+              <Link
+                href={`/gp/${gp.id}`}
                 key={gp.id}
-                className={`relative rounded-xl border overflow-hidden transition-transform hover:scale-105 ${
+                className={`relative rounded-xl border overflow-hidden transition-transform hover:scale-105 block ${
                   isScored  ? 'border-green-700/40 bg-gradient-to-b from-green-900/20 to-f1dark' :
                   isActive  ? 'border-f1red/60 bg-gradient-to-b from-f1red/10 to-f1dark shadow-[0_0_16px_rgba(225,6,0,0.2)]' :
                   isUpcoming ? 'border-gray-700 bg-gradient-to-b from-gray-800/40 to-f1dark' :
@@ -299,7 +300,7 @@ export default async function HomePage() {
                   {/* Date range */}
                   <div className="text-xs text-gray-400 font-medium mt-1">{dateRange}</div>
                 </div>
-              </div>
+              </Link>
             )
           })}
         </div>

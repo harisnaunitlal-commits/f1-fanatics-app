@@ -11,6 +11,7 @@ import {
 } from '@/lib/gp-questions'
 import type { GpCalendar, GpAnswers } from '@/lib/supabase/types'
 import OfficialDocUpload from '@/components/OfficialDocUpload'
+import CircuitHistoryEdit from '@/components/CircuitHistoryEdit'
 
 type FormData = Omit<GpAnswers, 'gp_id' | 'inserido_por' | 'inserido_em'>
 
@@ -256,8 +257,9 @@ export default function AnswersForm({
         )}
       </div>
 
-      <div className="mb-5">
+      <div className="mb-5 space-y-3">
         <OfficialDocUpload gpId={gp.id} currentUrl={gp.resultado_oficial_url ?? null} />
+        <CircuitHistoryEdit gpId={gp.id} currentText={gp.historia_circuito ?? null} />
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-5">
