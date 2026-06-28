@@ -10,6 +10,7 @@ import {
   type DuelConfig, type DriverOption, type GpQuestions,
 } from '@/lib/gp-questions'
 import type { GpCalendar, GpAnswers } from '@/lib/supabase/types'
+import OfficialDocUpload from '@/components/OfficialDocUpload'
 
 type FormData = Omit<GpAnswers, 'gp_id' | 'inserido_por' | 'inserido_em'>
 
@@ -253,6 +254,10 @@ export default function AnswersForm({
             Sem config para o round {gp.round} — a usar seletores genéricos para P5/P6/P7/P13/P15.
           </p>
         )}
+      </div>
+
+      <div className="mb-5">
+        <OfficialDocUpload gpId={gp.id} currentUrl={gp.resultado_oficial_url ?? null} />
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-5">

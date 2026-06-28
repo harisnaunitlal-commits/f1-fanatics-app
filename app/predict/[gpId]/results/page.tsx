@@ -116,6 +116,16 @@ export default async function GpResultsPage({ params }: { params: { gpId: string
         <h1 className="text-2xl font-bold mt-2">
           {gp.emoji_bandeira} GP {gp.nome} — Resultados
         </h1>
+        {gp.resultado_oficial_url && (
+          <a
+            href={gp.resultado_oficial_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 text-sm text-blue-400 hover:underline mt-2"
+          >
+            📄 Ver documento oficial (base da publicação)
+          </a>
+        )}
       </div>
 
       {/* No answers yet */}

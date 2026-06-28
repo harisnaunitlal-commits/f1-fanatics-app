@@ -378,6 +378,15 @@ export default async function HomePage() {
         </div>
 
       </div>
+
+      <div className="text-center">
+        <Link
+          href="/historico"
+          className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white border border-f1gray rounded-xl px-5 py-2.5 transition-colors"
+        >
+          📄 Histórico de Resultados Oficiais
+        </Link>
+      </div>
     </div>
   )
 }
