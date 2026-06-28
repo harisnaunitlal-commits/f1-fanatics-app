@@ -106,7 +106,16 @@ export default async function HomePage() {
               <div className="text-right shrink-0">
                 {user ? (
                   isDeadlinePassed((nextGp as any).deadline_play) ? (
-                    <div className="text-gray-500">Prazo encerrado</div>
+                    hasPredict ? (
+                      <Link
+                        href={`/predict/${(nextGp as any).id}`}
+                        className="btn-primary inline-block text-lg px-8 py-4 opacity-90"
+                      >
+                        👁️ Ver as minhas respostas
+                      </Link>
+                    ) : (
+                      <div className="text-gray-500">Prazo encerrado</div>
+                    )
                   ) : (
                     <>
                       <Link
