@@ -24,6 +24,7 @@ export default function PredictImport({
   // Parse CSV: "NickPredict,pontos_gp,pontos_acum" (3 cols) OR "NickPredict,pontos_acum" (2 cols)
   function parseCsv(text: string) {
     const lines = text.trim().split('\n').filter(l => l.trim())
+      .filter(l => !/^nick[,;\t]/i.test(l.trim())) // skip header row
     const parsed = lines.map(line => {
       const parts = line.split(/[,;\t]/).map(p => p.trim())
       if (parts.length >= 3) {
@@ -39,10 +40,13 @@ export default function PredictImport({
       return null
     }).filter(Boolean) as { nick: string; pontos_gp: number; pontos_acum: number }[]
 
+    const normalize = (s: string) => s.toLowerCase().replace(/[\s_\-]/g, '')
     const preview = parsed.map(({ nick, pontos_gp, pontos_acum }) => {
       const matched = members.find(m =>
         m.predict_nick?.toLowerCase() === nick.toLowerCase() ||
-        m.nickname?.toLowerCase()    === nick.toLowerCase()
+        m.nickname?.toLowerCase()    === nick.toLowerCase() ||
+        normalize(m.predict_nick ?? '') === normalize(nick) ||
+        normalize(m.nickname ?? '') === normalize(nick)
       )
       return { nick, pontos_gp, pontos_acum, matched: matched?.email ?? null }
     })

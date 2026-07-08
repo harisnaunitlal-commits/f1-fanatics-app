@@ -24,6 +24,7 @@ export default function FantasyImport({
   // Parse CSV: "NickEquipa,pontos_gp,pontos_acum" (3 cols) OR "NickEquipa,pontos_acum" (2 cols)
   function parseCsv(text: string) {
     const lines = text.trim().split('\n').filter(l => l.trim())
+      .filter(l => !/^nick[,;\t]/i.test(l.trim())) // skip header row
     const parsed = lines.map(line => {
       const parts = line.split(/[,;\t]/).map(p => p.trim())
       if (parts.length >= 3) {
@@ -41,10 +42,13 @@ export default function FantasyImport({
       return null
     }).filter(Boolean) as { nick: string; pontos_gp: number; pontos_acum: number }[]
 
+    const normalize = (s: string) => s.toLowerCase().replace(/[\s_\-]/g, '')
     const preview = parsed.map(({ nick, pontos_gp, pontos_acum }) => {
       const matched = members.find(m =>
         m.fantasy_nick?.toLowerCase() === nick.toLowerCase() ||
-        m.nickname?.toLowerCase() === nick.toLowerCase()
+        m.nickname?.toLowerCase() === nick.toLowerCase() ||
+        normalize(m.fantasy_nick ?? '') === normalize(nick) ||
+        normalize(m.nickname ?? '') === normalize(nick)
       )
       return { nick, pontos_gp, pontos_acum, matched: matched?.email ?? null }
     })

@@ -258,7 +258,7 @@ export default function AnswersForm({
       </div>
 
       <div className="mb-5 space-y-3">
-        <OfficialDocUpload gpId={gp.id} currentUrl={gp.resultado_oficial_url ?? null} />
+        <OfficialDocUpload gpId={gp.id} currentUrls={gp.resultado_oficial_urls ?? []} />
         <CircuitHistoryEdit gpId={gp.id} currentText={gp.historia_circuito ?? null} />
       </div>
 

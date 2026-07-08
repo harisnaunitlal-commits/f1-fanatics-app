@@ -57,25 +57,30 @@ export default async function GpDetailPage({ params }: { params: { gpId: string 
         </div>
       )}
 
-      {/* Official results document */}
-      {gp.resultado_oficial_url && (
+      {/* Official results documents */}
+      {gp.resultado_oficial_urls?.length > 0 && (
         <div className="card">
-          <h2 className="font-bold text-lg mb-2">📄 Documento Oficial</h2>
+          <h2 className="font-bold text-lg mb-2">📄 Documentos Oficiais</h2>
           <p className="text-gray-400 text-sm mb-3">
             Base oficial usada para validar as respostas do F1 Play deste GP.
           </p>
-          <a
-            href={gp.resultado_oficial_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 text-sm bg-blue-900/30 text-blue-400 border border-blue-700/40 px-4 py-2 rounded-lg hover:bg-blue-900/50 transition-colors"
-          >
-            📎 Ver documento oficial
-          </a>
+          <div className="space-y-2">
+            {(gp.resultado_oficial_urls as string[]).map((u: string, i: number) => (
+              <a
+                key={u}
+                href={u}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 text-sm bg-blue-900/30 text-blue-400 border border-blue-700/40 px-4 py-2 rounded-lg hover:bg-blue-900/50 transition-colors"
+              >
+                📎 Documento {i + 1}
+              </a>
+            ))}
+          </div>
         </div>
       )}
 
-      {!gp.historia_circuito && !gp.resultado_oficial_url && (
+      {!gp.historia_circuito && !gp.resultado_oficial_urls?.length && (
         <div className="card text-center py-8">
           <div className="text-4xl mb-2">🏁</div>
           <p className="text-gray-400 text-sm">Ainda sem informação adicional para este GP.</p>
