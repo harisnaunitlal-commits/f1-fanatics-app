@@ -64,18 +64,33 @@ export default async function GpDetailPage({ params }: { params: { gpId: string 
           <p className="text-gray-400 text-sm mb-3">
             Base oficial usada para validar as respostas do F1 Play deste GP.
           </p>
-          <div className="space-y-2">
-            {(gp.resultado_oficial_urls as string[]).map((u: string, i: number) => (
-              <a
-                key={u}
-                href={u}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 text-sm bg-blue-900/30 text-blue-400 border border-blue-700/40 px-4 py-2 rounded-lg hover:bg-blue-900/50 transition-colors"
-              >
-                📎 Documento {i + 1}
-              </a>
-            ))}
+          <div className="space-y-3">
+            {(gp.resultado_oficial_urls as string[]).map((u: string, i: number) => {
+              const isImage = /\.(jpe?g|png|webp)(\?|$)/i.test(u)
+              return (
+                <div key={u}>
+                  {isImage ? (
+                    <a href={u} target="_blank" rel="noopener noreferrer">
+                      <img
+                        src={u}
+                        alt={`Documento oficial ${i + 1}`}
+                        className="w-full rounded-lg border border-gray-700 hover:opacity-90 transition-opacity cursor-zoom-in"
+                      />
+                      <p className="text-xs text-gray-500 mt-1 text-center">Toca para ver em tamanho completo</p>
+                    </a>
+                  ) : (
+                    <a
+                      href={u}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 text-sm bg-blue-900/30 text-blue-400 border border-blue-700/40 px-4 py-2 rounded-lg hover:bg-blue-900/50 transition-colors"
+                    >
+                      📎 Documento {i + 1} (PDF)
+                    </a>
+                  )}
+                </div>
+              )
+            })}
           </div>
         </div>
       )}
