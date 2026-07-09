@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { PILOTOS_2026 } from '@/lib/supabase/types'
-import { getGpQuestions } from '@/lib/gp-questions'
+import { getEffectiveGpConfig } from '@/lib/gp-config'
 import { calculatePlayScore } from '@/lib/scoring'
 import type { Prediction, GpAnswers } from '@/lib/supabase/types'
 
@@ -100,7 +100,7 @@ export default async function GpResultsPage({ params }: { params: { gpId: string
     }
   }
 
-  const config = getGpQuestions(gp.round)
+  const config = await getEffectiveGpConfig(supabase, gpId, gp.round)
   const anuladas: string[] = ans?.perguntas_anuladas ?? []
   const p = pred as Prediction | null
   const a = ans as GpAnswers | null
