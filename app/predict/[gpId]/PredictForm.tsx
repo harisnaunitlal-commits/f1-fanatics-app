@@ -5,9 +5,9 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { PILOTOS_2026, EQUIPAS_2026 } from '@/lib/supabase/types'
 import {
-  P8_MARGENS, P3_OPTIONS, P12_OPTIONS,
+  P8_MARGENS, P3_OPTIONS, P12_OPTIONS, P14_BINARY,
   getGpQuestions, getDriverPhoto,
-  type DuelConfig, type DriverOption, type GpQuestions,
+  type DuelConfig, type DriverOption, type GpQuestions, type P14Option,
 } from '@/lib/gp-questions'
 import type { GpCalendar, Prediction } from '@/lib/supabase/types'
 import { getDeadlineCountdown, isDeadlinePassed } from '@/lib/scoring'
@@ -463,29 +463,37 @@ export default function PredictForm({
         </div>
 
         {/* P14 — Safety Car */}
-        <div className="card">
-          <QHeader code="P14" title="Safety Car" pts="1 pt" />
-          <p className="text-sm text-yellow-400/80 mb-4">
-            Haverá um Safety Car na pista durante o {gpNameFull}?
-          </p>
-          <div className="grid grid-cols-2 gap-3">
-            {['Sim','Não'].map(opt => (
-              <button
-                key={opt}
-                type="button"
-                onClick={() => setField('p14_sc', opt)}
-                className="py-4 rounded-xl border-2 font-bold text-lg transition-all duration-200"
-                style={{
-                  borderColor: form.p14_sc === opt ? '#e10600' : 'rgba(255,255,255,0.1)',
-                  backgroundColor: form.p14_sc === opt ? 'rgba(225,6,0,0.15)' : 'rgba(255,255,255,0.03)',
-                  color: form.p14_sc === opt ? '#fff' : '#9ca3af',
-                }}
-              >
-                {opt === 'Sim' ? '🟢 Sim' : '🔴 Não'}
-              </button>
-            ))}
-          </div>
-        </div>
+        {(() => {
+          const p14Opts = config?.p14Options ?? P14_BINARY
+          const isMulti = p14Opts.length > 2
+          return (
+            <div className="card">
+              <QHeader code="P14" title="Safety Car / VSC" pts="1 pt" />
+              <p className="text-sm text-yellow-400/80 mb-4">
+                {isMulti
+                  ? `Vamos ter um Safety Car ou Virtual Safety Car no ${gpNameFull}?`
+                  : `Haverá um Safety Car na pista durante o ${gpNameFull}?`}
+              </p>
+              <div className={`grid gap-3 ${isMulti ? 'grid-cols-2' : 'grid-cols-2'}`}>
+                {p14Opts.map((opt: P14Option) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => setField('p14_sc', opt.value)}
+                    className="py-4 rounded-xl border-2 font-bold transition-all duration-200 text-base leading-tight px-2"
+                    style={{
+                      borderColor: form.p14_sc === opt.value ? '#e10600' : 'rgba(255,255,255,0.1)',
+                      backgroundColor: form.p14_sc === opt.value ? 'rgba(225,6,0,0.15)' : 'rgba(255,255,255,0.03)',
+                      color: form.p14_sc === opt.value ? '#fff' : '#9ca3af',
+                    }}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )
+        })()}
 
         {/* P15 — Outsider */}
         <div className="card">

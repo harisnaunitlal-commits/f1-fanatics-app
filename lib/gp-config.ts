@@ -27,7 +27,15 @@ export async function getEffectiveGpConfig(
       .select('config')
       .eq('gp_id', gpId)
       .single()
-    if (data?.config) return data.config as GpQuestions
+    if (data?.config) {
+      const dbConfig = data.config as GpQuestions
+      // Merge p14Options from hardcoded config if DB config predates this field
+      if (!dbConfig.p14Options) {
+        const base = getGpQuestions(round)
+        if (base?.p14Options) dbConfig.p14Options = base.p14Options
+      }
+      return dbConfig
+    }
   } catch (_) { /* table may not exist yet, fall through */ }
   return getGpQuestions(round)
 }
