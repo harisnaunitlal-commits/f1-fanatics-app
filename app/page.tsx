@@ -99,7 +99,17 @@ export default async function HomePage() {
                   <span>GP {(nextGp as any).nome}</span>
                 </h1>
                 <p className="text-gray-400 mt-2">
-                  <LocalDateTime isoDate={(nextGp as any).data_corrida} />
+                  {(() => {
+                    const race = new Date((nextGp as any).data_corrida)
+                    const fri = new Date(race)
+                    fri.setDate(race.getDate() - 2)
+                    const tz = 'Africa/Maputo'
+                    const friDay = fri.toLocaleDateString('pt', { day: 'numeric', timeZone: tz })
+                    const sunDay = race.toLocaleDateString('pt', { day: 'numeric', timeZone: tz })
+                    const month = race.toLocaleDateString('pt', { month: 'long', timeZone: tz })
+                    const year = race.getFullYear()
+                    return `${friDay}–${sunDay} de ${month} de ${year}`
+                  })()}
                 </p>
               </div>
 
