@@ -465,7 +465,7 @@ export default function PredictForm({
 
         {/* P14 — Safety Car */}
         {(() => {
-          const p14Opts = gp.round >= 11 ? P14_MULTI : P14_BINARY
+          const p14Opts = gp.round >= 10 ? P14_MULTI : P14_BINARY
           const isMulti = p14Opts.length > 2
           return (
             <div className="card">
