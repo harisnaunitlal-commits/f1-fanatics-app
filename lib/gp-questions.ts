@@ -22,15 +22,15 @@ export interface P14Option {
 }
 
 export const P14_BINARY: readonly P14Option[] = [
-  { value: 'Sim', label: '✅ Sim' },
-  { value: 'Não', label: '❌ Não' },
+  { value: 'Sim', label: 'Sim' },
+  { value: 'Não', label: 'Não' },
 ]
 
 export const P14_MULTI: readonly P14Option[] = [
-  { value: 'SC',     label: '🚗 Safety Car (SC)' },
-  { value: 'VSC',    label: '🟡 Virtual Safety Car (VSC)' },
-  { value: 'AMBOS',  label: '🚗🟡 Ambos SC e VSC' },
-  { value: 'NENHUM', label: '❌ Nenhuma delas' },
+  { value: 'SC',     label: 'Safety Car' },
+  { value: 'VSC',    label: 'Virtual Safety Car' },
+  { value: 'AMBOS',  label: 'Ambos SC e VSC' },
+  { value: 'NENHUM', label: 'Nenhuma delas' },
 ]
 
 export interface GpQuestions {

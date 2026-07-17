@@ -11,6 +11,7 @@ import {
 } from '@/lib/gp-questions'
 import type { GpCalendar, GpAnswers } from '@/lib/supabase/types'
 import OfficialDocUpload from '@/components/OfficialDocUpload'
+import P14Badge from '@/components/P14Badge'
 import CircuitHistoryEdit from '@/components/CircuitHistoryEdit'
 
 type FormData = Omit<GpAnswers, 'gp_id' | 'inserido_por' | 'inserido_em'>
@@ -455,14 +456,16 @@ export default function AnswersForm({
                   <button
                     key={opt.value} type="button"
                     onClick={() => setForm(f => ({ ...f, p14_sc: opt.value }))}
-                    className="py-4 rounded-xl border-2 font-bold transition-all duration-200 text-base leading-tight px-2"
+                    className="rounded-xl border-2 p-2 flex flex-col items-center gap-2 transition-all duration-200"
                     style={{
                       borderColor: form.p14_sc === opt.value ? '#e10600' : 'rgba(255,255,255,0.1)',
                       backgroundColor: form.p14_sc === opt.value ? 'rgba(225,6,0,0.15)' : 'rgba(255,255,255,0.03)',
-                      color: form.p14_sc === opt.value ? '#fff' : '#9ca3af',
                     }}
                   >
-                    {opt.label}
+                    <P14Badge value={opt.value} />
+                    <span className="text-[10px] font-bold uppercase tracking-wide" style={{ color: form.p14_sc === opt.value ? '#fff' : '#9ca3af' }}>
+                      {opt.label}
+                    </span>
                   </button>
                 ))}
               </div>

@@ -11,6 +11,7 @@ import {
 } from '@/lib/gp-questions'
 import type { GpCalendar, Prediction } from '@/lib/supabase/types'
 import { getDeadlineCountdown, isDeadlinePassed } from '@/lib/scoring'
+import P14Badge from '@/components/P14Badge'
 
 type FormData = Omit<
   Prediction,
@@ -474,20 +475,22 @@ export default function PredictForm({
                   ? `Vamos ter um Safety Car ou Virtual Safety Car no ${gpNameFull}?`
                   : `Haverá um Safety Car na pista durante o ${gpNameFull}?`}
               </p>
-              <div className={`grid gap-3 ${isMulti ? 'grid-cols-2' : 'grid-cols-2'}`}>
+              <div className="grid grid-cols-2 gap-3">
                 {p14Opts.map((opt: P14Option) => (
                   <button
                     key={opt.value}
                     type="button"
                     onClick={() => setField('p14_sc', opt.value)}
-                    className="py-4 rounded-xl border-2 font-bold transition-all duration-200 text-base leading-tight px-2"
+                    className="rounded-xl border-2 p-2 flex flex-col items-center gap-2 transition-all duration-200"
                     style={{
                       borderColor: form.p14_sc === opt.value ? '#e10600' : 'rgba(255,255,255,0.1)',
                       backgroundColor: form.p14_sc === opt.value ? 'rgba(225,6,0,0.15)' : 'rgba(255,255,255,0.03)',
-                      color: form.p14_sc === opt.value ? '#fff' : '#9ca3af',
                     }}
                   >
-                    {opt.label}
+                    <P14Badge value={opt.value} />
+                    <span className="text-[10px] font-bold uppercase tracking-wide" style={{ color: form.p14_sc === opt.value ? '#fff' : '#9ca3af' }}>
+                      {opt.label}
+                    </span>
                   </button>
                 ))}
               </div>
