@@ -214,6 +214,16 @@ export default async function AdminPage() {
                       }`}>
                         {gp.status.toUpperCase()}
                       </span>
+                      {gp.data_corrida && (() => {
+                        const race = new Date(gp.data_corrida)
+                        const fri = new Date(race)
+                        fri.setDate(race.getDate() - 2)
+                        const tz = 'Africa/Maputo'
+                        const friDay = fri.toLocaleDateString('pt', { day: 'numeric', timeZone: tz })
+                        const sunDay = race.toLocaleDateString('pt', { day: 'numeric', timeZone: tz })
+                        const mon = race.toLocaleDateString('pt', { month: 'short', timeZone: tz }).replace('.','')
+                        return <span className="text-[11px] text-gray-500">📅 {friDay}–{sunDay} {mon}</span>
+                      })()}
                       {count > 0 && (
                         <span className="text-xs text-gray-400">
                           📋 <span className="text-white font-bold">{count}</span>/{totalMembers} previsões
