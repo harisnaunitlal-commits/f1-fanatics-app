@@ -4,9 +4,8 @@ import { useState, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 
-// ── F1 2026 drivers ──────────────────────────────────────────────
 const DRIVERS = [
-  { value: '', label: 'Nenhum' },
+  { value: '', label: 'Selecciona...' },
   { value: 'VER', label: 'Max Verstappen (Red Bull)' },
   { value: 'TSU', label: 'Yuki Tsunoda (Red Bull)' },
   { value: 'NOR', label: 'Lando Norris (McLaren)' },
@@ -30,7 +29,7 @@ const DRIVERS = [
 ]
 
 const TEAMS = [
-  { value: '', label: 'Nenhuma' },
+  { value: '', label: 'Selecciona...' },
   { value: 'Red Bull Racing', label: 'Red Bull Racing' },
   { value: 'McLaren', label: 'McLaren' },
   { value: 'Ferrari', label: 'Ferrari' },
@@ -43,6 +42,44 @@ const TEAMS = [
   { value: 'Racing Bulls', label: 'Racing Bulls' },
 ]
 
+const MESES = [
+  'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+  'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
+]
+
+const PRESET_AVATARS = [
+  { id: 'vermelho', bg: '#E8002D', accent: '#fff' },
+  { id: 'laranja',  bg: '#FF8000', accent: '#fff' },
+  { id: 'teal',     bg: '#00D2BE', accent: '#fff' },
+  { id: 'azul',     bg: '#3671C6', accent: '#fff' },
+  { id: 'verde',    bg: '#358C75', accent: '#fff' },
+  { id: 'roxo',     bg: '#7C3AED', accent: '#fff' },
+  { id: 'preto',    bg: '#1E293B', accent: '#fff' },
+  { id: 'dourado',  bg: '#B45309', accent: '#FCD34D' },
+]
+
+function HelmetSvg({ bg, accent }: { bg: string; accent: string }) {
+  return (
+    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
+      <circle cx="50" cy="50" r="50" fill={bg} />
+      <path d="M22 62 C22 32 78 32 78 62 L78 74 C78 78 75 80 72 80 L28 80 C25 80 22 78 22 74 Z" fill="white" opacity="0.92" />
+      <path d="M30 62 L70 62 L67 76 L33 76 Z" fill="#0F172A" opacity="0.88" />
+      <rect x="22" y="61" width="56" height="3" rx="1.5" fill={bg} />
+      <path d="M32 64 L50 64 L48 68 L32 68 Z" fill="white" opacity="0.12" />
+    </svg>
+  )
+}
+
+function makeSvgBlob(bg: string, accent: string): Blob {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+<circle cx="50" cy="50" r="50" fill="${bg}"/>
+<path d="M22 62 C22 32 78 32 78 62 L78 74 C78 78 75 80 72 80 L28 80 C25 80 22 78 22 74 Z" fill="white" opacity="0.92"/>
+<path d="M30 62 L70 62 L67 76 L33 76 Z" fill="#0F172A" opacity="0.88"/>
+<rect x="22" y="61" width="56" height="3" rx="1.5" fill="${bg}"/>
+</svg>`
+  return new Blob([svg], { type: 'image/svg+xml' })
+}
+
 export default function RegisterPage() {
   const supabase = createClient()
   const router = useRouter()
@@ -52,6 +89,8 @@ export default function RegisterPage() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+  const [photoTab, setPhotoTab] = useState<'preset' | 'upload'>('preset')
+  const [selectedAvatar, setSelectedAvatar] = useState<string | null>(null)
   const [photoFile, setPhotoFile] = useState<File | null>(null)
   const [photoPreview, setPhotoPreview] = useState<string | null>(null)
 
@@ -63,6 +102,10 @@ export default function RegisterPage() {
     cidade: '',
     pais: 'Moçambique',
     whatsapp: '',
+    sexo: '',
+    nasc_dia: '',
+    nasc_mes: '',
+    nasc_ano: '',
     piloto_fav: '',
     equipa_fav: '',
     fantasy_nick: '',
@@ -85,54 +128,99 @@ export default function RegisterPage() {
     }
     setPhotoFile(file)
     setPhotoPreview(URL.createObjectURL(file))
+    setSelectedAvatar(null)
     setError('')
   }
 
+  function selectPreset(id: string) {
+    setSelectedAvatar(id)
+    setPhotoFile(null)
+    setPhotoPreview(null)
+  }
+
+  const hasPhoto = !!photoFile || !!selectedAvatar
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    setLoading(true)
     setError('')
 
+    // ── Validations ────────────────────────────────────────────────
+    if (!hasPhoto) {
+      setError('A foto de perfil é obrigatória. Escolhe um avatar ou faz upload de uma foto.')
+      return
+    }
     if (form.password.length < 6) {
       setError('A password deve ter pelo menos 6 caracteres.')
-      setLoading(false)
       return
     }
-
     if (!form.nickname.trim()) {
       setError('O nickname é obrigatório.')
-      setLoading(false)
+      return
+    }
+    if (!form.nome_completo.trim()) {
+      setError('O nome completo é obrigatório.')
+      return
+    }
+    if (!form.cidade.trim()) {
+      setError('A cidade é obrigatória.')
+      return
+    }
+    if (!form.whatsapp.trim()) {
+      setError('O WhatsApp é obrigatório.')
+      return
+    }
+    if (!form.sexo) {
+      setError('O sexo é obrigatório.')
+      return
+    }
+    if (!form.nasc_dia || !form.nasc_mes || !form.nasc_ano) {
+      setError('A data de nascimento é obrigatória.')
+      return
+    }
+    if (!form.piloto_fav) {
+      setError('Selecciona o teu piloto favorito.')
+      return
+    }
+    if (!form.equipa_fav) {
+      setError('Selecciona a tua equipa favorita.')
       return
     }
 
+    setLoading(true)
+
     const userEmail = form.email.toLowerCase().trim()
+    const dataNasc = `${form.nasc_ano}-${String(MESES.indexOf(form.nasc_mes) + 1).padStart(2, '0')}-${String(form.nasc_dia).padStart(2, '0')}`
 
-    // ── Step 1: Upload photo first (no auth needed for public upload) ──
-    let fotoUrl: string | undefined = undefined
+    // ── Upload photo ────────────────────────────────────────────────
+    let fotoUrl: string | null = null
 
-    if (photoFile) {
-      try {
-        const ext = photoFile.type === 'image/png' ? 'png'
-          : photoFile.type === 'image/webp' ? 'webp' : 'jpg'
-        const path = `${userEmail}/avatar.${ext}`
+    try {
+      let fileToUpload: File | Blob
+      let ext: string
 
-        const { error: uploadErr } = await supabase.storage
-          .from('avatars')
-          .upload(path, photoFile, { upsert: true, contentType: photoFile.type })
-
-        if (!uploadErr) {
-          const { data: urlData } = supabase.storage
-            .from('avatars')
-            .getPublicUrl(path)
-          fotoUrl = urlData.publicUrl
-        }
-      } catch {
-        // Photo upload failed — continue without photo
+      if (photoFile) {
+        fileToUpload = photoFile
+        ext = photoFile.type === 'image/png' ? 'png' : photoFile.type === 'image/webp' ? 'webp' : 'jpg'
+      } else {
+        const av = PRESET_AVATARS.find(a => a.id === selectedAvatar)!
+        fileToUpload = makeSvgBlob(av.bg, av.accent)
+        ext = 'svg'
       }
+
+      const path = `${userEmail}/avatar.${ext}`
+      const { error: uploadErr } = await supabase.storage
+        .from('avatars')
+        .upload(path, fileToUpload, { upsert: true, contentType: fileToUpload.type ?? 'image/svg+xml' })
+
+      if (!uploadErr) {
+        const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(path)
+        fotoUrl = urlData.publicUrl
+      }
+    } catch {
+      // continue without photo on error
     }
 
-    // ── Step 2: Call server API to create auth user + member ─────
-    // Uses service role key server-side — bypasses RLS and email confirmation
+    // ── Call register API ───────────────────────────────────────────
     const res = await fetch('/api/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -140,16 +228,18 @@ export default function RegisterPage() {
         email:         userEmail,
         password:      form.password,
         nickname:      form.nickname.trim(),
-        nome_completo: form.nome_completo.trim() || null,
-        cidade:        form.cidade.trim() || null,
-        pais:          form.pais.trim() || null,
-        whatsapp:      form.whatsapp.trim() || null,
-        piloto_fav:    form.piloto_fav || null,
-        equipa_fav:    form.equipa_fav || null,
+        nome_completo: form.nome_completo.trim(),
+        cidade:        form.cidade.trim(),
+        pais:          form.pais.trim() || 'Moçambique',
+        whatsapp:      form.whatsapp.trim(),
+        sexo:          form.sexo,
+        data_nasc:     dataNasc,
+        piloto_fav:    form.piloto_fav,
+        equipa_fav:    form.equipa_fav,
         fantasy_nick:  form.fantasy_nick.trim() || null,
         predict_nick:  form.predict_nick.trim() || null,
         bio:           form.bio.trim() || null,
-        foto_url:      fotoUrl ?? null,
+        foto_url:      fotoUrl,
       }),
     })
 
@@ -161,7 +251,6 @@ export default function RegisterPage() {
       return
     }
 
-    // ── Step 3: Sign in on client to establish session ───────────
     const { error: signInErr } = await supabase.auth.signInWithPassword({
       email: userEmail,
       password: form.password,
@@ -173,7 +262,6 @@ export default function RegisterPage() {
         signInErr.message.toLowerCase().includes('after') ||
         signInErr.message.toLowerCase().includes('rate')
       ) {
-        // Rate limited — account was created, just can't sign in yet
         setError('Conta criada! O Supabase tem um limite de segurança. Aguarda 60 segundos e faz login em "Entrar".')
       } else {
         setError('Conta criada com sucesso! Vai a "Entrar" para fazer login com a tua password.')
@@ -197,6 +285,9 @@ export default function RegisterPage() {
     )
   }
 
+  const currentYear = new Date().getFullYear()
+  const anos = Array.from({ length: currentYear - 1939 }, (_, i) => currentYear - 5 - i).filter(y => y >= 1940)
+
   return (
     <div className="max-w-xl mx-auto pb-12">
       <h1 className="text-3xl font-bold mb-2 mt-8">Registo de Membro</h1>
@@ -206,66 +297,142 @@ export default function RegisterPage() {
 
       <form onSubmit={handleSubmit} className="space-y-4">
 
-        {/* ── FOTO DE PERFIL ────────────────────────────────────── */}
-        <div className="card flex flex-col items-center gap-3">
-          <h2 className="font-bold text-f1red self-start">📷 Foto de Perfil <span className="text-gray-600 font-normal text-xs">(opcional)</span></h2>
+        {/* ── FOTO / AVATAR ──────────────────────────────────────── */}
+        <div className="card space-y-4">
+          <h2 className="font-bold text-f1red">
+            📷 Foto de Perfil <span className="text-f1red">*</span>
+          </h2>
 
-          <button
-            type="button"
-            onClick={() => photoInputRef.current?.click()}
-            className="relative group focus:outline-none"
-            title="Clica para adicionar foto"
-          >
-            {photoPreview ? (
-              <img
-                src={photoPreview}
-                alt="Preview"
-                className="w-24 h-24 rounded-full object-cover border-2 border-f1red ring-2 ring-f1red/30 group-hover:ring-f1red/60 transition-all"
-              />
-            ) : (
-              <div className="w-24 h-24 rounded-full bg-gray-800 border-2 border-dashed border-gray-600 group-hover:border-f1red flex items-center justify-center transition-all">
-                <span className="text-3xl">👤</span>
-              </div>
-            )}
-            <div className="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                  d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-            </div>
-          </button>
-
-          <input
-            ref={photoInputRef}
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            className="hidden"
-            onChange={handlePhotoChange}
-          />
-
-          <div className="text-center">
+          {/* Tabs */}
+          <div className="flex rounded-lg overflow-hidden border border-gray-700">
             <button
               type="button"
-              onClick={() => photoInputRef.current?.click()}
-              className="text-xs text-f1red hover:text-red-400 transition-colors"
+              onClick={() => setPhotoTab('preset')}
+              className={`flex-1 py-2 text-sm font-medium transition-colors ${
+                photoTab === 'preset'
+                  ? 'bg-f1red text-white'
+                  : 'bg-gray-800 text-gray-400 hover:text-white'
+              }`}
             >
-              {photoPreview ? '📷 Mudar foto' : '📷 Adicionar foto'}
+              🏎️ Escolher Avatar
             </button>
-            {photoPreview && (
-              <>
-                <span className="text-gray-700 mx-1">·</span>
+            <button
+              type="button"
+              onClick={() => setPhotoTab('upload')}
+              className={`flex-1 py-2 text-sm font-medium transition-colors ${
+                photoTab === 'upload'
+                  ? 'bg-f1red text-white'
+                  : 'bg-gray-800 text-gray-400 hover:text-white'
+              }`}
+            >
+              📸 Upload Foto
+            </button>
+          </div>
+
+          {/* Preset avatars */}
+          {photoTab === 'preset' && (
+            <div>
+              <p className="text-xs text-gray-500 mb-3">Escolhe o teu capacete F1:</p>
+              <div className="grid grid-cols-4 gap-3">
+                {PRESET_AVATARS.map(av => (
+                  <button
+                    key={av.id}
+                    type="button"
+                    onClick={() => selectPreset(av.id)}
+                    className="relative aspect-square rounded-full overflow-hidden transition-all duration-200 focus:outline-none"
+                    style={{
+                      boxShadow: selectedAvatar === av.id
+                        ? `0 0 0 3px white, 0 0 0 5px ${av.bg}`
+                        : '0 0 0 2px rgba(255,255,255,0.1)',
+                      transform: selectedAvatar === av.id ? 'scale(1.1)' : 'scale(1)',
+                    }}
+                  >
+                    <HelmetSvg bg={av.bg} accent={av.accent} />
+                    {selectedAvatar === av.id && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                        <span className="text-white text-xl font-black drop-shadow">✓</span>
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Upload photo */}
+          {photoTab === 'upload' && (
+            <div className="flex flex-col items-center gap-3">
+              <button
+                type="button"
+                onClick={() => photoInputRef.current?.click()}
+                className="relative group focus:outline-none"
+              >
+                {photoPreview ? (
+                  <img
+                    src={photoPreview}
+                    alt="Preview"
+                    className="w-24 h-24 rounded-full object-cover border-2 border-f1red ring-2 ring-f1red/30"
+                  />
+                ) : (
+                  <div className="w-24 h-24 rounded-full bg-gray-800 border-2 border-dashed border-gray-600 group-hover:border-f1red flex items-center justify-center transition-all">
+                    <span className="text-3xl">👤</span>
+                  </div>
+                )}
+                <div className="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                      d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                </div>
+              </button>
+              <input
+                ref={photoInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                className="hidden"
+                onChange={handlePhotoChange}
+              />
+              <div className="text-center">
                 <button
                   type="button"
-                  onClick={() => { setPhotoFile(null); setPhotoPreview(null) }}
-                  className="text-xs text-gray-600 hover:text-red-400 transition-colors"
+                  onClick={() => photoInputRef.current?.click()}
+                  className="text-xs text-f1red hover:text-red-400 transition-colors"
                 >
-                  Remover
+                  {photoPreview ? '📷 Mudar foto' : '📷 Adicionar foto'}
                 </button>
-              </>
-            )}
-          </div>
-          <p className="text-xs text-gray-600">JPG, PNG ou WebP · máx. 2MB</p>
+                {photoPreview && (
+                  <>
+                    <span className="text-gray-700 mx-1">·</span>
+                    <button
+                      type="button"
+                      onClick={() => { setPhotoFile(null); setPhotoPreview(null) }}
+                      className="text-xs text-gray-600 hover:text-red-400 transition-colors"
+                    >
+                      Remover
+                    </button>
+                  </>
+                )}
+              </div>
+              <p className="text-xs text-gray-600">JPG, PNG ou WebP · máx. 2MB</p>
+            </div>
+          )}
+
+          {/* Preview of selected preset */}
+          {selectedAvatar && photoTab === 'preset' && (
+            <div className="flex items-center gap-2 text-xs text-green-400">
+              <div
+                className="w-6 h-6 rounded-full overflow-hidden shrink-0"
+                style={{ background: PRESET_AVATARS.find(a => a.id === selectedAvatar)?.bg }}
+              >
+                <HelmetSvg
+                  bg={PRESET_AVATARS.find(a => a.id === selectedAvatar)!.bg}
+                  accent={PRESET_AVATARS.find(a => a.id === selectedAvatar)!.accent}
+                />
+              </div>
+              ✓ Avatar seleccionado
+            </div>
+          )}
         </div>
 
         {/* ── CONTA ─────────────────────────────────────────────── */}
@@ -327,7 +494,7 @@ export default function RegisterPage() {
           </div>
 
           <div>
-            <label className="label">Nome completo</label>
+            <label className="label">Nome completo <span className="text-f1red">*</span></label>
             <input
               name="nome_completo"
               placeholder="Nome e apelido"
@@ -339,7 +506,7 @@ export default function RegisterPage() {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="label">Cidade</label>
+              <label className="label">Cidade <span className="text-f1red">*</span></label>
               <input
                 name="cidade"
                 placeholder="Beira"
@@ -349,7 +516,7 @@ export default function RegisterPage() {
               />
             </div>
             <div>
-              <label className="label">País</label>
+              <label className="label">País <span className="text-f1red">*</span></label>
               <input
                 name="pais"
                 placeholder="Moçambique"
@@ -362,7 +529,7 @@ export default function RegisterPage() {
 
           <div>
             <label className="label">
-              WhatsApp
+              WhatsApp <span className="text-f1red">*</span>
               <span className="text-gray-500 font-normal text-xs ml-1">(com código do país)</span>
             </label>
             <div className="relative">
@@ -378,6 +545,74 @@ export default function RegisterPage() {
             </div>
             <p className="text-[11px] text-gray-600 mt-1">Usado para avisos e grupo do WhatsApp da liga.</p>
           </div>
+
+          {/* Sexo */}
+          <div>
+            <label className="label">Sexo <span className="text-f1red">*</span></label>
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                { value: 'M',                  label: '♂ Masculino' },
+                { value: 'F',                  label: '♀ Feminino' },
+                { value: 'outro',              label: '⚧ Outro' },
+                { value: 'prefiro_nao_dizer',  label: '🔒 Prefiro não dizer' },
+              ].map(opt => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setForm(f => ({ ...f, sexo: opt.value }))}
+                  className="py-2 px-3 rounded-lg border text-sm font-medium transition-all duration-150"
+                  style={{
+                    borderColor: form.sexo === opt.value ? '#E8002D' : 'rgba(255,255,255,0.1)',
+                    backgroundColor: form.sexo === opt.value ? 'rgba(232,0,45,0.15)' : 'rgba(255,255,255,0.03)',
+                    color: form.sexo === opt.value ? '#fff' : '#9ca3af',
+                  }}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Data de nascimento */}
+          <div>
+            <label className="label">Data de Nascimento <span className="text-f1red">*</span></label>
+            <div className="grid grid-cols-3 gap-2">
+              <select
+                name="nasc_dia"
+                className="input"
+                value={form.nasc_dia}
+                onChange={handleChange}
+              >
+                <option value="">Dia</option>
+                {Array.from({ length: 31 }, (_, i) => i + 1).map(d => (
+                  <option key={d} value={d}>{d}</option>
+                ))}
+              </select>
+              <select
+                name="nasc_mes"
+                className="input"
+                value={form.nasc_mes}
+                onChange={handleChange}
+              >
+                <option value="">Mês</option>
+                {MESES.map(m => (
+                  <option key={m} value={m}>{m}</option>
+                ))}
+              </select>
+              <select
+                name="nasc_ano"
+                className="input"
+                value={form.nasc_ano}
+                onChange={handleChange}
+              >
+                <option value="">Ano</option>
+                {anos.map(y => (
+                  <option key={y} value={y}>{y}</option>
+                ))}
+              </select>
+            </div>
+            <p className="text-[11px] text-gray-600 mt-1">Usada para enviar parabéns no teu aniversário! 🎂</p>
+          </div>
         </div>
 
         {/* ── F1 ────────────────────────────────────────────────── */}
@@ -386,7 +621,7 @@ export default function RegisterPage() {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="label">Piloto favorito</label>
+              <label className="label">Piloto favorito <span className="text-f1red">*</span></label>
               <select
                 name="piloto_fav"
                 className="input"
@@ -399,7 +634,7 @@ export default function RegisterPage() {
               </select>
             </div>
             <div>
-              <label className="label">Equipa favorita</label>
+              <label className="label">Equipa favorita <span className="text-f1red">*</span></label>
               <select
                 name="equipa_fav"
                 className="input"

@@ -14,6 +14,7 @@ export async function POST(req: NextRequest) {
     const {
       email, password,
       nickname, nome_completo, cidade, pais, whatsapp,
+      sexo, data_nasc,
       piloto_fav, equipa_fav, fantasy_nick, predict_nick, bio,
       foto_url,
     } = body
@@ -67,6 +68,8 @@ export async function POST(req: NextRequest) {
       cidade: cidade?.trim() || null,
       pais: pais?.trim() || null,
       whatsapp: whatsapp?.trim() || null,
+      sexo: sexo || null,
+      data_nasc: data_nasc || null,
       piloto_fav: piloto_fav || null,
       equipa_fav: equipa_fav || null,
       fantasy_nick: fantasy_nick?.trim() || null,
