@@ -93,7 +93,7 @@ export default function OfficialDocUpload({
                 type="button"
                 onClick={() => handleRemove(u, i)}
                 disabled={uploadingIdx === i}
-                className="text-[11px] text-gray-600 hover:text-red-400 transition-colors shrink-0 disabled:opacity-40"
+                className="text-sm text-gray-400 hover:text-red-400 transition-colors shrink-0 disabled:opacity-40 px-1"
               >
                 {uploadingIdx === i ? '…' : '✕'}
               </button>

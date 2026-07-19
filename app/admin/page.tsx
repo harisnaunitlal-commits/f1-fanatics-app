@@ -299,23 +299,33 @@ export default async function AdminPage() {
           <h2 className="font-bold text-lg mb-3">🆕 Novos membros (últimos 30 dias)</h2>
           <div className="card divide-y divide-gray-800">
             {recentMembers.map((m: any) => (
-              <div key={m.email} className="flex items-center justify-between py-2.5 first:pt-0 last:pb-0">
-                <div className="flex items-center gap-2.5">
+              <Link
+                key={m.email}
+                href={`/admin/members/${encodeURIComponent(m.email)}`}
+                className="flex items-center justify-between py-3 first:pt-0 last:pb-0 hover:bg-white/5 -mx-4 px-4 transition-colors rounded-lg group"
+              >
+                <div className="flex items-center gap-3">
                   {m.foto_url
-                    ? <img src={m.foto_url} alt="" className="w-7 h-7 rounded-full object-cover shrink-0" />
-                    : <div className="w-7 h-7 rounded-full bg-f1red/20 text-f1red flex items-center justify-center text-xs font-bold shrink-0">
+                    ? <img src={m.foto_url} alt="" className="w-9 h-9 rounded-full object-cover shrink-0 ring-2 ring-f1red/30" />
+                    : <div className="w-9 h-9 rounded-full bg-f1red/20 text-f1red flex items-center justify-center text-sm font-bold shrink-0">
                         {m.nickname.charAt(0).toUpperCase()}
                       </div>
                   }
                   <div>
-                    <span className="text-sm font-medium text-white">{m.nickname}</span>
-                    <span className="text-xs text-gray-500 ml-2">{m.email}</span>
+                    <div className="text-sm font-semibold text-white group-hover:text-f1red transition-colors">
+                      {m.nickname}
+                      {m.foto_url && <span className="ml-1.5 text-[9px] text-gray-500">📷</span>}
+                    </div>
+                    <div className="text-xs text-gray-500">{m.email}</div>
                   </div>
                 </div>
-                <span className="text-xs text-gray-500">
-                  {new Date(m.criado_em).toLocaleDateString('pt-MZ', { day: '2-digit', month: 'short' })}
-                </span>
-              </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="text-xs font-medium text-gray-300 bg-gray-800 px-2 py-0.5 rounded">
+                    {new Date(m.criado_em).toLocaleDateString('pt-MZ', { day: '2-digit', month: 'short' })}
+                  </span>
+                  <span className="text-gray-600 group-hover:text-gray-400 transition-colors text-xs">›</span>
+                </div>
+              </Link>
             ))}
           </div>
         </div>
