@@ -6,6 +6,7 @@ import { isDeadlinePassed } from '@/lib/scoring'
 import { MiniCountdown } from '@/components/MiniCountdown'
 import { FantasyCountdown } from '@/components/FantasyCountdown'
 import LocalDateTime from '@/components/LocalDateTime'
+import GpWeekendSchedule from '@/components/GpWeekendSchedule'
 
 export default async function HomePage() {
   const supabase = await createClient()
@@ -179,6 +180,17 @@ export default async function HomePage() {
                 isSprint={!!(nextGp as any).is_sprint}
               />
             )}
+
+            {/* Weekend schedule */}
+            <GpWeekendSchedule
+              fp1Start={(nextGp as any).fp1_start ?? null}
+              fp2Start={(nextGp as any).fp2_start ?? null}
+              fp3Start={(nextGp as any).fp3_start ?? null}
+              qualifyingStart={(nextGp as any).qualifying_start ?? null}
+              raceStart={(nextGp as any).data_corrida ?? null}
+              isSprint={!!(nextGp as any).is_sprint}
+              deadlineFantasy={(nextGp as any).deadline_fantasy ?? null}
+            />
           </div>
         </div>
       )}
