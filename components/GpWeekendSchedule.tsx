@@ -262,7 +262,7 @@ export default function GpWeekendSchedule({
                 // Time colour: done = gray; all others = yellow-400
                 const timeCls = isDone
                   ? 'text-gray-700'
-                  : isRaceS ? 'text-f1red font-black text-base'
+                  : isRaceS ? 'text-white font-black text-base'
                   : 'text-yellow-400 font-black'
 
                 return (
@@ -309,7 +309,7 @@ export default function GpWeekendSchedule({
         <div className="rounded-xl border border-yellow-400/40 px-4 py-3 flex items-center justify-between gap-3 flex-wrap"
           style={{ background: '#000', boxShadow: '0 0 16px rgba(250,204,21,0.15)' }}>
           <p className="text-sm font-bold text-white">
-            ⚠️ Lembra-te de apostar no F1 Fantasy e F1 Predict
+            ⚠️ F1 Fantasy &amp; F1 Predict — encerra em:
           </p>
           <div className="flex items-center gap-1 shrink-0">
             {(qualCd.d > 0
