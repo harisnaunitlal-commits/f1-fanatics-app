@@ -287,7 +287,7 @@ export default async function GlobalRankingPage({
 
           <p className="text-xs text-gray-600 mt-3 text-center">
             {isAccumulado
-              ? '🏆 Triatlo Score = (Play% + Fantasy% + Predict%) ÷ nº ligas participadas · Máx 100.0'
+              ? '🏆 Triatlo Score = (Play% + Fantasy% + Predict%) ÷ 3 · Jogar as 3 ligas é essencial para pontuar bem'
               : '⚡ Total GP = pontos brutos de F1 Play + Fantasy + Predict neste GP'}
           </p>
         </>

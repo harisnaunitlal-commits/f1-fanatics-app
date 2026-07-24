@@ -105,9 +105,7 @@ export async function POST(req: NextRequest) {
         (fantasy_pts > 0 ? 1 : 0) +
         (predict_pts > 0 ? 1 : 0)
 
-      const global_score = ligas_contribuidas > 0
-        ? Math.round(((play_gpts + fantasy_gpts + predict_gpts) / ligas_contribuidas) * 100) / 100
-        : 0
+      const global_score = Math.round(((play_gpts + fantasy_gpts + predict_gpts) / 3) * 100) / 100
 
       return {
         member_email: email,
