@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
       .from('members').select('is_admin').eq('email', user.email).single()
     if (!member?.is_admin) return NextResponse.json({ error: 'Sem permissão.' }, { status: 403 })
 
-    const { gp_id, admin_email, send_only_to } = await req.json()
+    const { gp_id, admin_email, send_only_to, skip_emails } = await req.json()
     if (!gp_id) return NextResponse.json({ error: 'gp_id obrigatório.' }, { status: 400 })
 
     // 1a. Play acumulado (soma de todos os GPs até gp_id inclusive)
@@ -144,10 +144,12 @@ export async function POST(req: NextRequest) {
 
     // ── Send results emails (awaited — must complete before response) ─────────
     let emailsSent = 0
-    try {
-      emailsSent = await sendTriatloEmails({ supabaseAdmin, gp_id, rows, playScores: playScores ?? [], send_only_to: send_only_to ?? null, is_test: !!send_only_to })
-    } catch (err) {
-      console.error('Triatlo emails failed:', err)
+    if (!skip_emails) {
+      try {
+        emailsSent = await sendTriatloEmails({ supabaseAdmin, gp_id, rows, playScores: playScores ?? [], send_only_to: send_only_to ?? null, is_test: !!send_only_to })
+      } catch (err) {
+        console.error('Triatlo emails failed:', err)
+      }
     }
 
     return NextResponse.json({ success: true, n_rows: rows.length, emails_sent: emailsSent })

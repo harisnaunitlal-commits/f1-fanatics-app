@@ -11,11 +11,12 @@ export default function CalcRankingButton({
   gpNome: string
   adminEmail: string
 }) {
-  const [loading, setLoading]     = useState<'full' | 'test' | null>(null)
+  const [loading, setLoading]     = useState<'full' | 'silent' | 'test' | null>(null)
   const [result, setResult]       = useState<{ ok: boolean; msg: string } | null>(null)
 
-  async function callEndpoint(sendOnlyTo?: string) {
-    const mode = sendOnlyTo ? 'test' : 'full'
+  async function callEndpoint(opts: { sendOnlyTo?: string; skipEmails?: boolean } = {}) {
+    const { sendOnlyTo, skipEmails } = opts
+    const mode = sendOnlyTo ? 'test' : skipEmails ? 'silent' : 'full'
     setLoading(mode)
     setResult(null)
     try {
@@ -25,7 +26,8 @@ export default function CalcRankingButton({
         body: JSON.stringify({
           gp_id: gpId,
           admin_email: adminEmail,
-          ...(sendOnlyTo ? { send_only_to: sendOnlyTo } : {}),
+          ...(sendOnlyTo  ? { send_only_to: sendOnlyTo } : {}),
+          ...(skipEmails  ? { skip_emails: true }        : {}),
         }),
       })
       const data = await res.json()
@@ -33,6 +35,8 @@ export default function CalcRankingButton({
         setResult({ ok: false, msg: data.error ?? 'Erro desconhecido.' })
       } else if (sendOnlyTo) {
         setResult({ ok: true, msg: `📧 Email de teste enviado para ${sendOnlyTo}` })
+      } else if (skipEmails) {
+        setResult({ ok: true, msg: `✅ Ranking recalculado (sem email) — ${data.n_rows} membros.` })
       } else {
         setResult({ ok: true, msg: `✅ Ranking calculado — ${data.n_rows} membros, ${data.emails_sent} emails enviados.` })
       }
@@ -51,10 +55,18 @@ export default function CalcRankingButton({
           disabled={loading !== null}
           className="btn-primary text-sm py-2 px-3 whitespace-nowrap"
         >
-          {loading === 'full' ? '⏳ A calcular...' : '🌍 Ranking Global'}
+          {loading === 'full' ? '⏳ A calcular...' : '🌍 Ranking + Email'}
         </button>
         <button
-          onClick={() => callEndpoint(adminEmail)}
+          onClick={() => callEndpoint({ skipEmails: true })}
+          disabled={loading !== null}
+          title="Recalcula sem enviar emails"
+          className="text-sm py-2 px-3 rounded-lg bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700 transition-colors font-bold disabled:opacity-50 whitespace-nowrap"
+        >
+          {loading === 'silent' ? '⏳ A calcular...' : '🔄 Só calcular'}
+        </button>
+        <button
+          onClick={() => callEndpoint({ sendOnlyTo: adminEmail })}
           disabled={loading !== null}
           title={`Envia só para ${adminEmail}`}
           className="text-sm py-2 px-3 rounded-lg bg-yellow-900/30 text-yellow-400 hover:bg-yellow-900/50 border border-yellow-700/40 transition-colors font-bold disabled:opacity-50 whitespace-nowrap"

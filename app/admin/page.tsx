@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { isDeadlinePassed } from '@/lib/scoring'
 import CalcRankingButton from './CalcRankingButton'
+import BulkRecalcButton from './BulkRecalcButton'
 
 export default async function AdminPage() {
   const supabase = await createClient()
@@ -192,7 +193,13 @@ export default async function AdminPage() {
 
       {/* ── GP Management ───────────────────────────────────────────────── */}
       <div>
-        <h2 className="font-bold text-lg mb-3">📅 Gestão de GPs</h2>
+        <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+          <h2 className="font-bold text-lg">📅 Gestão de GPs</h2>
+          <BulkRecalcButton
+            scoredGpIds={(gps ?? []).filter((g: any) => g.status === 'scored').map((g: any) => g.id)}
+            adminEmail={user.email!}
+          />
+        </div>
         <div className="grid gap-3">
           {gps?.map((gp: any) => {
             const count = submissionsPerGp.get(gp.id)?.size ?? 0
