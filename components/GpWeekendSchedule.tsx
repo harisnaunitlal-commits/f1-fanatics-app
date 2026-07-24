@@ -25,7 +25,7 @@ function fmt24(utcStr: string): string {
 }
 
 function localDateStr(utcStr: string): string {
-  return new Date(utcStr).toLocaleDateString('en-CA') // YYYY-MM-DD in local time
+  return new Date(utcStr).toLocaleDateString('en-CA')
 }
 
 function fmtDayHeader(utcStr: string): string {
@@ -57,11 +57,11 @@ function buildSessions(
   qual: string | null, race: string | null, isSprint: boolean
 ): SessionDef[] {
   if (isSprint) return [
-    { key: 'fp1',         label: 'FP1',               startUtc: fp1,  durationMin: 60,  type: 'fp1' },
-    { key: 'sprint_qual', label: 'Sprint Qualifying',  startUtc: fp2,  durationMin: 60,  type: 'sprint_qual' },
-    { key: 'sprint_race', label: 'Sprint Race',        startUtc: fp3,  durationMin: 45,  type: 'sprint_race' },
-    { key: 'qual',        label: 'Qualifying',         startUtc: qual, durationMin: 60,  type: 'qual' },
-    { key: 'race',        label: 'Grande Prémio',      startUtc: race, durationMin: 120, type: 'race' },
+    { key: 'fp1',         label: 'FP1',              startUtc: fp1,  durationMin: 60,  type: 'fp1' },
+    { key: 'sprint_qual', label: 'Sprint Qualifying', startUtc: fp2,  durationMin: 60,  type: 'sprint_qual' },
+    { key: 'sprint_race', label: 'Sprint Race',       startUtc: fp3,  durationMin: 45,  type: 'sprint_race' },
+    { key: 'qual',        label: 'Qualifying',        startUtc: qual, durationMin: 60,  type: 'qual' },
+    { key: 'race',        label: 'Grande Prémio',     startUtc: race, durationMin: 120, type: 'race' },
   ]
   return [
     { key: 'fp1',  label: 'FP1',          startUtc: fp1,  durationMin: 60,  type: 'fp1' },
@@ -97,12 +97,12 @@ function ResultsPanel({ sessionKey, startUtc, label }: { sessionKey: string; sta
   }, [sessionKey, startUtc])
 
   const isPractice = ['fp1', 'fp2', 'fp3'].includes(sessionKey)
-  const isRace     = sessionKey === 'race'
 
   return (
     <div className="mx-3 mb-2 rounded-xl overflow-hidden border border-white/10" style={{ background: 'rgba(0,0,0,0.6)' }}>
-      <div className="flex items-center justify-between px-3 py-1.5 border-b border-white/8" style={{ background: 'rgba(255,255,255,0.04)' }}>
-        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+      <div className="flex items-center justify-between px-3 py-1.5 border-b border-white/8"
+        style={{ background: 'rgba(255,255,255,0.04)' }}>
+        <span className="text-[10px] font-black text-yellow-400 uppercase tracking-widest">
           📊 Resultados · {label}
         </span>
         <span className="text-[9px] text-gray-600">OpenF1</span>
@@ -111,17 +111,15 @@ function ResultsPanel({ sessionKey, startUtc, label }: { sessionKey: string; sta
       {loading && (
         <div className="py-4 text-center text-xs text-gray-500 animate-pulse">A carregar...</div>
       )}
-
       {error && (
         <div className="py-3 px-3 text-xs text-yellow-600">{error}</div>
       )}
-
       {results && results.length === 0 && (
         <div className="py-3 px-3 text-xs text-gray-600">Sem dados disponíveis.</div>
       )}
 
       {results && results.length > 0 && (
-        <div>
+        <div className="max-h-80 overflow-y-auto">
           {results.map((r, i) => {
             const colour = r.team_colour ? `#${r.team_colour.replace('#', '')}` : '#888'
             const medal  = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : null
@@ -131,37 +129,32 @@ function ResultsPanel({ sessionKey, startUtc, label }: { sessionKey: string; sta
                 className={`flex items-center gap-2 px-3 py-1.5 ${i < results.length - 1 ? 'border-b border-white/5' : ''}`}
                 style={{ background: i < 3 ? 'rgba(255,255,255,0.03)' : 'transparent' }}
               >
-                {/* Position */}
-                <span className="text-xs font-black w-5 text-center shrink-0" style={{ color: i < 3 ? colour : '#6b7280' }}>
+                {/* Position / Medal */}
+                <span className="text-xs font-black w-5 text-center shrink-0"
+                  style={{ color: i < 3 ? colour : '#6b7280' }}>
                   {medal ?? r.position}
                 </span>
 
                 {/* Team colour bar */}
                 <div className="w-0.5 h-5 rounded-full shrink-0" style={{ background: colour }} />
 
-                {/* Driver */}
+                {/* Driver info */}
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-baseline gap-1.5">
-                    <span className="text-xs font-black text-white">{r.acronym}</span>
-                    <span className="text-[10px] text-gray-500 truncate">{r.driver_name}</span>
-                  </div>
+                  <span className="text-xs font-black text-white mr-1.5">{r.acronym}</span>
+                  <span className="text-[10px] text-gray-400 truncate">{r.driver_name}</span>
                   <div className="text-[9px] text-gray-600 truncate">{r.team}</div>
                 </div>
 
-                {/* Time / Gap */}
-                {isPractice && (
-                  <div className="text-right shrink-0">
-                    <div className="text-xs font-black tabular-nums" style={{ color: i === 0 ? colour : '#9ca3af' }}>
-                      {r.time}
-                    </div>
-                    {i > 0 && <div className="text-[9px] text-gray-600 tabular-nums">{r.gap}</div>}
-                  </div>
-                )}
-                {!isPractice && (
-                  <span className="text-xs font-black shrink-0" style={{ color: i === 0 ? colour : '#6b7280' }}>
-                    P{r.position}
+                {/* Time + Gap on same line */}
+                <div className="flex items-center gap-2 shrink-0">
+                  {isPractice && i > 0 && (
+                    <span className="text-[9px] text-gray-500 tabular-nums">{r.gap}</span>
+                  )}
+                  <span className="text-xs font-black tabular-nums"
+                    style={{ color: i === 0 ? colour : '#9ca3af' }}>
+                    {isPractice ? r.time : `P${r.position}`}
                   </span>
-                )}
+                </div>
               </div>
             )
           })}
@@ -204,7 +197,6 @@ export default function GpWeekendSchedule({
 
   if (sessions.length === 0) return null
 
-  // Group by local day
   const dayMap = new Map<string, SessionDef[]>()
   for (const s of sessions) {
     const key = new Date(s.startUtc!).toDateString()
@@ -227,51 +219,51 @@ export default function GpWeekendSchedule({
         <div className="flex items-center gap-2 px-4 py-2.5 border-b border-white/10"
           style={{ background: 'rgba(255,255,255,0.04)' }}>
           <span className="text-sm">📅</span>
-          <span className="text-xs font-black text-gray-300 uppercase tracking-widest">Programa do Fim de Semana</span>
+          <span className="text-xs font-black text-yellow-400 uppercase tracking-widest">Programa do Fim de Semana</span>
           <span className="ml-auto text-[10px] text-gray-600 font-medium">hora local</span>
         </div>
 
         {/* Day blocks */}
         {Array.from(dayMap.entries()).map(([dayKey, daySessions], dayIdx) => {
           const isLastDay = dayIdx === dayMap.size - 1
-          const hasRace = daySessions.some(s => s.type === 'race')
-          const hasQual = daySessions.some(s => s.type === 'qual' || s.type === 'sprint_qual')
-
-          const dayBorder = hasRace ? 'border-f1red/40'     : hasQual ? 'border-yellow-500/30'  : 'border-blue-500/20'
-          const dayText   = hasRace ? 'text-f1red'          : hasQual ? 'text-yellow-400'        : 'text-blue-300'
-          const dayBg     = hasRace ? 'rgba(225,6,0,0.08)'  : hasQual ? 'rgba(234,179,8,0.06)'  : 'rgba(59,130,246,0.06)'
 
           return (
             <div key={dayKey} className={!isLastDay ? 'border-b border-white/8' : ''}>
-              {/* Day header */}
-              <div className={`flex items-center gap-2 px-4 py-2 border-l-2 ${dayBorder}`} style={{ background: dayBg }}>
-                <span className={`text-[11px] font-black uppercase tracking-widest ${dayText}`}>
+
+              {/* Day header — always yellow */}
+              <div className="flex items-center gap-2 px-4 py-2 border-l-2 border-yellow-400/50"
+                style={{ background: 'rgba(250,204,21,0.06)' }}>
+                <span className="text-[11px] font-black uppercase tracking-widest text-yellow-400">
                   {fmtDayHeader(daySessions[0].startUtc!)}
                 </span>
               </div>
 
               {/* Sessions */}
               {daySessions.map((s, i) => {
-                const status   = getStatus(s.startUtc!, s.durationMin, now)
-                const isQual   = s.type === 'qual' || s.type === 'sprint_qual'
-                const isRaceS  = s.type === 'race'
-                const isDone   = status === 'done'
-                const isOpen   = expanded === s.key
+                const status  = getStatus(s.startUtc!, s.durationMin, now)
+                const isQual  = s.type === 'qual' || s.type === 'sprint_qual'
+                const isRaceS = s.type === 'race'
+                const isFp    = ['fp1', 'fp2', 'fp3'].includes(s.type)
+                const isDone  = status === 'done'
+                const isOpen  = expanded === s.key
 
                 const rowBg = status === 'live' ? 'rgba(225,6,0,0.12)'
                   : isRaceS && !isDone ? 'rgba(225,6,0,0.05)'
-                  : isQual  && !isDone ? 'rgba(234,179,8,0.05)'
+                  : isQual  && !isDone ? 'rgba(234,179,8,0.04)'
                   : 'transparent'
 
-                const nameCls = isDone    ? 'text-gray-600 line-through'
-                  : isRaceS              ? 'text-white font-black text-base'
-                  : isQual               ? 'text-yellow-300 font-bold'
-                  : 'text-gray-300 font-medium'
+                // Label colour: done = strikethrough gray; FP = white bold; qual/race = special
+                const nameCls = isDone
+                  ? 'text-gray-600 line-through'
+                  : isRaceS ? 'text-white font-black text-base'
+                  : isQual  ? 'text-yellow-300 font-bold'
+                  : 'text-white font-bold'   // FP1/FP2/FP3 → white bold
 
-                const timeCls = isDone    ? 'text-gray-700'
-                  : isRaceS              ? 'text-f1red font-black text-base'
-                  : isQual               ? 'text-yellow-400 font-black'
-                  : 'text-gray-400 font-bold'
+                // Time colour: done = gray; all others = yellow-400
+                const timeCls = isDone
+                  ? 'text-gray-700'
+                  : isRaceS ? 'text-f1red font-black text-base'
+                  : 'text-yellow-400 font-black'
 
                 return (
                   <div key={s.key} className={i < daySessions.length - 1 || isOpen ? 'border-b border-white/5' : ''}>
@@ -281,7 +273,7 @@ export default function GpWeekendSchedule({
                       onClick={() => isDone && toggle(s.key)}
                     >
                       <div className="flex items-center gap-3 min-w-0">
-                        <span className={`text-base w-5 text-center shrink-0 ${isDone ? 'grayscale opacity-40' : ''}`}>
+                        <span className={`text-base w-5 text-center shrink-0 ${isDone ? 'opacity-40' : ''}`}>
                           {isDone ? '✓' : SESSION_ICON[s.type]}
                         </span>
                         <span className={`truncate ${nameCls}`}>{s.label}</span>
@@ -294,14 +286,13 @@ export default function GpWeekendSchedule({
                       <div className="flex items-center gap-2 shrink-0">
                         <span className={`tabular-nums ${timeCls}`}>{fmt24(s.startUtc!)}</span>
                         {isDone && (
-                          <span className="text-[10px] text-gray-600 hover:text-gray-400 font-bold">
+                          <span className="text-[10px] text-yellow-600 font-bold">
                             {isOpen ? '▲' : '📊'}
                           </span>
                         )}
                       </div>
                     </div>
 
-                    {/* Results panel */}
                     {isDone && isOpen && (
                       <ResultsPanel sessionKey={s.type} startUtc={s.startUtc!} label={s.label} />
                     )}

@@ -95,7 +95,7 @@ export async function GET(req: NextRequest) {
     const sorted = Array.from(bestLap.entries()).sort((a, b) => a[1] - b[1])
     const fastest = sorted[0]?.[1] ?? 0
 
-    const results = sorted.slice(0, 10).map(([num, t], i) => {
+    const results = sorted.map(([num, t], i) => {
       const d = driverMap.get(num)
       return {
         position:    i + 1,
@@ -133,7 +133,6 @@ export async function GET(req: NextRequest) {
       gap:  '',
     }))
     .sort((a, b) => a.position - b.position)
-    .slice(0, 10)
 
   return NextResponse.json({ session_key: sKey, session_name: ofName, results })
 }
