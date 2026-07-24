@@ -40,6 +40,33 @@ export default async function HomePage() {
         .limit(3)
     : { data: null }
 
+  // Top 3 per liga no último GP pontuado
+  const [{ data: top3Play }, { data: top3Fantasy }, { data: top3Predict }] = lastGp
+    ? await Promise.all([
+        (supabase as any)
+          .from('scores_play')
+          .select('member_email, total, members(nickname, foto_url)')
+          .eq('gp_id', (lastGp as any).id)
+          .gt('total', 0)
+          .order('total', { ascending: false })
+          .limit(3),
+        (supabase as any)
+          .from('scores_fantasy')
+          .select('member_email, pontos_gp, members(nickname, foto_url)')
+          .eq('gp_id', (lastGp as any).id)
+          .gt('pontos_gp', 0)
+          .order('pontos_gp', { ascending: false })
+          .limit(3),
+        (supabase as any)
+          .from('scores_predict')
+          .select('member_email, pontos_gp, members(nickname, foto_url)')
+          .eq('gp_id', (lastGp as any).id)
+          .gt('pontos_gp', 0)
+          .order('pontos_gp', { ascending: false })
+          .limit(3),
+      ])
+    : [{ data: null }, { data: null }, { data: null }]
+
   // User's prediction status for next GP
   const myPrediction = user && nextGp
     ? await (supabase as any)
@@ -252,6 +279,102 @@ export default async function HomePage() {
           </div>
         </div>
       )}
+
+      {/* ── Pódio do Último GP por Liga ── */}
+      {lastGp && (top3Play?.length > 0 || top3Fantasy?.length > 0 || top3Predict?.length > 0) && (() => {
+        const MEDALS = ['🥇', '🥈', '🥉']
+        const leagues = [
+          {
+            key: 'play',
+            label: 'F1 Play',
+            icon: '🎮',
+            labelCls: 'text-blue-300',
+            headerBg: 'bg-blue-500/10 border-blue-500/20',
+            scoreCls: 'text-blue-300',
+            avatarCls: 'bg-blue-900/40 text-blue-300',
+            data: top3Play as any[] | null,
+            pts: (r: any) => r.total,
+            link: '/ranking/play',
+          },
+          {
+            key: 'fantasy',
+            label: 'Fantasy',
+            icon: '💰',
+            labelCls: 'text-green-300',
+            headerBg: 'bg-green-500/10 border-green-500/20',
+            scoreCls: 'text-green-300',
+            avatarCls: 'bg-green-900/40 text-green-300',
+            data: top3Fantasy as any[] | null,
+            pts: (r: any) => r.pontos_gp,
+            link: '/ranking/fantasy',
+          },
+          {
+            key: 'predict',
+            label: 'Predict',
+            icon: '🎯',
+            labelCls: 'text-purple-300',
+            headerBg: 'bg-purple-500/10 border-purple-500/20',
+            scoreCls: 'text-purple-300',
+            avatarCls: 'bg-purple-900/40 text-purple-300',
+            data: top3Predict as any[] | null,
+            pts: (r: any) => r.pontos_gp,
+            link: '/ranking/predict',
+          },
+        ]
+        return (
+          <div className="rounded-2xl bg-gradient-to-b from-gray-900/80 to-f1dark border border-gray-800 p-5">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <p className="text-xs text-gray-500 uppercase tracking-widest font-bold">Destaque</p>
+                <h2 className="text-lg font-black flex items-center gap-2">
+                  <img src={toFlag((lastGp as any).emoji_bandeira)} alt="" className="h-5 rounded" />
+                  Pódio por Liga · {(lastGp as any).nome}
+                </h2>
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              {leagues.map(({ key, label, icon, labelCls, headerBg, scoreCls, avatarCls, data, pts, link }) => (
+                <div key={key}>
+                  <div className={`flex items-center gap-1.5 border rounded-lg px-2.5 py-1.5 mb-2.5 ${headerBg}`}>
+                    <span className="text-sm">{icon}</span>
+                    <span className={`text-xs font-bold ${labelCls}`}>{label}</span>
+                  </div>
+                  <div className="space-y-1.5">
+                    {data?.map((r, i) => {
+                      const member = r.members as { nickname: string; foto_url: string | null } | null
+                      const name = member?.nickname ?? '?'
+                      return (
+                        <Link
+                          key={r.member_email}
+                          href={`/players/${encodeURIComponent(name)}`}
+                          className="flex items-center gap-1.5 bg-black/20 hover:bg-white/5 rounded-lg px-2 py-1.5 transition-colors"
+                        >
+                          <span className="text-xs w-4 text-center shrink-0">{MEDALS[i]}</span>
+                          {member?.foto_url ? (
+                            <img src={member.foto_url} alt={name} className="w-6 h-6 rounded-full object-cover shrink-0" />
+                          ) : (
+                            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${avatarCls}`}>
+                              {name.charAt(0).toUpperCase()}
+                            </div>
+                          )}
+                          <span className="text-xs text-gray-200 font-medium flex-1 truncate min-w-0">{name}</span>
+                          <span className={`text-xs font-black tabular-nums shrink-0 ${scoreCls}`}>{pts(r)}</span>
+                        </Link>
+                      )
+                    })}
+                    {(!data || data.length === 0) && (
+                      <p className="text-xs text-gray-600 text-center py-3">—</p>
+                    )}
+                  </div>
+                  <Link href={link} className="block text-center text-[10px] text-gray-600 hover:text-gray-400 mt-2 font-medium transition-colors">
+                    Ver ranking →
+                  </Link>
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+      })()}
 
       <div>
         <h2 className="text-xl font-bold mb-4">Calendário 2026</h2>
