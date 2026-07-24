@@ -126,7 +126,7 @@ export default async function HomePage() {
                   <img src={toFlag((nextGp as any).emoji_bandeira)} alt={(nextGp as any).nome} className="h-12 rounded-lg shadow" />
                   <span>GP {(nextGp as any).nome}</span>
                 </h1>
-                <p className="text-gray-400 mt-2">
+                <p className="text-white font-bold text-lg mt-2">
                   {(() => {
                     const race = new Date((nextGp as any).data_corrida)
                     const fri = new Date(race)

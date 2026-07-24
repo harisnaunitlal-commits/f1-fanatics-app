@@ -105,7 +105,7 @@ export default function GpWeekendSchedule({
     <div className="mt-5 space-y-3">
 
       {/* Schedule card */}
-      <div className="rounded-2xl overflow-hidden border border-white/10" style={{ background: 'rgba(0,0,0,0.45)' }}>
+      <div className="rounded-2xl overflow-hidden border-2 border-yellow-400" style={{ background: 'rgba(0,0,0,0.55)', boxShadow: '0 0 24px rgba(250,204,21,0.20)' }}>
 
         {/* Header */}
         <div className="flex items-center gap-2 px-4 py-2.5 border-b border-white/10" style={{ background: 'rgba(255,255,255,0.04)' }}>
@@ -196,35 +196,28 @@ export default function GpWeekendSchedule({
 
       {/* Betting reminder countdown */}
       {showReminder && qualCd && (
-        <div className="rounded-xl border border-yellow-600/30 px-4 py-3"
-          style={{ background: 'rgba(161,98,7,0.15)' }}>
-          <div className="flex items-center justify-between gap-3 flex-wrap">
-            <div>
-              <p className="text-xs font-black text-yellow-400 uppercase tracking-widest mb-0.5">
-                ⚠️ Lembra-te de apostar!
-              </p>
-              <p className="text-[11px] text-yellow-600/80">
-                F1 Fantasy &amp; F1 Predict fecham antes do Qualifying
-              </p>
-            </div>
-            <div className="flex items-center gap-1 shrink-0">
-              {(qualCd.d > 0
-                ? [{ v: qualCd.d, l: 'DIA' + (qualCd.d !== 1 ? 'S' : '') }, { v: qualCd.h, l: 'HRS' }, { v: qualCd.m, l: 'MIN' }]
-                : [{ v: qualCd.h, l: 'HRS' }, { v: qualCd.m, l: 'MIN' }, { v: qualCd.s, l: 'SEG' }]
-              ).map((u, i) => (
-                <div key={u.l} className="flex items-center gap-1">
-                  {i > 0 && <span className="text-xs font-black text-yellow-800 pb-2.5">:</span>}
-                  <div className="flex flex-col items-center">
-                    <div className="rounded-md px-2 py-0.5 min-w-[30px] text-center border border-yellow-700/40" style={{ background: 'rgba(0,0,0,0.35)' }}>
-                      <span className="text-sm font-black tabular-nums text-yellow-300">
-                        {String(u.v).padStart(2, '0')}
-                      </span>
-                    </div>
-                    <span className="text-[8px] text-yellow-800 font-bold tracking-widest mt-0.5">{u.l}</span>
+        <div className="rounded-xl border border-yellow-400/40 px-4 py-3 flex items-center justify-between gap-3 flex-wrap"
+          style={{ background: '#000', boxShadow: '0 0 16px rgba(250,204,21,0.15)' }}>
+          <p className="text-sm font-bold text-white">
+            ⚠️ Lembra-te de apostar no F1 Fantasy e F1 Predict
+          </p>
+          <div className="flex items-center gap-1 shrink-0">
+            {(qualCd.d > 0
+              ? [{ v: qualCd.d, l: 'DIA' + (qualCd.d !== 1 ? 'S' : '') }, { v: qualCd.h, l: 'HRS' }, { v: qualCd.m, l: 'MIN' }]
+              : [{ v: qualCd.h, l: 'HRS' }, { v: qualCd.m, l: 'MIN' }, { v: qualCd.s, l: 'SEG' }]
+            ).map((u, i) => (
+              <div key={u.l} className="flex items-center gap-1">
+                {i > 0 && <span className="text-xs font-black text-gray-500 pb-2.5">:</span>}
+                <div className="flex flex-col items-center">
+                  <div className="rounded-md px-2 py-0.5 min-w-[30px] text-center border border-white/20" style={{ background: 'rgba(255,255,255,0.08)' }}>
+                    <span className="text-sm font-black tabular-nums text-white">
+                      {String(u.v).padStart(2, '0')}
+                    </span>
                   </div>
+                  <span className="text-[8px] text-gray-500 font-bold tracking-widest mt-0.5">{u.l}</span>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
         </div>
       )}
