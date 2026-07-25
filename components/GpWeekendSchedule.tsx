@@ -306,7 +306,7 @@ export default function GpWeekendSchedule({
       {/* Betting reminder */}
       {showReminder && qualCd && qualDeadline && (
         <div className="rounded-xl border border-yellow-400/40 px-4 py-3 space-y-2"
-          style={{ background: '#000', boxShadow: '0 0 16px rgba(250,204,21,0.15)' }}>
+          style={{ background: 'linear-gradient(135deg, #0b1628 0%, #12082a 100%)', boxShadow: '0 0 20px rgba(250,204,21,0.18)' }}>
 
           {/* Row 1: logos + label */}
           <div className="flex items-center gap-2 flex-wrap">
