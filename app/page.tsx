@@ -190,6 +190,7 @@ export default async function HomePage() {
               raceStart={(nextGp as any).data_corrida ?? null}
               isSprint={!!(nextGp as any).is_sprint}
               deadlineFantasy={(nextGp as any).deadline_fantasy ?? null}
+              startingGridImage={(nextGp as any).starting_grid_image ?? null}
             />
           </div>
         </div>

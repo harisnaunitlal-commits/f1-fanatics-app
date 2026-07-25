@@ -169,7 +169,7 @@ function ResultsPanel({ sessionKey, startUtc, label }: { sessionKey: string; sta
 // ── Main component ──────────────────────────────────────────────────────────
 export default function GpWeekendSchedule({
   fp1Start, fp2Start, fp3Start, qualifyingStart, raceStart,
-  isSprint = false, deadlineFantasy,
+  isSprint = false, deadlineFantasy, startingGridImage,
 }: {
   fp1Start: string | null
   fp2Start: string | null
@@ -178,6 +178,7 @@ export default function GpWeekendSchedule({
   raceStart: string | null
   isSprint?: boolean
   deadlineFantasy?: string | null
+  startingGridImage?: string | null
 }) {
   const [now, setNow]           = useState(new Date())
   const [expanded, setExpanded] = useState<string | null>(null)
@@ -264,8 +265,13 @@ export default function GpWeekendSchedule({
                   : isRaceS ? 'text-white font-black text-base'
                   : 'text-yellow-400 font-black'
 
+                const isRaceRow = s.type === 'race'
+                const hasGrid  = isRaceRow && !!startingGridImage
+                const gridKey  = 'starting_grid'
+                const gridOpen = expanded === gridKey
+
                 return (
-                  <div key={s.key} className={i < daySessions.length - 1 || isOpen ? 'border-b border-white/5' : ''}>
+                  <div key={s.key} className={i < daySessions.length - 1 || isOpen || gridOpen ? 'border-b border-white/5' : ''}>
                     <div
                       className={`flex items-center justify-between px-4 py-2.5 gap-3 ${isDone ? 'cursor-pointer hover:bg-white/5 transition-colors' : ''}`}
                       style={{ background: rowBg }}
@@ -282,11 +288,22 @@ export default function GpWeekendSchedule({
                           </span>
                         )}
                       </div>
-                      <div className="flex items-center gap-2 shrink-0">
-                        <span className={`tabular-nums ${timeCls}`}>{fmt24(s.startUtc!)}</span>
+                      <div className="flex items-center gap-2 shrink-0" onClick={e => e.stopPropagation()}>
+                        <span className={`tabular-nums ${timeCls}`} onClick={() => isDone && toggle(s.key)}>{fmt24(s.startUtc!)}</span>
                         {isDone && (
-                          <span className={`text-[10px] font-black px-2 py-0.5 rounded whitespace-nowrap ${isOpen ? 'bg-gray-700 text-gray-300' : 'bg-f1red text-white'}`}>
+                          <span
+                            className={`text-[10px] font-black px-2 py-0.5 rounded whitespace-nowrap cursor-pointer ${isOpen ? 'bg-gray-700 text-gray-300' : 'bg-f1red text-white'}`}
+                            onClick={() => toggle(s.key)}
+                          >
                             {isOpen ? '▲ Fechar' : 'Resultados'}
+                          </span>
+                        )}
+                        {hasGrid && (
+                          <span
+                            className={`text-[10px] font-black px-2 py-0.5 rounded whitespace-nowrap cursor-pointer ${gridOpen ? 'bg-gray-700 text-gray-300' : 'bg-yellow-500 text-black'}`}
+                            onClick={() => toggle(gridKey)}
+                          >
+                            {gridOpen ? '▲ Fechar' : '🏁 Grelha'}
                           </span>
                         )}
                       </div>
@@ -294,6 +311,16 @@ export default function GpWeekendSchedule({
 
                     {isDone && isOpen && (
                       <ResultsPanel sessionKey={s.type} startUtc={s.startUtc!} label={s.label} />
+                    )}
+
+                    {hasGrid && gridOpen && (
+                      <div className="mx-3 mb-2 rounded-xl overflow-hidden border border-yellow-400/20">
+                        <div className="flex items-center justify-between px-3 py-1.5 border-b border-white/8"
+                          style={{ background: 'rgba(255,255,255,0.04)' }}>
+                          <span className="text-[10px] font-black text-yellow-400 uppercase tracking-widest">🏁 Grelha de Partida</span>
+                        </div>
+                        <img src={startingGridImage!} alt="Grelha de Partida" className="w-full" />
+                      </div>
                     )}
                   </div>
                 )

@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { isDeadlinePassed } from '@/lib/scoring'
 import CalcRankingButton from './CalcRankingButton'
 import BulkRecalcButton from './BulkRecalcButton'
+import StartingGridButton from './StartingGridButton'
 
 export default async function AdminPage() {
   const supabase = await createClient()
@@ -250,6 +251,11 @@ export default async function AdminPage() {
                   <Link href={`/admin/scores/${gp.id}`} className="btn-primary text-sm py-2 px-3">
                     Calcular pts
                   </Link>
+                  <StartingGridButton
+                    gpId={gp.id}
+                    gpNome={gp.nome}
+                    currentUrl={gp.starting_grid_image ?? null}
+                  />
                   {(gp.status === 'scored' || gp.status === 'closed') && (
                     <CalcRankingButton
                       gpId={gp.id}
