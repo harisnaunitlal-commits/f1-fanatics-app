@@ -138,17 +138,16 @@ function ResultsPanel({ sessionKey, startUtc, label }: { sessionKey: string; sta
                 {/* Team colour bar */}
                 <div className="w-0.5 h-5 rounded-full shrink-0" style={{ background: colour }} />
 
-                {/* Driver info */}
+                {/* Driver info — acronym + team only */}
                 <div className="flex-1 min-w-0">
-                  <span className="text-xs font-black text-white mr-1.5">{r.acronym}</span>
-                  <span className="text-[10px] text-gray-400 truncate">{r.driver_name}</span>
-                  <div className="text-[9px] text-gray-600 truncate">{r.team}</div>
+                  <span className="text-xs font-black text-white">{r.acronym}</span>
+                  <div className="text-[9px] text-gray-500 truncate">{r.team}</div>
                 </div>
 
-                {/* Time + Gap on same line */}
+                {/* Gap (yellow) + Time on same line */}
                 <div className="flex items-center gap-2 shrink-0">
                   {isPractice && i > 0 && (
-                    <span className="text-[9px] text-gray-500 tabular-nums">{r.gap}</span>
+                    <span className="text-[9px] text-yellow-400 tabular-nums">{r.gap}</span>
                   )}
                   <span className="text-xs font-black tabular-nums"
                     style={{ color: i === 0 ? colour : '#9ca3af' }}>
@@ -286,8 +285,8 @@ export default function GpWeekendSchedule({
                       <div className="flex items-center gap-2 shrink-0">
                         <span className={`tabular-nums ${timeCls}`}>{fmt24(s.startUtc!)}</span>
                         {isDone && (
-                          <span className="text-[10px] text-yellow-600 font-bold">
-                            {isOpen ? '▲' : '📊'}
+                          <span className={`text-[10px] font-black px-2 py-0.5 rounded whitespace-nowrap ${isOpen ? 'bg-gray-700 text-gray-300' : 'bg-f1red text-white'}`}>
+                            {isOpen ? '▲ Fechar' : 'Resultados'}
                           </span>
                         )}
                       </div>
