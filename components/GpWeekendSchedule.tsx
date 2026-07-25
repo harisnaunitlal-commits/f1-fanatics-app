@@ -304,32 +304,53 @@ export default function GpWeekendSchedule({
       </div>
 
       {/* Betting reminder */}
-      {showReminder && qualCd && (
-        <div className="rounded-xl border border-yellow-400/40 px-4 py-3 flex items-center justify-between gap-3 flex-wrap"
+      {showReminder && qualCd && qualDeadline && (
+        <div className="rounded-xl border border-yellow-400/40 px-4 py-3 space-y-2"
           style={{ background: '#000', boxShadow: '0 0 16px rgba(250,204,21,0.15)' }}>
+
+          {/* Row 1: logos + label */}
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-sm">⚠️</span>
             <img src="/logos/f1-fantasy.jpg" alt="F1 Fantasy" className="h-6 w-auto rounded" />
             <img src="/logos/f1-predict.jpg" alt="F1 Predict" className="h-6 w-auto rounded" />
-            <span className="text-sm font-bold text-white">— encerra em:</span>
+            <span className="text-sm font-bold text-white">F1 Fantasy &amp; Predict — apostas encerram em:</span>
           </div>
-          <div className="flex items-center gap-1 shrink-0">
-            {(qualCd.d > 0
-              ? [{ v: qualCd.d, l: 'DIA' + (qualCd.d !== 1 ? 'S' : '') }, { v: qualCd.h, l: 'HRS' }, { v: qualCd.m, l: 'MIN' }]
-              : [{ v: qualCd.h, l: 'HRS' }, { v: qualCd.m, l: 'MIN' }, { v: qualCd.s, l: 'SEG' }]
-            ).map((u, i) => (
-              <div key={u.l} className="flex items-center gap-1">
-                {i > 0 && <span className="text-xs font-black text-gray-500 pb-2.5">:</span>}
-                <div className="flex flex-col items-center">
-                  <div className="rounded-md px-2 py-0.5 min-w-[30px] text-center border border-white/20"
-                    style={{ background: 'rgba(255,255,255,0.08)' }}>
-                    <span className="text-sm font-black tabular-nums text-white">{String(u.v).padStart(2, '0')}</span>
-                  </div>
-                  <span className="text-[8px] text-gray-500 font-bold tracking-widest mt-0.5">{u.l}</span>
-                </div>
+
+          {/* Row 2: Day + Time prominently + countdown */}
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            {/* Day + Time highlight */}
+            <div className="flex items-center gap-2">
+              <div className="rounded-lg px-3 py-1.5 border border-yellow-400/50"
+                style={{ background: 'rgba(250,204,21,0.10)' }}>
+                <span className="text-xs text-yellow-400 font-black uppercase tracking-widest block leading-none">
+                  {new Date(qualDeadline).toLocaleDateString('pt', { weekday: 'long' }).replace(/^\w/, c => c.toUpperCase())}
+                </span>
+                <span className="text-2xl font-black text-white tabular-nums leading-tight">
+                  {new Date(qualDeadline).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}
+                </span>
               </div>
-            ))}
+            </div>
+
+            {/* Countdown digits */}
+            <div className="flex items-center gap-1 shrink-0">
+              {(qualCd.d > 0
+                ? [{ v: qualCd.d, l: 'DIA' + (qualCd.d !== 1 ? 'S' : '') }, { v: qualCd.h, l: 'HRS' }, { v: qualCd.m, l: 'MIN' }]
+                : [{ v: qualCd.h, l: 'HRS' }, { v: qualCd.m, l: 'MIN' }, { v: qualCd.s, l: 'SEG' }]
+              ).map((u, i) => (
+                <div key={u.l} className="flex items-center gap-1">
+                  {i > 0 && <span className="text-xs font-black text-gray-500 pb-2.5">:</span>}
+                  <div className="flex flex-col items-center">
+                    <div className="rounded-md px-2 py-0.5 min-w-[30px] text-center border border-white/20"
+                      style={{ background: 'rgba(255,255,255,0.08)' }}>
+                      <span className="text-sm font-black tabular-nums text-white">{String(u.v).padStart(2, '0')}</span>
+                    </div>
+                    <span className="text-[8px] text-gray-500 font-bold tracking-widest mt-0.5">{u.l}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
+
         </div>
       )}
     </div>
