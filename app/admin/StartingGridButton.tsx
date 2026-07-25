@@ -10,51 +10,62 @@ export default function StartingGridButton({
   gpNome: string
   currentUrl: string | null
 }) {
-  const [open, setOpen]         = useState(false)
+  const [open, setOpen]           = useState(false)
   const [uploading, setUploading] = useState(false)
-  const [saved, setSaved]       = useState(false)
-  const [preview, setPreview]   = useState<string | null>(currentUrl)
-  const [error, setError]       = useState<string | null>(null)
-  const inputRef                = useRef<HTMLInputElement>(null)
+  const [saved, setSaved]         = useState(false)
+  const [preview, setPreview]     = useState<string | null>(currentUrl)
+  const [error, setError]         = useState<string | null>(null)
+  const inputRef                  = useRef<HTMLInputElement>(null)
+
+  async function saveUrl(url: string | null) {
+    const res = await fetch('/api/admin/starting-grid', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ gp_id: gpId, image_url: url }),
+    })
+    if (!res.ok) {
+      const d = await res.json()
+      throw new Error(d.error ?? 'Erro ao guardar')
+    }
+  }
 
   async function handleFile(file: File) {
     setError(null)
     setUploading(true)
-    const sb = createClient()
+    try {
+      const sb  = createClient()
+      const ext  = file.name.split('.').pop() ?? 'jpg'
+      const path = `gp-${gpId}/starting-grid.${ext}`
 
-    const ext  = file.name.split('.').pop() ?? 'jpg'
-    const path = `gp-${gpId}/starting-grid.${ext}`
+      const { error: upErr } = await sb.storage
+        .from('starting-grids')
+        .upload(path, file, { upsert: true, contentType: file.type })
 
-    const { error: upErr } = await sb.storage
-      .from('starting-grids')
-      .upload(path, file, { upsert: true, contentType: file.type })
+      if (upErr) throw new Error('Upload falhou: ' + upErr.message)
 
-    if (upErr) {
-      setError('Erro ao fazer upload: ' + upErr.message)
+      const { data: { publicUrl } } = sb.storage
+        .from('starting-grids')
+        .getPublicUrl(path)
+
+      await saveUrl(publicUrl)
+      setPreview(publicUrl)
+      setSaved(true)
+      setTimeout(() => setSaved(false), 2500)
+    } catch (e: any) {
+      setError(e.message)
+    } finally {
       setUploading(false)
-      return
     }
-
-    const { data: { publicUrl } } = sb.storage
-      .from('starting-grids')
-      .getPublicUrl(path)
-
-    await (sb as any).from('gp_calendar')
-      .update({ starting_grid_image: publicUrl })
-      .eq('id', gpId)
-
-    setPreview(publicUrl)
-    setUploading(false)
-    setSaved(true)
-    setTimeout(() => setSaved(false), 2000)
   }
 
   async function remove() {
-    const sb = createClient()
-    await (sb as any).from('gp_calendar')
-      .update({ starting_grid_image: null })
-      .eq('id', gpId)
-    setPreview(null)
+    setError(null)
+    try {
+      await saveUrl(null)
+      setPreview(null)
+    } catch (e: any) {
+      setError(e.message)
+    }
   }
 
   return (
@@ -74,7 +85,6 @@ export default function StartingGridButton({
         <div className="mt-2 p-3 rounded-xl border border-yellow-400/30 bg-gray-900 space-y-3 w-72">
           <p className="text-xs text-gray-400 font-bold">Grelha de Partida · {gpNome}</p>
 
-          {/* Preview */}
           {preview && (
             <div className="relative">
               <img src={preview} alt="Grelha" className="w-full rounded-lg border border-white/10" />
@@ -87,7 +97,6 @@ export default function StartingGridButton({
             </div>
           )}
 
-          {/* Upload button */}
           <input
             ref={inputRef}
             type="file"
