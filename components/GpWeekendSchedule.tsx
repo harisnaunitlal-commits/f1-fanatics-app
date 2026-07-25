@@ -307,9 +307,12 @@ export default function GpWeekendSchedule({
       {showReminder && qualCd && (
         <div className="rounded-xl border border-yellow-400/40 px-4 py-3 flex items-center justify-between gap-3 flex-wrap"
           style={{ background: '#000', boxShadow: '0 0 16px rgba(250,204,21,0.15)' }}>
-          <p className="text-sm font-bold text-white">
-            ⚠️ F1 Fantasy &amp; F1 Predict — encerra em:
-          </p>
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-sm">⚠️</span>
+            <img src="/logos/f1-fantasy.jpg" alt="F1 Fantasy" className="h-6 w-auto rounded" />
+            <img src="/logos/f1-predict.jpg" alt="F1 Predict" className="h-6 w-auto rounded" />
+            <span className="text-sm font-bold text-white">— encerra em:</span>
+          </div>
           <div className="flex items-center gap-1 shrink-0">
             {(qualCd.d > 0
               ? [{ v: qualCd.d, l: 'DIA' + (qualCd.d !== 1 ? 'S' : '') }, { v: qualCd.h, l: 'HRS' }, { v: qualCd.m, l: 'MIN' }]
