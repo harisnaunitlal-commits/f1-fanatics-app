@@ -34,6 +34,7 @@ export default async function GpQuestionsPage({ params }: { params: { gpId: stri
       gpId={gpId}
       gpNome={gp.nome}
       gpEmoji={gp.emoji_bandeira}
+      gpRound={gp.round}
       initialConfig={config}
     />
   )

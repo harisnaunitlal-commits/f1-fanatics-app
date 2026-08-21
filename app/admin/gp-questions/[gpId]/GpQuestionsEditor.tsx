@@ -5,26 +5,35 @@ import { PILOTOS_2026 } from '@/lib/supabase/types'
 import type { GpQuestions, DuelConfig, DriverOption } from '@/lib/gp-questions'
 import { TEAM_COLORS } from '@/lib/gp-questions'
 
-const ALL_DRIVERS = (PILOTOS_2026 as readonly { codigo: string; nome: string; equipa: string }[])
+function buildDriverList(round: number) {
+  return (PILOTOS_2026 as readonly { codigo: string; nome: string; equipa: string }[]).map(p =>
+    p.codigo === 'HAD' && round === 12 ? { codigo: 'LAW', nome: 'Liam Lawson', equipa: 'Red Bull Racing' } :
+    p.codigo === 'LAW' && round === 12 ? { codigo: 'TSU', nome: 'Yuki Tsunoda', equipa: 'Racing Bulls' } :
+    { ...p }
+  )
+}
 
 function driverColor(equipa: string): string {
   return TEAM_COLORS[equipa] ?? '#888888'
 }
 
+type DriverEntry = { codigo: string; nome: string; equipa: string }
+
 function DuelEditor({
-  label, value, onChange,
+  label, value, onChange, drivers,
 }: {
   label: string
   value: DuelConfig
   onChange: (d: DuelConfig) => void
+  drivers: DriverEntry[]
 }) {
   function setA(codigo: string) {
-    const d = ALL_DRIVERS.find(p => p.codigo === codigo)
+    const d = drivers.find(p => p.codigo === codigo)
     if (!d) return
     onChange({ ...value, driverA: d.codigo, nameA: d.nome, teamA: d.equipa, colorA: driverColor(d.equipa) })
   }
   function setB(codigo: string) {
-    const d = ALL_DRIVERS.find(p => p.codigo === codigo)
+    const d = drivers.find(p => p.codigo === codigo)
     if (!d) return
     onChange({ ...value, driverB: d.codigo, nameB: d.nome, teamB: d.equipa, colorB: driverColor(d.equipa) })
   }
@@ -33,15 +42,10 @@ function DuelEditor({
     <div className="card space-y-3">
       <h3 className="font-bold text-f1red">{label}</h3>
       <div className="grid grid-cols-[1fr_24px_1fr] items-center gap-3">
-        {/* Driver A */}
         <div className="space-y-1">
           <label className="text-xs text-gray-500 font-bold uppercase">Piloto A</label>
-          <select
-            className="select"
-            value={value.driverA}
-            onChange={e => setA(e.target.value)}
-          >
-            {ALL_DRIVERS.map(p => (
+          <select className="select" value={value.driverA} onChange={e => setA(e.target.value)}>
+            {drivers.map(p => (
               <option key={p.codigo} value={p.codigo}>{p.nome} ({p.equipa})</option>
             ))}
           </select>
@@ -50,18 +54,11 @@ function DuelEditor({
             <span className="text-xs text-gray-400">{value.nameA}</span>
           </div>
         </div>
-
         <div className="text-center font-black text-gray-500 text-sm">VS</div>
-
-        {/* Driver B */}
         <div className="space-y-1">
           <label className="text-xs text-gray-500 font-bold uppercase">Piloto B</label>
-          <select
-            className="select"
-            value={value.driverB}
-            onChange={e => setB(e.target.value)}
-          >
-            {ALL_DRIVERS.map(p => (
+          <select className="select" value={value.driverB} onChange={e => setB(e.target.value)}>
+            {drivers.map(p => (
               <option key={p.codigo} value={p.codigo}>{p.nome} ({p.equipa})</option>
             ))}
           </select>
@@ -76,17 +73,18 @@ function DuelEditor({
 }
 
 function SpecialEditor({
-  code, label, options,
+  code, label, options, drivers,
   onLabelChange, onOptionsChange,
 }: {
   code: string
   label: string
   options: DriverOption[]
+  drivers: DriverEntry[]
   onLabelChange: (v: string) => void
   onOptionsChange: (opts: DriverOption[]) => void
 }) {
   function setDriver(i: number, codigo: string) {
-    const d = ALL_DRIVERS.find(p => p.codigo === codigo)
+    const d = drivers.find(p => p.codigo === codigo)
     if (!d) return
     const updated = [...options]
     updated[i] = { codigo: d.codigo, nome: d.nome, equipa: d.equipa, color: driverColor(d.equipa) }
@@ -98,11 +96,7 @@ function SpecialEditor({
       <h3 className="font-bold text-f1red">{code} · Pergunta Especial / Outsider</h3>
       <div>
         <label className="text-xs text-gray-500 font-bold uppercase mb-1 block">Texto da Pergunta</label>
-        <input
-          className="input text-sm"
-          value={label}
-          onChange={e => onLabelChange(e.target.value)}
-        />
+        <input className="input text-sm" value={label} onChange={e => onLabelChange(e.target.value)} />
       </div>
       <div>
         <label className="text-xs text-gray-500 font-bold uppercase mb-2 block">5 Pilotos à escolha</label>
@@ -115,7 +109,7 @@ function SpecialEditor({
                 value={opt.codigo}
                 onChange={e => setDriver(i, e.target.value)}
               >
-                {ALL_DRIVERS.map(p => (
+                {drivers.map(p => (
                   <option key={p.codigo} value={p.codigo}>{p.nome} ({p.equipa})</option>
                 ))}
               </select>
@@ -129,13 +123,15 @@ function SpecialEditor({
 }
 
 export default function GpQuestionsEditor({
-  gpId, gpNome, gpEmoji, initialConfig,
+  gpId, gpNome, gpEmoji, gpRound, initialConfig,
 }: {
   gpId: number
   gpNome: string
   gpEmoji: string
+  gpRound: number
   initialConfig: GpQuestions
 }) {
+  const ALL_DRIVERS = buildDriverList(gpRound)
   const [config, setConfig] = useState<GpQuestions>(initialConfig)
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
@@ -195,36 +191,20 @@ export default function GpQuestionsEditor({
       </div>
 
       {/* Duelos */}
-      <DuelEditor
-        label="P5 · Duelo 1"
-        value={config.p5}
-        onChange={p5 => setConfig(c => ({ ...c, p5 }))}
-      />
-      <DuelEditor
-        label="P6 · Duelo 2"
-        value={config.p6}
-        onChange={p6 => setConfig(c => ({ ...c, p6 }))}
-      />
-      <DuelEditor
-        label="P7 · Duelo 3"
-        value={config.p7}
-        onChange={p7 => setConfig(c => ({ ...c, p7 }))}
-      />
+      <DuelEditor label="P5 · Duelo 1" value={config.p5} onChange={p5 => setConfig(c => ({ ...c, p5 }))} drivers={ALL_DRIVERS} />
+      <DuelEditor label="P6 · Duelo 2" value={config.p6} onChange={p6 => setConfig(c => ({ ...c, p6 }))} drivers={ALL_DRIVERS} />
+      <DuelEditor label="P7 · Duelo 3" value={config.p7} onChange={p7 => setConfig(c => ({ ...c, p7 }))} drivers={ALL_DRIVERS} />
 
       {/* P13 Especial */}
       <SpecialEditor
-        code="P13"
-        label={config.p13Label}
-        options={config.p13Options}
+        code="P13" label={config.p13Label} options={config.p13Options} drivers={ALL_DRIVERS}
         onLabelChange={v => setConfig(c => ({ ...c, p13Label: v }))}
         onOptionsChange={opts => setConfig(c => ({ ...c, p13Options: opts }))}
       />
 
       {/* P15 Outsider */}
       <SpecialEditor
-        code="P15"
-        label={config.p15Label}
-        options={config.p15Options}
+        code="P15" label={config.p15Label} options={config.p15Options} drivers={ALL_DRIVERS}
         onLabelChange={v => setConfig(c => ({ ...c, p15Label: v }))}
         onOptionsChange={opts => setConfig(c => ({ ...c, p15Options: opts }))}
       />
