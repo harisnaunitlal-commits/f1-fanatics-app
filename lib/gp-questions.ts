@@ -847,9 +847,10 @@ export function getGpQuestions(round: number): GpQuestions | undefined {
 type PilotoEntry = { codigo: string; nome: string; equipa: string }
 
 const GP_PILOT_SUBS: Record<number, (p: PilotoEntry) => PilotoEntry> = {
-  13: p => {
-    if (p.codigo === 'HAD') return { codigo: 'LAW', nome: 'Liam Lawson',   equipa: 'Red Bull Racing' }
-    if (p.codigo === 'LAW') return { codigo: 'TSU', nome: 'Yuki Tsunoda',  equipa: 'Racing Bulls' }
+  12: p => {
+    // Zandvoort: Lawson substitui Hadjar na Red Bull; Tsunoda volta à Racing Bulls
+    if (p.codigo === 'HAD') return { codigo: 'LAW', nome: 'Liam Lawson',  equipa: 'Red Bull Racing' }
+    if (p.codigo === 'LAW') return { codigo: 'TSU', nome: 'Yuki Tsunoda', equipa: 'Racing Bulls' }
     return p
   },
 }
