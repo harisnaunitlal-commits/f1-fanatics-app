@@ -1,6 +1,4 @@
-﻿import { PILOTOS_2026 } from '@/lib/supabase/types'
-
-export interface DuelConfig {
+﻿export interface DuelConfig {
   driverA: string
   nameA: string
   teamA: string
@@ -843,20 +841,3 @@ export function getGpQuestions(round: number): GpQuestions | undefined {
   return GP_QUESTIONS[round]
 }
 
-// Per-GP pilot substitutions for standard dropdowns (P1, P9, P10, P11, P15)
-type PilotoEntry = { codigo: string; nome: string; equipa: string }
-
-const GP_PILOT_SUBS: Record<number, (p: PilotoEntry) => PilotoEntry> = {
-  12: p => {
-    // Zandvoort: Lawson substitui Hadjar na Red Bull; Tsunoda volta à Racing Bulls
-    if (p.codigo === 'HAD') return { codigo: 'LAW', nome: 'Liam Lawson',  equipa: 'Red Bull Racing' }
-    if (p.codigo === 'LAW') return { codigo: 'TSU', nome: 'Yuki Tsunoda', equipa: 'Racing Bulls' }
-    return p
-  },
-}
-
-export function getGpPilotos(round: number): PilotoEntry[] {
-  const sub = GP_PILOT_SUBS[round]
-  if (!sub) return PILOTOS_2026.map(p => ({ ...p }))
-  return PILOTOS_2026.map(p => sub({ ...p }))
-}

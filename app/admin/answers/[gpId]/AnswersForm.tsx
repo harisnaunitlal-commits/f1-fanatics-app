@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { PILOTOS_2026, EQUIPAS_2026 } from '@/lib/supabase/types'
 import {
   P8_MARGENS, P3_OPTIONS, P12_OPTIONS, P14_BINARY, P14_MULTI,
-  getGpQuestions, getDriverPhoto, getGpPilotos,
+  getGpQuestions, getDriverPhoto,
   type DuelConfig, type DriverOption, type GpQuestions, type P14Option,
 } from '@/lib/gp-questions'
 import type { GpCalendar, GpAnswers } from '@/lib/supabase/types'
@@ -174,7 +174,11 @@ export default function AnswersForm({
 
   const config = configProp ?? getGpQuestions(gp.round)
   const gpNameFull = config ? `Grande Prémio ${config.gpPrep} ${config.gpName}` : gp.nome
-  const gpPilotos = getGpPilotos(gp.round)
+  const gpPilotos = PILOTOS_2026.map(p =>
+    p.codigo === 'HAD' && gp.round === 12 ? { codigo: 'LAW', nome: 'Liam Lawson', equipa: 'Red Bull Racing' as const } :
+    p.codigo === 'LAW' && gp.round === 12 ? { codigo: 'TSU', nome: 'Yuki Tsunoda', equipa: 'Racing Bulls' as const } :
+    { ...p }
+  )
 
   const [form, setForm] = useState<FormData>({
     p1_primeiro:     existing?.p1_primeiro     ?? null,
