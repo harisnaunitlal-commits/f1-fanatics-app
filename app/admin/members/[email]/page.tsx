@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import MemberNickEdit from './MemberNickEdit'
 
 export default async function AdminMemberDetailPage({
   params,
@@ -113,6 +114,13 @@ export default async function AdminMemberDetailPage({
           ) : null)}
         </div>
       </div>
+
+      {/* Nick edit */}
+      <MemberNickEdit
+        email={m.email}
+        initialFantasyNick={m.fantasy_nick ?? null}
+        initialPredictNick={m.predict_nick ?? null}
+      />
 
       {/* Play history */}
       {playScores && playScores.length > 0 && (

@@ -87,6 +87,7 @@ const PHOTO_FILES: Record<string, string> = {
   HAM: 'Hamilton',
   HUL: 'Hulkenberg',
   LAW: 'Lawson',
+  TSU: 'Tsunoda',
   LEC: 'Lecrec',
   LIN: 'Lindblad',
   NOR: 'Norris',
@@ -520,7 +521,7 @@ const GP_QUESTIONS: Record<number, GpQuestions> = {
     ],
   },
 
-  13: { // R13 — Países Baixos
+  13: { // R13 — Países Baixos (Zandvoort) — sub: Lawson por Hadjar (RBR), Tsunoda por Lawson (RB)
     gpName: 'Países Baixos', gpPrep: 'dos',
     p2Label: "Qual será a TERCEIRA equipa, que vai pontuar mais no Grande Prémio dos Países Baixos?",
     p3Options: P3_OPTIONS,
@@ -538,11 +539,11 @@ const GP_QUESTIONS: Record<number, GpQuestions> = {
     },
     p13Label: "Qual piloto terminará a corrida na posição mais alta?",
     p13Options: [
-      { codigo: 'HAD', nome: 'Isack Hadjar',    equipa: 'Red Bull Racing',color: TEAM_COLORS['Red Bull Racing'] },
-      { codigo: 'HUL', nome: 'Nico Hülkenberg', equipa: 'Audi',           color: TEAM_COLORS['Audi'] },
-      { codigo: 'GAS', nome: 'Pierre Gasly',    equipa: 'Alpine',         color: TEAM_COLORS['Alpine'] },
-      { codigo: 'LAW', nome: 'Liam Lawson',     equipa: 'Racing Bulls',   color: TEAM_COLORS['Racing Bulls'] },
-      { codigo: 'OCO', nome: 'Esteban Ocon',    equipa: 'Haas',           color: TEAM_COLORS['Haas'] },
+      { codigo: 'LAW', nome: 'Liam Lawson',     equipa: 'Red Bull Racing', color: TEAM_COLORS['Red Bull Racing'] },
+      { codigo: 'HUL', nome: 'Nico Hülkenberg', equipa: 'Audi',            color: TEAM_COLORS['Audi'] },
+      { codigo: 'GAS', nome: 'Pierre Gasly',    equipa: 'Alpine',          color: TEAM_COLORS['Alpine'] },
+      { codigo: 'TSU', nome: 'Yuki Tsunoda',    equipa: 'Racing Bulls',    color: TEAM_COLORS['Racing Bulls'] },
+      { codigo: 'OCO', nome: 'Esteban Ocon',    equipa: 'Haas',            color: TEAM_COLORS['Haas'] },
     ],
     p14Options: P14_MULTI,
     p15Label: "Qual piloto terminará a corrida na posição mais alta?",
