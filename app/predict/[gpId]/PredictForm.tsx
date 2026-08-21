@@ -309,20 +309,43 @@ export default function PredictForm({
             Qual é a sua previsão para os 6 primeiros classificados do {gpNameFull}?
           </p>
           {(() => {
-            const all6 = [
-              form.p1_primeiro, form.p1_segundo, form.p1_terceiro,
-              form.p4_quarto,   form.p4_quinto,  form.p4_sexto,
+            const positions: { label: string; pos: number; value: string | null; field: keyof FormData }[] = [
+              { label: '1º',  pos: 1, value: form.p1_primeiro, field: 'p1_primeiro' },
+              { label: '2º',  pos: 2, value: form.p1_segundo,  field: 'p1_segundo'  },
+              { label: '3º',  pos: 3, value: form.p1_terceiro, field: 'p1_terceiro' },
+              { label: '4º',  pos: 4, value: form.p4_quarto,   field: 'p4_quarto'   },
+              { label: '5º',  pos: 5, value: form.p4_quinto,   field: 'p4_quinto'   },
+              { label: '6º',  pos: 6, value: form.p4_sexto,    field: 'p4_sexto'    },
             ]
-            const exclude = (own: string | null) =>
-              all6.filter(v => v && v !== own) as string[]
+            const all6 = positions.map(p => p.value)
+            const exclude = (own: string | null) => all6.filter(v => v && v !== own) as string[]
             return (
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                <PilotoSelect label="1º lugar" value={form.p1_primeiro ?? ''} onChange={v => setField('p1_primeiro', v)} excludeCodes={exclude(form.p1_primeiro)} />
-                <PilotoSelect label="2º lugar" value={form.p1_segundo  ?? ''} onChange={v => setField('p1_segundo',  v)} excludeCodes={exclude(form.p1_segundo)} />
-                <PilotoSelect label="3º lugar" value={form.p1_terceiro ?? ''} onChange={v => setField('p1_terceiro', v)} excludeCodes={exclude(form.p1_terceiro)} />
-                <PilotoSelect label="4º lugar" value={form.p4_quarto   ?? ''} onChange={v => setField('p4_quarto',   v)} excludeCodes={exclude(form.p4_quarto)} />
-                <PilotoSelect label="5º lugar" value={form.p4_quinto   ?? ''} onChange={v => setField('p4_quinto',   v)} excludeCodes={exclude(form.p4_quinto)} />
-                <PilotoSelect label="6º lugar" value={form.p4_sexto    ?? ''} onChange={v => setField('p4_sexto',    v)} excludeCodes={exclude(form.p4_sexto)} />
+              <div className="grid grid-cols-2 gap-2">
+                {positions.map(({ label, pos, value, field }) => (
+                  <div key={field} className={`rounded-xl border p-3 ${pos === 1 ? 'border-yellow-400/60 bg-yellow-400/5' : 'border-white/10 bg-white/[0.03]'}`}>
+                    <div className="flex items-center gap-1.5 mb-2">
+                      <span className={`text-base font-black tabular-nums ${pos === 1 ? 'text-yellow-400' : pos <= 3 ? 'text-white' : 'text-gray-400'}`}>
+                        {label}
+                      </span>
+                      {pos === 1 && <span className="text-[9px] font-black text-yellow-400/50 uppercase tracking-widest">Pole</span>}
+                    </div>
+                    <select
+                      className="select text-sm"
+                      value={value ?? ''}
+                      onChange={e => setField(field, e.target.value)}
+                    >
+                      <option value="">Selecciona...</option>
+                      {PILOTOS_2026.map(p => {
+                        const blocked = exclude(value).includes(p.codigo)
+                        return (
+                          <option key={p.codigo} value={p.codigo} disabled={blocked}>
+                            {blocked ? `— ${p.nome}` : `${p.nome} (${p.equipa})`}
+                          </option>
+                        )
+                      })}
+                    </select>
+                  </div>
+                ))}
               </div>
             )
           })()}
