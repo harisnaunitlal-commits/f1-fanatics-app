@@ -347,7 +347,7 @@ export default function PredictForm({
                       className="w-full rounded-lg border border-white/10 object-cover hover:border-white/30 transition-colors"
                       style={{ aspectRatio: '9/16' }}
                     />
-                    <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest text-center">
+                    <span className="text-[9px] font-black text-red-500 uppercase tracking-widest text-center">
                       {img.label}
                     </span>
                   </a>

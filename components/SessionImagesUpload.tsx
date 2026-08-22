@@ -76,7 +76,7 @@ export default function SessionImagesUpload({
           const isLoading = uploading === label
           return (
             <div key={label} className="flex flex-col gap-1">
-              <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest text-center leading-tight">
+              <span className="text-[9px] font-black text-red-500 uppercase tracking-widest text-center leading-tight">
                 {label}
               </span>
 
