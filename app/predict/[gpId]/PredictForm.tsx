@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { PILOTOS_2026, EQUIPAS_2026 } from '@/lib/supabase/types'
 import {
   P8_MARGENS, P3_OPTIONS, P12_OPTIONS, P14_BINARY, P14_MULTI,
-  getGpQuestions, getDriverPhoto,
+  getGpQuestions, getDriverPhoto, TEAM_COLORS,
   type DuelConfig, type DriverOption, type GpQuestions, type P14Option,
 } from '@/lib/gp-questions'
 import type { GpCalendar, Prediction } from '@/lib/supabase/types'
@@ -141,6 +141,80 @@ function PilotoSelect({ label, value, onChange, includeNone = false, excludeCode
           )
         })}
       </select>
+    </div>
+  )
+}
+
+function P1GridSlot({
+  label, pos, value, onChange, pilotos, disabledCodes, excludeCodes,
+}: {
+  label: string; pos: number; value: string | null
+  onChange: (v: string) => void
+  pilotos: { codigo: string; nome: string; equipa: string }[]
+  disabledCodes: string[]; excludeCodes: string[]
+}) {
+  const [imgErr, setImgErr] = useState(false)
+  const isPole = pos === 1
+  const drv = value ? pilotos.find(p => p.codigo === value) ?? null : null
+  const color = drv ? (TEAM_COLORS[drv.equipa] ?? '#888') : '#888'
+  const photoUrl = drv ? getDriverPhoto(drv.codigo) : null
+  const lastName = drv ? drv.nome.split(' ').slice(-1)[0] : null
+  return (
+    <div
+      className="rounded-lg p-2 border"
+      style={{
+        borderColor: isPole ? 'rgba(250,204,21,0.5)' : drv ? color + '55' : 'rgba(255,255,255,0.1)',
+        background: isPole ? 'rgba(250,204,21,0.05)' : drv ? color + '11' : 'rgba(0,0,0,0.5)',
+        minHeight: 72,
+      }}
+    >
+      <div className="flex items-center gap-1 mb-1.5">
+        <span className={`text-sm font-black tabular-nums leading-none ${isPole ? 'text-yellow-400' : pos <= 3 ? 'text-white' : 'text-gray-400'}`}>
+          {label}
+        </span>
+        {isPole && <span className="text-[8px] font-black text-yellow-400/60 uppercase tracking-widest">Pole</span>}
+      </div>
+      {drv ? (
+        <div className="flex items-center gap-1.5">
+          <div
+            className="w-9 h-9 rounded-md overflow-hidden flex-shrink-0 border"
+            style={{ borderColor: color + '55', background: color + '18' }}
+          >
+            {photoUrl && !imgErr ? (
+              <img src={photoUrl} alt={drv.nome} className="w-full h-full object-cover object-top" onError={() => setImgErr(true)} />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                <span className="text-[10px] font-black" style={{ color }}>{drv.codigo}</span>
+              </div>
+            )}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-[11px] font-bold text-white truncate leading-tight">{lastName}</div>
+            <div className="text-[9px] truncate" style={{ color: color + 'bb' }}>{drv.equipa}</div>
+            <button type="button" onClick={() => onChange('')} className="text-[9px] text-gray-600 hover:text-gray-400 transition-colors mt-0.5">
+              alterar ↩
+            </button>
+          </div>
+        </div>
+      ) : (
+        <select
+          className="w-full bg-transparent border-none outline-none cursor-pointer p-0"
+          style={{ fontSize: 11, color: '#666', fontStyle: 'italic', fontFamily: 'inherit' }}
+          value=""
+          onChange={e => { if (e.target.value) onChange(e.target.value) }}
+        >
+          <option value="">Selecionar piloto...</option>
+          {pilotos.map(p => {
+            const blocked = excludeCodes.includes(p.codigo)
+            const inactive = disabledCodes.includes(p.codigo)
+            return (
+              <option key={p.codigo} value={p.codigo} disabled={blocked || inactive} style={{ background: '#111', color: '#fff' }}>
+                {blocked ? `— ${p.nome}` : inactive ? `✕ ${p.nome} (não participa)` : p.nome}
+              </option>
+            )
+          })}
+        </select>
+      )}
     </div>
   )
 }
@@ -357,51 +431,57 @@ export default function PredictForm({
           )
         })()}
 
-        {/* P1 — Top 6 Classificados (formerly P1 + P4) */}
+        {/* P1 — Top 6 Classificados */}
         <div className="card">
           <QHeader code="P1" title="Top 6 Classificados" pts="6 pts" />
           <p className="text-sm text-yellow-400/80 mb-4">
             Qual é a sua previsão para os 6 primeiros classificados do {gpNameFull}?
           </p>
           {(() => {
-            const positions: { label: string; pos: number; value: string | null; field: keyof FormData }[] = [
-              { label: '1º',  pos: 1, value: form.p1_primeiro, field: 'p1_primeiro' },
-              { label: '2º',  pos: 2, value: form.p1_segundo,  field: 'p1_segundo'  },
-              { label: '3º',  pos: 3, value: form.p1_terceiro, field: 'p1_terceiro' },
-              { label: '4º',  pos: 4, value: form.p4_quarto,   field: 'p4_quarto'   },
-              { label: '5º',  pos: 5, value: form.p4_quinto,   field: 'p4_quinto'   },
-              { label: '6º',  pos: 6, value: form.p4_sexto,    field: 'p4_sexto'    },
+            const slots: { label: string; pos: number; value: string | null; field: keyof FormData }[] = [
+              { label: '1º', pos: 1, value: form.p1_primeiro, field: 'p1_primeiro' },
+              { label: '2º', pos: 2, value: form.p1_segundo,  field: 'p1_segundo'  },
+              { label: '3º', pos: 3, value: form.p1_terceiro, field: 'p1_terceiro' },
+              { label: '4º', pos: 4, value: form.p4_quarto,   field: 'p4_quarto'   },
+              { label: '5º', pos: 5, value: form.p4_quinto,   field: 'p4_quinto'   },
+              { label: '6º', pos: 6, value: form.p4_sexto,    field: 'p4_sexto'    },
             ]
-            const all6 = positions.map(p => p.value)
-            const exclude = (own: string | null) => all6.filter(v => v && v !== own) as string[]
+            const all6 = slots.map(s => s.value)
+            const usedExcept = (own: string | null) => all6.filter(v => v && v !== own) as string[]
+            const pairs: [number, number][] = [[0, 1], [2, 3], [4, 5]]
             return (
-              <div className="grid grid-cols-2 gap-2">
-                {positions.map(({ label, pos, value, field }) => (
-                  <div key={field} className={`rounded-xl border p-3 ${pos === 1 ? 'border-yellow-400/60 bg-yellow-400/5' : 'border-white/10 bg-white/[0.03]'}`}>
-                    <div className="flex items-center gap-1.5 mb-2">
-                      <span className={`text-base font-black tabular-nums ${pos === 1 ? 'text-yellow-400' : pos <= 3 ? 'text-white' : 'text-gray-400'}`}>
-                        {label}
-                      </span>
-                      {pos === 1 && <span className="text-[9px] font-black text-yellow-400/50 uppercase tracking-widest">Pole</span>}
-                    </div>
-                    <select
-                      className="select text-sm"
-                      value={value ?? ''}
-                      onChange={e => setField(field, e.target.value)}
-                    >
-                      <option value="">Selecciona...</option>
-                      {gpPilotos.map(p => {
-                        const blocked = exclude(value).includes(p.codigo)
-                        const inactive = gpDisabled.includes(p.codigo)
-                        return (
-                          <option key={p.codigo} value={p.codigo} disabled={blocked || inactive}>
-                            {blocked ? `— ${p.nome}` : inactive ? `✕ ${p.nome} (não participa)` : `${p.nome} (${p.equipa})`}
-                          </option>
-                        )
-                      })}
-                    </select>
-                  </div>
-                ))}
+              <div
+                className="rounded-xl overflow-hidden border border-white/10"
+                style={{
+                  background: '#0a0a0a',
+                  backgroundImage: 'repeating-conic-gradient(#1a1a1a 0% 25%, transparent 0% 50%)',
+                  backgroundSize: '20px 20px',
+                }}
+              >
+                <div style={{ height: 5, background: 'repeating-linear-gradient(90deg, #fff 0 10px, #000 10px 20px)' }} />
+                <div className="p-3 flex flex-col gap-1.5">
+                  {pairs.map(([li, ri]) => {
+                    const L = slots[li], R = slots[ri]
+                    return (
+                      <div key={li} className="grid grid-cols-2 gap-2 items-start">
+                        <P1GridSlot
+                          label={L.label} pos={L.pos} value={L.value}
+                          onChange={v => setField(L.field, v)}
+                          pilotos={gpPilotos} disabledCodes={gpDisabled}
+                          excludeCodes={usedExcept(L.value)}
+                        />
+                        <div style={{ marginTop: 14 }}>
+                          <P1GridSlot
+                            label={R.label} pos={R.pos} value={R.value}
+                            onChange={v => setField(R.field, v)}
+                            pilotos={gpPilotos} disabledCodes={gpDisabled}
+                            excludeCodes={usedExcept(R.value)}
+                          />
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
               </div>
             )
           })()}
