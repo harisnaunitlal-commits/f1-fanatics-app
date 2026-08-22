@@ -119,9 +119,9 @@ function DriverGrid({
 
 // ─── Helper components OUTSIDE main component (prevents remount on re-render) ──
 
-function PilotoSelect({ label, value, onChange, includeNone = false, excludeCodes = [], pilotos }: {
+function PilotoSelect({ label, value, onChange, includeNone = false, excludeCodes = [], disabledCodes = [], pilotos }: {
   label: string; value: string; onChange: (v: string) => void
-  includeNone?: boolean; excludeCodes?: string[]
+  includeNone?: boolean; excludeCodes?: string[]; disabledCodes?: string[]
   pilotos?: { codigo: string; nome: string; equipa: string }[]
 }) {
   const list = pilotos ?? PILOTOS_2026
@@ -133,9 +133,10 @@ function PilotoSelect({ label, value, onChange, includeNone = false, excludeCode
         {includeNone && <option value="NONE">Nenhum Piloto</option>}
         {list.map(p => {
           const blocked = excludeCodes.includes(p.codigo)
+          const inactive = disabledCodes.includes(p.codigo)
           return (
-            <option key={p.codigo} value={p.codigo} disabled={blocked}>
-              {blocked ? `— ${p.nome}` : `${p.nome} (${p.equipa})`}
+            <option key={p.codigo} value={p.codigo} disabled={blocked || inactive}>
+              {blocked ? `— ${p.nome}` : inactive ? `✕ ${p.nome} (não participa)` : `${p.nome} (${p.equipa})`}
             </option>
           )
         })}
@@ -175,11 +176,16 @@ export default function PredictForm({
   const [countdown, setCountdown] = useState(getDeadlineCountdown(gp.deadline_play))
 
   const config = configProp ?? getGpQuestions(gp.round)
-  const gpPilotos = PILOTOS_2026.map(p =>
-    p.codigo === 'HAD' && gp.round === 12 ? { codigo: 'LAW', nome: 'Liam Lawson', equipa: 'Red Bull Racing' as const } :
-    p.codigo === 'LAW' && gp.round === 12 ? { codigo: 'TSU', nome: 'Yuki Tsunoda', equipa: 'Racing Bulls' as const } :
-    { ...p }
-  )
+  const gpDisabled = gp.round === 12 ? ['HAD'] : []
+  const gpPilotos = gp.round === 12
+    ? [
+        { codigo: 'LAW', nome: 'Liam Lawson', equipa: 'Red Bull Racing' as const },
+        ...PILOTOS_2026.map(p =>
+          p.codigo === 'LAW' ? { codigo: 'TSU', nome: 'Yuki Tsunoda', equipa: 'Racing Bulls' as const } :
+          { ...p }
+        ),
+      ]
+    : [...PILOTOS_2026]
   const gpNameFull = config ? `Grande Prémio ${config.gpPrep} ${config.gpName}` : gp.nome
 
   const blank: FormData = {
@@ -344,9 +350,10 @@ export default function PredictForm({
                       <option value="">Selecciona...</option>
                       {gpPilotos.map(p => {
                         const blocked = exclude(value).includes(p.codigo)
+                        const inactive = gpDisabled.includes(p.codigo)
                         return (
-                          <option key={p.codigo} value={p.codigo} disabled={blocked}>
-                            {blocked ? `— ${p.nome}` : `${p.nome} (${p.equipa})`}
+                          <option key={p.codigo} value={p.codigo} disabled={blocked || inactive}>
+                            {blocked ? `— ${p.nome}` : inactive ? `✕ ${p.nome} (não participa)` : `${p.nome} (${p.equipa})`}
                           </option>
                         )
                       })}
@@ -445,7 +452,7 @@ export default function PredictForm({
           <p className="text-sm text-yellow-400/80 mb-4">
             Quem será o primeiro piloto, First to Retire no {gpNameFull}?
           </p>
-          <PilotoSelect label="Piloto" value={form.p9_retire ?? ''} onChange={v => setField('p9_retire', v)} includeNone pilotos={gpPilotos} />
+          <PilotoSelect label="Piloto" value={form.p9_retire ?? ''} onChange={v => setField('p9_retire', v)} includeNone pilotos={gpPilotos} disabledCodes={gpDisabled} />
         </div>
 
         {/* P10 — Driver of the Day */}
@@ -454,7 +461,7 @@ export default function PredictForm({
           <p className="text-sm text-yellow-400/80 mb-4">
             Quem será o piloto eleito 'Driver of the Day' no {gpNameFull}?
           </p>
-          <PilotoSelect label="Piloto" value={form.p10_dotd ?? ''} onChange={v => setField('p10_dotd', v)} pilotos={gpPilotos} />
+          <PilotoSelect label="Piloto" value={form.p10_dotd ?? ''} onChange={v => setField('p10_dotd', v)} pilotos={gpPilotos} disabledCodes={gpDisabled} />
         </div>
 
         {/* P11 — Volta mais rápida */}
@@ -463,7 +470,7 @@ export default function PredictForm({
           <p className="text-sm text-yellow-400/80 mb-4">
             Qual piloto fará a volta mais rápida no {gpNameFull}?
           </p>
-          <PilotoSelect label="Piloto" value={form.p11_fl ?? ''} onChange={v => setField('p11_fl', v)} pilotos={gpPilotos} />
+          <PilotoSelect label="Piloto" value={form.p11_fl ?? ''} onChange={v => setField('p11_fl', v)} pilotos={gpPilotos} disabledCodes={gpDisabled} />
         </div>
 
         {/* P12 — Nº classificados */}

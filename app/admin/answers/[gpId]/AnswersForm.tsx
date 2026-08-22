@@ -46,13 +46,14 @@ function AnuladaCheck({ field, anuladas, onToggle }: {
   )
 }
 
-function PilotoSel({ label, value, onChange, includeNone = false, disabled = false, excludeCodes = [], pilotos }: {
+function PilotoSel({ label, value, onChange, includeNone = false, disabled = false, excludeCodes = [], disabledCodes = [], pilotos }: {
   label: string
   value: string
   onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void
   includeNone?: boolean
   disabled?: boolean
   excludeCodes?: string[]
+  disabledCodes?: string[]
   pilotos?: { codigo: string; nome: string; equipa: string }[]
 }) {
   const list = pilotos ?? PILOTOS_2026
@@ -68,9 +69,10 @@ function PilotoSel({ label, value, onChange, includeNone = false, disabled = fal
         {includeNone && <option value="NONE">Nenhum Piloto</option>}
         {list.map(p => {
           const blocked = excludeCodes.includes(p.codigo)
+          const inactive = disabledCodes.includes(p.codigo)
           return (
-            <option key={p.codigo} value={p.codigo} disabled={blocked}>
-              {blocked ? `— ${p.nome}` : `${p.nome} (${p.equipa})`}
+            <option key={p.codigo} value={p.codigo} disabled={blocked || inactive}>
+              {blocked ? `— ${p.nome}` : inactive ? `✕ ${p.nome} (não participa)` : `${p.nome} (${p.equipa})`}
             </option>
           )
         })}
@@ -174,11 +176,16 @@ export default function AnswersForm({
 
   const config = configProp ?? getGpQuestions(gp.round)
   const gpNameFull = config ? `Grande Prémio ${config.gpPrep} ${config.gpName}` : gp.nome
-  const gpPilotos = PILOTOS_2026.map(p =>
-    p.codigo === 'HAD' && gp.round === 12 ? { codigo: 'LAW', nome: 'Liam Lawson', equipa: 'Red Bull Racing' as const } :
-    p.codigo === 'LAW' && gp.round === 12 ? { codigo: 'TSU', nome: 'Yuki Tsunoda', equipa: 'Racing Bulls' as const } :
-    { ...p }
-  )
+  const gpDisabled = gp.round === 12 ? ['HAD'] : []
+  const gpPilotos = gp.round === 12
+    ? [
+        { codigo: 'LAW', nome: 'Liam Lawson', equipa: 'Red Bull Racing' as const },
+        ...PILOTOS_2026.map(p =>
+          p.codigo === 'LAW' ? { codigo: 'TSU', nome: 'Yuki Tsunoda', equipa: 'Racing Bulls' as const } :
+          { ...p }
+        ),
+      ]
+    : [...PILOTOS_2026]
 
   const [form, setForm] = useState<FormData>({
     p1_primeiro:     existing?.p1_primeiro     ?? null,
@@ -288,12 +295,12 @@ export default function AnswersForm({
             const dis = anuladas.includes('p1_primeiro')
             return (
               <div className="grid grid-cols-3 gap-3">
-                <PilotoSel label="1º lugar" value={form.p1_primeiro ?? ''} onChange={setField('p1_primeiro')} disabled={dis} excludeCodes={excl(form.p1_primeiro)} pilotos={gpPilotos} />
-                <PilotoSel label="2º lugar" value={form.p1_segundo  ?? ''} onChange={setField('p1_segundo')}  disabled={dis} excludeCodes={excl(form.p1_segundo)}  pilotos={gpPilotos} />
-                <PilotoSel label="3º lugar" value={form.p1_terceiro ?? ''} onChange={setField('p1_terceiro')} disabled={dis} excludeCodes={excl(form.p1_terceiro)} pilotos={gpPilotos} />
-                <PilotoSel label="4º lugar" value={form.p4_quarto   ?? ''} onChange={setField('p4_quarto')}   disabled={dis} excludeCodes={excl(form.p4_quarto)}   pilotos={gpPilotos} />
-                <PilotoSel label="5º lugar" value={form.p4_quinto   ?? ''} onChange={setField('p4_quinto')}   disabled={dis} excludeCodes={excl(form.p4_quinto)}   pilotos={gpPilotos} />
-                <PilotoSel label="6º lugar" value={form.p4_sexto    ?? ''} onChange={setField('p4_sexto')}    disabled={dis} excludeCodes={excl(form.p4_sexto)}    pilotos={gpPilotos} />
+                <PilotoSel label="1º lugar" value={form.p1_primeiro ?? ''} onChange={setField('p1_primeiro')} disabled={dis} excludeCodes={excl(form.p1_primeiro)} pilotos={gpPilotos} disabledCodes={gpDisabled} />
+                <PilotoSel label="2º lugar" value={form.p1_segundo  ?? ''} onChange={setField('p1_segundo')}  disabled={dis} excludeCodes={excl(form.p1_segundo)}  pilotos={gpPilotos} disabledCodes={gpDisabled} />
+                <PilotoSel label="3º lugar" value={form.p1_terceiro ?? ''} onChange={setField('p1_terceiro')} disabled={dis} excludeCodes={excl(form.p1_terceiro)} pilotos={gpPilotos} disabledCodes={gpDisabled} />
+                <PilotoSel label="4º lugar" value={form.p4_quarto   ?? ''} onChange={setField('p4_quarto')}   disabled={dis} excludeCodes={excl(form.p4_quarto)}   pilotos={gpPilotos} disabledCodes={gpDisabled} />
+                <PilotoSel label="5º lugar" value={form.p4_quinto   ?? ''} onChange={setField('p4_quinto')}   disabled={dis} excludeCodes={excl(form.p4_quinto)}   pilotos={gpPilotos} disabledCodes={gpDisabled} />
+                <PilotoSel label="6º lugar" value={form.p4_sexto    ?? ''} onChange={setField('p4_sexto')}    disabled={dis} excludeCodes={excl(form.p4_sexto)}    pilotos={gpPilotos} disabledCodes={gpDisabled} />
               </div>
             )
           })()}
@@ -393,7 +400,7 @@ export default function AnswersForm({
           <p className="text-xs text-yellow-400/80 mb-3">
             Quem foi o primeiro piloto, First to Retire no {gpNameFull}?
           </p>
-          <PilotoSel label="Piloto" value={form.p9_retire ?? ''} onChange={setField('p9_retire')} includeNone disabled={anuladas.includes('p9_retire')} pilotos={gpPilotos} />
+          <PilotoSel label="Piloto" value={form.p9_retire ?? ''} onChange={setField('p9_retire')} includeNone disabled={anuladas.includes('p9_retire')} pilotos={gpPilotos} disabledCodes={gpDisabled} />
           <AnuladaCheck field="p9_retire" anuladas={anuladas} onToggle={toggleAnulada} />
         </div>
 
@@ -403,7 +410,7 @@ export default function AnswersForm({
           <p className="text-xs text-yellow-400/80 mb-3">
             Quem foi o piloto eleito 'Driver of the Day' no {gpNameFull}?
           </p>
-          <PilotoSel label="Piloto" value={form.p10_dotd ?? ''} onChange={setField('p10_dotd')} disabled={anuladas.includes('p10_dotd')} pilotos={gpPilotos} />
+          <PilotoSel label="Piloto" value={form.p10_dotd ?? ''} onChange={setField('p10_dotd')} disabled={anuladas.includes('p10_dotd')} pilotos={gpPilotos} disabledCodes={gpDisabled} />
           <AnuladaCheck field="p10_dotd" anuladas={anuladas} onToggle={toggleAnulada} />
         </div>
 
@@ -413,7 +420,7 @@ export default function AnswersForm({
           <p className="text-xs text-yellow-400/80 mb-3">
             Qual piloto fez a volta mais rápida no {gpNameFull}?
           </p>
-          <PilotoSel label="Piloto" value={form.p11_fl ?? ''} onChange={setField('p11_fl')} disabled={anuladas.includes('p11_fl')} pilotos={gpPilotos} />
+          <PilotoSel label="Piloto" value={form.p11_fl ?? ''} onChange={setField('p11_fl')} disabled={anuladas.includes('p11_fl')} pilotos={gpPilotos} disabledCodes={gpDisabled} />
           <AnuladaCheck field="p11_fl" anuladas={anuladas} onToggle={toggleAnulada} />
         </div>
 
