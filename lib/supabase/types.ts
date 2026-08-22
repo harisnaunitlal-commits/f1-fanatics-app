@@ -96,9 +96,11 @@ export interface GpCalendar {
   deadline_play: string
   deadline_predict: string | null
   status: 'upcoming' | 'active' | 'closed' | 'scored'
+  is_sprint?: boolean | null
   resultado_oficial_url?: string | null
   resultado_oficial_urls?: string[] | null
   historia_circuito?: string | null
+  session_images?: { label: string; url: string }[] | null
 }
 
 export interface Prediction {

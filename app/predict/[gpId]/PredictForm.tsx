@@ -315,6 +315,48 @@ export default function PredictForm({
       <form onSubmit={handleSubmit} className={`space-y-5 ${readOnly ? 'pointer-events-none opacity-80' : ''}`}>
         {error && <p className="text-red-400 bg-red-900/20 rounded-lg px-4 py-3">{error}</p>}
 
+        {/* Galeria de resultados das sessões */}
+        {(() => {
+          const imgs = gp.session_images ?? []
+          if (imgs.length === 0) return null
+          const sessionOrder = gp.is_sprint
+            ? ['FP1', 'Sprint Qualifying', 'Sprint Race', 'Qualifying', 'Starting Grid']
+            : ['FP1', 'FP2', 'FP3', 'Qualifying', 'Starting Grid']
+          const sorted = [...imgs].sort((a, b) => {
+            const ai = sessionOrder.indexOf(a.label)
+            const bi = sessionOrder.indexOf(b.label)
+            return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi)
+          })
+          return (
+            <div className="card">
+              <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-3">
+                📊 Resultados do fim de semana
+              </h3>
+              <div className="flex gap-3 overflow-x-auto pb-1 snap-x snap-mandatory -mx-1 px-1">
+                {sorted.map(img => (
+                  <a
+                    key={img.label}
+                    href={img.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-none w-28 snap-start flex flex-col items-center gap-1"
+                  >
+                    <img
+                      src={img.url}
+                      alt={img.label}
+                      className="w-full rounded-lg border border-white/10 object-cover hover:border-white/30 transition-colors"
+                      style={{ aspectRatio: '9/16' }}
+                    />
+                    <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest text-center">
+                      {img.label}
+                    </span>
+                  </a>
+                ))}
+              </div>
+            </div>
+          )
+        })()}
+
         {/* P1 — Top 6 Classificados (formerly P1 + P4) */}
         <div className="card">
           <QHeader code="P1" title="Top 6 Classificados" pts="6 pts" />

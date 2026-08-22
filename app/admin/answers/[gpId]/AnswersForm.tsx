@@ -11,6 +11,7 @@ import {
 } from '@/lib/gp-questions'
 import type { GpCalendar, GpAnswers } from '@/lib/supabase/types'
 import OfficialDocUpload from '@/components/OfficialDocUpload'
+import SessionImagesUpload from '@/components/SessionImagesUpload'
 import P14Badge from '@/components/P14Badge'
 import CircuitHistoryEdit from '@/components/CircuitHistoryEdit'
 
@@ -273,6 +274,11 @@ export default function AnswersForm({
       </div>
 
       <div className="mb-5 space-y-3">
+        <SessionImagesUpload
+          gpId={gp.id}
+          isSprint={!!gp.is_sprint}
+          currentImages={gp.session_images ?? []}
+        />
         <OfficialDocUpload gpId={gp.id} currentUrls={gp.resultado_oficial_urls ?? []} />
         <CircuitHistoryEdit gpId={gp.id} currentText={gp.historia_circuito ?? null} />
       </div>
