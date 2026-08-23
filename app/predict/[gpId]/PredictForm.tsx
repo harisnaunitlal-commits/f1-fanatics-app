@@ -161,13 +161,32 @@ function P1GridSlot({
   const lastName = drv ? drv.nome.split(' ').slice(-1)[0] : null
   return (
     <div
-      className="rounded-lg p-2 border"
+      className="rounded-lg p-2 border relative"
       style={{
         borderColor: isPole ? 'rgba(250,204,21,0.5)' : drv ? color + '55' : 'rgba(255,255,255,0.1)',
         background: isPole ? 'rgba(250,204,21,0.05)' : drv ? color + '11' : 'rgba(0,0,0,0.5)',
         minHeight: 72,
       }}
     >
+      {/* Invisible select overlay — clicking anywhere on the box opens the picker */}
+      <select
+        value={value ?? ''}
+        onChange={e => onChange(e.target.value)}
+        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer', zIndex: 10 }}
+      >
+        <option value="">Selecionar piloto...</option>
+        {pilotos.map(p => {
+          const blocked = excludeCodes.includes(p.codigo)
+          const inactive = disabledCodes.includes(p.codigo)
+          return (
+            <option key={p.codigo} value={p.codigo} disabled={blocked || inactive} style={{ background: '#111', color: '#fff' }}>
+              {blocked ? `— ${p.nome}` : inactive ? `✕ ${p.nome} (não participa)` : p.nome}
+            </option>
+          )
+        })}
+      </select>
+
+      {/* Visual display (below the overlay) */}
       <div className="flex items-center gap-1 mb-1.5">
         <span className={`text-sm font-black tabular-nums leading-none ${isPole ? 'text-yellow-400' : pos <= 3 ? 'text-white' : 'text-gray-400'}`}>
           {label}
@@ -191,29 +210,11 @@ function P1GridSlot({
           <div className="flex-1 min-w-0">
             <div className="text-[11px] font-bold text-white truncate leading-tight">{lastName}</div>
             <div className="text-[9px] truncate" style={{ color: color + 'bb' }}>{drv.equipa}</div>
-            <button type="button" onClick={() => onChange('')} className="text-[9px] text-gray-600 hover:text-gray-400 transition-colors mt-0.5">
-              alterar ↩
-            </button>
+            <div className="text-[9px] text-gray-600 mt-0.5">toca para alterar ↓</div>
           </div>
         </div>
       ) : (
-        <select
-          className="w-full bg-transparent border-none outline-none cursor-pointer p-0"
-          style={{ fontSize: 11, color: '#666', fontStyle: 'italic', fontFamily: 'inherit' }}
-          value=""
-          onChange={e => { if (e.target.value) onChange(e.target.value) }}
-        >
-          <option value="">Selecionar piloto...</option>
-          {pilotos.map(p => {
-            const blocked = excludeCodes.includes(p.codigo)
-            const inactive = disabledCodes.includes(p.codigo)
-            return (
-              <option key={p.codigo} value={p.codigo} disabled={blocked || inactive} style={{ background: '#111', color: '#fff' }}>
-                {blocked ? `— ${p.nome}` : inactive ? `✕ ${p.nome} (não participa)` : p.nome}
-              </option>
-            )
-          })}
-        </select>
+        <div className="text-[11px] text-gray-500 italic">Toca para selecionar...</div>
       )}
     </div>
   )
