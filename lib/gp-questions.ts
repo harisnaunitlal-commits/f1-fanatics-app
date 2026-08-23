@@ -556,7 +556,7 @@ const GP_QUESTIONS: Record<number, GpQuestions> = {
       { codigo: 'TSU', nome: 'Yuki Tsunoda',    equipa: 'Racing Bulls',    color: TEAM_COLORS['Racing Bulls'] },
       { codigo: 'OCO', nome: 'Esteban Ocon',    equipa: 'Haas',            color: TEAM_COLORS['Haas'] },
     ],
-    p14Options: P14_MULTI,
+    p14Options: P14_MULTI_RF,
     p15Label: "Qual piloto terminará a corrida na posição mais alta?",
     p15Options: [
       { codigo: 'ALO', nome: 'Fernando Alonso',  equipa: 'Aston Martin', color: TEAM_COLORS['Aston Martin'] },
