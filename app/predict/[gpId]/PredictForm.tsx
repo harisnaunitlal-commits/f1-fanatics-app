@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { PILOTOS_2026, EQUIPAS_2026 } from '@/lib/supabase/types'
 import {
-  P8_MARGENS, P3_OPTIONS, P12_OPTIONS, P14_BINARY, P14_MULTI,
+  P8_MARGENS, P3_OPTIONS, P12_OPTIONS, P14_BINARY, P14_MULTI, P14_MULTI_RF,
   getGpQuestions, getDriverPhoto, TEAM_COLORS,
   type DuelConfig, type DriverOption, type GpQuestions, type P14Option,
 } from '@/lib/gp-questions'
@@ -625,7 +625,7 @@ export default function PredictForm({
 
         {/* P14 — Safety Car */}
         {(() => {
-          const p14Opts = gp.round >= 10 ? P14_MULTI : P14_BINARY
+          const p14Opts = config?.p14Options ?? (gp.round >= 10 ? P14_MULTI : P14_BINARY)
           const isMulti = p14Opts.length > 2
           return (
             <div className="card">
