@@ -629,7 +629,7 @@ export default function PredictForm({
           const isMulti = p14Opts.length > 2
           return (
             <div className="card">
-              <QHeader code="P14" title="Safety Car / VSC" pts="1 pt" />
+              <QHeader code="P14" title="Safety Car / VSC / RF" pts="3 pts" />
               <p className="text-sm text-yellow-400/80 mb-4">
                 {isMulti
                   ? `Vamos ter um Safety Car ou Virtual Safety Car no ${gpNameFull}?`

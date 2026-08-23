@@ -33,6 +33,17 @@ export const P14_MULTI: readonly P14Option[] = [
   { value: 'NENHUM', label: 'Nenhuma delas' },
 ]
 
+export const P14_MULTI_RF: readonly P14Option[] = [
+  { value: 'SC',      label: 'Safety Car' },
+  { value: 'VSC',     label: 'Virtual Safety Car' },
+  { value: 'RF',      label: 'Red Flag' },
+  { value: 'AMBOS',   label: 'SC + VSC' },
+  { value: 'RF_SC',   label: 'Red Flag + SC' },
+  { value: 'RF_VSC',  label: 'Red Flag + VSC' },
+  { value: 'RF_AMBOS',label: 'Red Flag + SC + VSC' },
+  { value: 'NENHUM',  label: 'Pista Limpa' },
+]
+
 export interface GpQuestions {
   gpName: string          // e.g. "Austrália", "China", "Japão"
   gpPrep: string          // preposition: "da" | "do" | "de"
@@ -580,7 +591,7 @@ const GP_QUESTIONS: Record<number, GpQuestions> = {
       { codigo: 'BOR', nome: 'Gabriel Bortoleto',equipa: 'Audi',         color: TEAM_COLORS['Audi'] },
       { codigo: 'GAS', nome: 'Pierre Gasly',   equipa: 'Alpine',         color: TEAM_COLORS['Alpine'] },
     ],
-    p14Options: P14_MULTI,
+    p14Options: P14_MULTI_RF,
     p15Label: "Qual piloto terminará a corrida na posição mais alta?",
     p15Options: [
       { codigo: 'ALO', nome: 'Fernando Alonso',  equipa: 'Aston Martin', color: TEAM_COLORS['Aston Martin'] },
@@ -615,7 +626,7 @@ const GP_QUESTIONS: Record<number, GpQuestions> = {
       { codigo: 'OCO', nome: 'Esteban Ocon',    equipa: 'Haas',           color: TEAM_COLORS['Haas'] },
       { codigo: 'HUL', nome: 'Nico Hülkenberg', equipa: 'Audi',           color: TEAM_COLORS['Audi'] },
     ],
-    p14Options: P14_MULTI,
+    p14Options: P14_MULTI_RF,
     p15Label: "Qual piloto terminará a corrida na posição mais alta?",
     p15Options: [
       { codigo: 'ALO', nome: 'Fernando Alonso',  equipa: 'Aston Martin', color: TEAM_COLORS['Aston Martin'] },
@@ -650,7 +661,7 @@ const GP_QUESTIONS: Record<number, GpQuestions> = {
       { codigo: 'HUL', nome: 'Nico Hülkenberg', equipa: 'Audi',           color: TEAM_COLORS['Audi'] },
       { codigo: 'OCO', nome: 'Esteban Ocon',    equipa: 'Haas',           color: TEAM_COLORS['Haas'] },
     ],
-    p14Options: P14_MULTI,
+    p14Options: P14_MULTI_RF,
     p15Label: "Qual piloto terminará a corrida na posição mais alta?",
     p15Options: [
       { codigo: 'ALO', nome: 'Fernando Alonso',  equipa: 'Aston Martin', color: TEAM_COLORS['Aston Martin'] },
@@ -685,7 +696,7 @@ const GP_QUESTIONS: Record<number, GpQuestions> = {
       { codigo: 'HUL', nome: 'Nico Hülkenberg', equipa: 'Audi',           color: TEAM_COLORS['Audi'] },
       { codigo: 'OCO', nome: 'Esteban Ocon',    equipa: 'Haas',           color: TEAM_COLORS['Haas'] },
     ],
-    p14Options: P14_MULTI,
+    p14Options: P14_MULTI_RF,
     p15Label: "Qual piloto terminará a corrida na posição mais alta?",
     p15Options: [
       { codigo: 'ALO', nome: 'Fernando Alonso',  equipa: 'Aston Martin', color: TEAM_COLORS['Aston Martin'] },
@@ -720,7 +731,7 @@ const GP_QUESTIONS: Record<number, GpQuestions> = {
       { codigo: 'HUL', nome: 'Nico Hülkenberg', equipa: 'Audi',           color: TEAM_COLORS['Audi'] },
       { codigo: 'LAW', nome: 'Liam Lawson',     equipa: 'Racing Bulls',   color: TEAM_COLORS['Racing Bulls'] },
     ],
-    p14Options: P14_MULTI,
+    p14Options: P14_MULTI_RF,
     p15Label: "Qual piloto terminará a corrida na posição mais alta?",
     p15Options: [
       { codigo: 'ALO', nome: 'Fernando Alonso',  equipa: 'Aston Martin', color: TEAM_COLORS['Aston Martin'] },
@@ -755,7 +766,7 @@ const GP_QUESTIONS: Record<number, GpQuestions> = {
       { codigo: 'HUL', nome: 'Nico Hülkenberg', equipa: 'Audi',           color: TEAM_COLORS['Audi'] },
       { codigo: 'OCO', nome: 'Esteban Ocon',    equipa: 'Haas',           color: TEAM_COLORS['Haas'] },
     ],
-    p14Options: P14_MULTI,
+    p14Options: P14_MULTI_RF,
     p15Label: "Qual piloto terminará a corrida na posição mais alta?",
     p15Options: [
       { codigo: 'ALO', nome: 'Fernando Alonso',  equipa: 'Aston Martin', color: TEAM_COLORS['Aston Martin'] },
@@ -790,7 +801,7 @@ const GP_QUESTIONS: Record<number, GpQuestions> = {
       { codigo: 'LAW', nome: 'Liam Lawson',    equipa: 'Racing Bulls',   color: TEAM_COLORS['Racing Bulls'] },
       { codigo: 'HUL', nome: 'Nico Hülkenberg',equipa: 'Audi',           color: TEAM_COLORS['Audi'] },
     ],
-    p14Options: P14_MULTI,
+    p14Options: P14_MULTI_RF,
     p15Label: "Qual piloto terminará a corrida na posição mais alta?",
     p15Options: [
       { codigo: 'ALO', nome: 'Fernando Alonso',  equipa: 'Aston Martin', color: TEAM_COLORS['Aston Martin'] },
@@ -825,7 +836,7 @@ const GP_QUESTIONS: Record<number, GpQuestions> = {
       { codigo: 'LAW', nome: 'Liam Lawson',     equipa: 'Racing Bulls',   color: TEAM_COLORS['Racing Bulls'] },
       { codigo: 'OCO', nome: 'Esteban Ocon',    equipa: 'Haas',           color: TEAM_COLORS['Haas'] },
     ],
-    p14Options: P14_MULTI,
+    p14Options: P14_MULTI_RF,
     p15Label: "Qual piloto terminará a corrida na posição mais alta?",
     p15Options: [
       { codigo: 'ALO', nome: 'Fernando Alonso',  equipa: 'Aston Martin', color: TEAM_COLORS['Aston Martin'] },

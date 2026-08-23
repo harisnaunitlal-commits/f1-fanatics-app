@@ -66,6 +66,89 @@ export default function P14Badge({ value }: { value: string }) {
     )
   }
 
+  // Red Flag badge helper
+  function RfBlock({ flex = 1, small = false }: { flex?: number; small?: boolean }) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', flex, background: '#b30000', position: 'relative', overflow: 'hidden' }}>
+        {/* diagonal stripe pattern */}
+        <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0.18 }} viewBox="0 0 40 54" preserveAspectRatio="none">
+          {[-10,-4,2,8,14,20,26,32,38,44].map(x => (
+            <line key={x} x1={x} y1="0" x2={x+20} y2="54" stroke="white" strokeWidth="5" />
+          ))}
+        </svg>
+        <div style={{ padding: small ? '0 3px' : '0 5px', zIndex: 1 }}>
+          <svg width={small ? 22 : 30} height={small ? 22 : 30} viewBox="0 0 30 30" style={{ flexShrink: 0 }}>
+            <rect width="30" height="30" rx="3" fill="rgba(255,255,255,0.12)" />
+            <text x="15" y="20" textAnchor="middle" fontFamily="Arial Black, sans-serif" fontSize="11" fontWeight="900" fill="white">🚩</text>
+          </svg>
+        </div>
+        <span style={{ color: 'white', fontFamily: 'Arial Black, sans-serif', fontWeight: 900, fontSize: small ? 8 : 10, lineHeight: 1.15, letterSpacing: '0.3px', zIndex: 1, paddingRight: small ? 3 : 5 }}>
+          {small ? 'RF' : 'RED\nFLAG'}
+        </span>
+      </div>
+    )
+  }
+
+  if (value === 'RF') {
+    return (
+      <div style={{ ...base }}>
+        <RfBlock />
+      </div>
+    )
+  }
+
+  if (value === 'RF_SC') {
+    return (
+      <div style={{ ...base, alignItems: 'stretch' }}>
+        <RfBlock flex={1} small />
+        <div style={{ width: '2px', background: 'rgba(0,0,0,0.3)', flexShrink: 0 }} />
+        <div style={{ display: 'flex', alignItems: 'center', flex: 1, background: '#cc0000' }}>
+          <div style={{ padding: '0 3px' }}>
+            <FiaGlobe size={26} outerFill="rgba(255,255,255,0.18)" color="#cc0000" />
+          </div>
+          <span style={{ color: 'white', fontFamily: 'Arial Black, sans-serif', fontWeight: 900, fontSize: 9, lineHeight: 1.1, paddingRight: 4 }}>SC</span>
+        </div>
+      </div>
+    )
+  }
+
+  if (value === 'RF_VSC') {
+    return (
+      <div style={{ ...base, alignItems: 'stretch' }}>
+        <RfBlock flex={1} small />
+        <div style={{ width: '2px', background: 'rgba(0,0,0,0.3)', flexShrink: 0 }} />
+        <div style={{ display: 'flex', alignItems: 'center', flex: 1, background: '#F5C400' }}>
+          <div style={{ padding: '0 3px' }}>
+            <FiaGlobe size={26} outerFill="#0a1464" color="#0a1464" />
+          </div>
+          <span style={{ color: '#0a1464', fontFamily: 'Arial Black, sans-serif', fontWeight: 900, fontSize: 8, lineHeight: 1.15, paddingRight: 4 }}>VSC</span>
+        </div>
+      </div>
+    )
+  }
+
+  if (value === 'RF_AMBOS') {
+    return (
+      <div style={{ ...base, alignItems: 'stretch' }}>
+        <RfBlock flex={1} small />
+        <div style={{ width: '2px', background: 'rgba(0,0,0,0.3)', flexShrink: 0 }} />
+        <div style={{ display: 'flex', alignItems: 'center', flex: 1, background: '#cc0000' }}>
+          <div style={{ padding: '0 2px' }}>
+            <FiaGlobe size={20} outerFill="rgba(255,255,255,0.18)" color="#cc0000" />
+          </div>
+          <span style={{ color: 'white', fontFamily: 'Arial Black, sans-serif', fontWeight: 900, fontSize: 8, lineHeight: 1.1 }}>SC</span>
+        </div>
+        <div style={{ width: '1px', background: 'rgba(0,0,0,0.3)', flexShrink: 0 }} />
+        <div style={{ display: 'flex', alignItems: 'center', flex: 1, background: '#F5C400' }}>
+          <div style={{ padding: '0 2px' }}>
+            <FiaGlobe size={20} outerFill="#0a1464" color="#0a1464" />
+          </div>
+          <span style={{ color: '#0a1464', fontFamily: 'Arial Black, sans-serif', fontWeight: 900, fontSize: 7, lineHeight: 1.15 }}>VSC</span>
+        </div>
+      </div>
+    )
+  }
+
   if (value === 'NENHUM') {
     return (
       <div style={{ ...base, justifyContent: 'center', gap: '10px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>

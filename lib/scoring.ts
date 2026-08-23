@@ -41,7 +41,10 @@ export function calculatePlayScore(
   const pts_p11 = score('p11_fl',       prediction.p11_fl)
   const pts_p12 = score('p12_classif',  prediction.p12_classif)
   const pts_p13 = score('p13_especial', prediction.p13_especial)
-  const pts_p14 = score('p14_sc',       prediction.p14_sc)
+  // P14 Safety Car / VSC / RF = 3 pts
+  const pts_p14 = anuladas.includes('p14_sc') ? 0
+    : (answers.p14_sc && prediction.p14_sc &&
+       answers.p14_sc.toUpperCase() === prediction.p14_sc.toUpperCase()) ? 3 : 0
   const pts_p15 = score('p15_outsider', prediction.p15_outsider)
 
   const total = pts_p1a + pts_p1b + pts_p1c + pts_p2 + pts_p3
