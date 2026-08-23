@@ -399,7 +399,7 @@ export default function PredictForm({
           const sorted = [...imgs].sort((a, b) => {
             const ai = sessionOrder.indexOf(a.label)
             const bi = sessionOrder.indexOf(b.label)
-            return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi)
+            return (bi === -1 ? -1 : bi) - (ai === -1 ? -1 : ai)
           })
           return (
             <div className="card">
@@ -421,7 +421,7 @@ export default function PredictForm({
                       className="w-full rounded-lg border border-white/10 object-cover hover:border-white/30 transition-colors"
                       style={{ aspectRatio: '9/16' }}
                     />
-                    <span className="text-[9px] font-black text-red-500 uppercase tracking-widest text-center">
+                    <span className="text-[9px] font-black uppercase tracking-widest text-center px-1.5 py-0.5 rounded" style={{ color: '#dc2626', background: 'white' }}>
                       {img.label}
                     </span>
                   </a>
