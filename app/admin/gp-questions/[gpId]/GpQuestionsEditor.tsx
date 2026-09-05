@@ -6,9 +6,10 @@ import type { GpQuestions, DuelConfig, DriverOption } from '@/lib/gp-questions'
 import { TEAM_COLORS } from '@/lib/gp-questions'
 
 function buildDriverList(round: number) {
+  const lawSub = round === 12 || round === 13
   return (PILOTOS_2026 as readonly { codigo: string; nome: string; equipa: string }[]).map(p =>
-    p.codigo === 'HAD' && round === 12 ? { codigo: 'LAW', nome: 'Liam Lawson', equipa: 'Red Bull Racing' } :
-    p.codigo === 'LAW' && round === 12 ? { codigo: 'TSU', nome: 'Yuki Tsunoda', equipa: 'Racing Bulls' } :
+    p.codigo === 'HAD' && lawSub ? { codigo: 'LAW', nome: 'Liam Lawson', equipa: 'Red Bull Racing' } :
+    p.codigo === 'LAW' && lawSub ? { codigo: 'TSU', nome: 'Yuki Tsunoda', equipa: 'Racing Bulls' } :
     { ...p }
   )
 }
