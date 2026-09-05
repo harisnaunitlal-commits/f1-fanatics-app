@@ -567,7 +567,7 @@ const GP_QUESTIONS: Record<number, GpQuestions> = {
     ],
   },
 
-  14: { // R14 — Itália
+  14: { // R14 — Itália — sub: Lawson por Hadjar (RBR), Tsunoda por Lawson (RB)
     gpName: 'Itália', gpPrep: 'de',
     p2Label: "Qual será a TERCEIRA equipa, que vai pontuar mais no Grande Prémio de Itália?",
     p3Options: P3_OPTIONS,
@@ -585,11 +585,11 @@ const GP_QUESTIONS: Record<number, GpQuestions> = {
     },
     p13Label: "Qual piloto terminará a corrida na posição mais alta?",
     p13Options: [
-      { codigo: 'ANT', nome: 'Kimi Antonelli', equipa: 'Mercedes',       color: TEAM_COLORS['Mercedes'] },
-      { codigo: 'HAD', nome: 'Isack Hadjar',   equipa: 'Red Bull Racing',color: TEAM_COLORS['Red Bull Racing'] },
-      { codigo: 'HUL', nome: 'Nico Hülkenberg',equipa: 'Audi',           color: TEAM_COLORS['Audi'] },
-      { codigo: 'BOR', nome: 'Gabriel Bortoleto',equipa: 'Audi',         color: TEAM_COLORS['Audi'] },
-      { codigo: 'GAS', nome: 'Pierre Gasly',   equipa: 'Alpine',         color: TEAM_COLORS['Alpine'] },
+      { codigo: 'ANT', nome: 'Kimi Antonelli',    equipa: 'Mercedes',        color: TEAM_COLORS['Mercedes'] },
+      { codigo: 'LAW', nome: 'Liam Lawson',        equipa: 'Red Bull Racing', color: TEAM_COLORS['Red Bull Racing'] },
+      { codigo: 'HUL', nome: 'Nico Hülkenberg',   equipa: 'Audi',            color: TEAM_COLORS['Audi'] },
+      { codigo: 'BOR', nome: 'Gabriel Bortoleto',  equipa: 'Audi',            color: TEAM_COLORS['Audi'] },
+      { codigo: 'TSU', nome: 'Yuki Tsunoda',       equipa: 'Racing Bulls',    color: TEAM_COLORS['Racing Bulls'] },
     ],
     p14Options: P14_MULTI_RF,
     p15Label: "Qual piloto terminará a corrida na posição mais alta?",
