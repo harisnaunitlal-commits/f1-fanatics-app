@@ -177,8 +177,8 @@ export default function AnswersForm({
 
   const config = configProp ?? getGpQuestions(gp.round)
   const gpNameFull = config ? `Grande Prémio ${config.gpPrep} ${config.gpName}` : gp.nome
-  const gpDisabled = gp.round === 12 ? ['HAD'] : []
-  const gpPilotos = gp.round === 12
+  const gpDisabled = (gp.round === 12 || gp.round === 13) ? ['HAD'] : []
+  const gpPilotos = (gp.round === 12 || gp.round === 13)
     ? [
         { codigo: 'LAW', nome: 'Liam Lawson', equipa: 'Red Bull Racing' as const },
         ...PILOTOS_2026.map(p =>

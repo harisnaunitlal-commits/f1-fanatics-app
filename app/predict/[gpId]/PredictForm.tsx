@@ -251,8 +251,8 @@ export default function PredictForm({
   const [countdown, setCountdown] = useState(getDeadlineCountdown(gp.deadline_play))
 
   const config = configProp ?? getGpQuestions(gp.round)
-  const gpDisabled = gp.round === 12 ? ['HAD'] : []
-  const gpPilotos = gp.round === 12
+  const gpDisabled = (gp.round === 12 || gp.round === 13) ? ['HAD'] : []
+  const gpPilotos = (gp.round === 12 || gp.round === 13)
     ? [
         { codigo: 'LAW', nome: 'Liam Lawson', equipa: 'Red Bull Racing' as const },
         ...PILOTOS_2026.map(p =>
