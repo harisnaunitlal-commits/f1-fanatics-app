@@ -56,6 +56,44 @@ export default function FantasyImport({
     setCsvPreview(preview)
   }
 
+  async function applyCsvAndSave() {
+    if (!selectedGp) { setError('Selecciona o GP.'); return }
+    const updated = [...rows]
+    csvPreview.forEach(({ nick, pontos_gp, pontos_acum, matched }) => {
+      if (!matched) return
+      const idx = updated.findIndex(r => r.email === matched)
+      if (idx >= 0) {
+        updated[idx] = { ...updated[idx], equipa_nome: nick, pontos_gp: String(pontos_gp), pontos_acum: String(pontos_acum) }
+      }
+    })
+    setRows(updated)
+    setCsvMode(false)
+    setCsvText('')
+    setCsvPreview([])
+
+    // Save immediately with the updated rows
+    const valid = updated.filter(r => r.pontos_acum !== '' && r.equipa_nome)
+    if (valid.length === 0) { setError('Nenhum dado para guardar.'); return }
+    setLoading(true); setError('')
+    const gp = gps.find(g => g.id === selectedGp)!
+    const toInsert = valid.map(r => ({
+      member_email: r.email,
+      gp_id: selectedGp as number,
+      equipa_nome: r.equipa_nome,
+      pontos_gp:   r.pontos_gp !== '' ? parseInt(r.pontos_gp) : null,
+      pontos_acum: parseInt(r.pontos_acum),
+    }))
+    const res = await fetch('/api/admin/save-fantasy', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ rows: toInsert, gp_id: selectedGp, gp_nome: gp.nome, admin_email: adminEmail }),
+    })
+    const result = await res.json()
+    if (!res.ok || result.error) { setError(result.error ?? 'Erro ao guardar.'); setLoading(false); return }
+    setSuccess(true)
+    setLoading(false)
+  }
+
   function applyCsvToRows() {
     const updated = [...rows]
     csvPreview.forEach(({ nick, pontos_gp, pontos_acum, matched }) => {
@@ -210,8 +248,8 @@ export default function FantasyImport({
                     })}
                   </div>
 
-                  <button onClick={applyCsvToRows} className="btn-primary w-full">
-                    ✅ Aplicar e rever antes de guardar
+                  <button onClick={applyCsvToRows} className="w-full py-3 rounded-lg font-bold text-white bg-green-700 hover:bg-green-600 transition-colors">
+                    ✅ Aplicar e guardar agora
                   </button>
                 </div>
               )}

@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
 
     const { rows, gp_id, gp_nome, admin_email } = await req.json()
 
-    const { error: err } = await supabaseAdmin.from('scores_predict').upsert(rows)
+    const { error: err } = await supabaseAdmin.from('scores_predict').upsert(rows, { onConflict: 'member_email,gp_id' })
     if (err) return NextResponse.json({ error: err.message }, { status: 400 })
 
     try {
