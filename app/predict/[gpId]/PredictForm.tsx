@@ -316,6 +316,32 @@ export default function PredictForm({
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (isDeadlinePassed(gp.deadline_play)) { setError('O prazo expirou.'); return }
+
+    const missing: string[] = []
+    if (!form.p1_primeiro) missing.push('P1 — 1º lugar')
+    if (!form.p1_segundo)  missing.push('P1 — 2º lugar')
+    if (!form.p1_terceiro) missing.push('P1 — 3º lugar')
+    if (!form.p2_equipa)   missing.push('P2 — Equipa Construtora')
+    if (!form.p3_lap)      missing.push('P3 — Número de Voltas')
+    if (!form.p4_quarto)   missing.push('P4 — 4º lugar')
+    if (!form.p4_quinto)   missing.push('P4 — 5º lugar')
+    if (!form.p4_sexto)    missing.push('P4 — 6º lugar')
+    if (!form.p5_duelo)    missing.push('P5 — Duelo 1')
+    if (!form.p6_duelo)    missing.push('P6 — Duelo 2')
+    if (!form.p7_duelo)    missing.push('P7 — Duelo 3')
+    if (!form.p8_margem)   missing.push('P8 — Margem de Vitória')
+    if (!form.p9_retire)   missing.push('P9 — First to Retire')
+    if (!form.p10_dotd)    missing.push('P10 — Driver of the Day')
+    if (!form.p11_fl)      missing.push('P11 — Volta Mais Rápida')
+    if (!form.p12_classif) missing.push('P12 — Nº Classificados')
+    if (!form.p13_especial) missing.push('P13 — Pergunta Especial')
+    if (!form.p14_sc)      missing.push('P14 — Safety Car')
+    if (!form.p15_outsider) missing.push('P15 — Outsider')
+    if (missing.length > 0) {
+      setError('Previsão incompleta. Falta responder: ' + missing.join(', '))
+      return
+    }
+
     setLoading(true); setError('')
 
     const res = await fetch('/api/predict/submit', {
