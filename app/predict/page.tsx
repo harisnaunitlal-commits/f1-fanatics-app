@@ -46,12 +46,12 @@ export default async function PredictPage() {
       <div className="grid gap-3">
         {(gps as any[])?.map((gp: any) => {
           const closed      = isDeadlinePassed(gp.deadline_play)
-          const notYetOpen  = !closed && isBeforeFP1(gp.fp1_start)
+          const notYetOpen  = !closed && isBeforeFP1(gp.qualifying_start)
           const scored      = gp.status === 'scored'
           const hasPred     = submitted.has(gp.id)
           const hasAns      = hasAnswers.has(gp.id)
           const timeLeft    = !closed && !notYetOpen ? getTimeUntilDeadline(gp.deadline_play) : null
-          const timeToOpen  = notYetOpen && gp.fp1_start ? getTimeUntilFP1(gp.fp1_start) : null
+          const timeToOpen  = notYetOpen && gp.qualifying_start ? getTimeUntilFP1(gp.qualifying_start) : null
 
           return (
             <div

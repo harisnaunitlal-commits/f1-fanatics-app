@@ -38,8 +38,8 @@ export default async function PredictGpPage({ params }: { params: { gpId: string
     return <PredictForm gp={gp} userEmail={user.email} existing={existing} config={config} readOnly={true} />
   }
 
-  if (isBeforeFP1(gp.fp1_start)) {
-    const timeToOpen = gp.fp1_start ? getTimeUntilFP1(gp.fp1_start) : null
+  if (isBeforeFP1((gp as any).qualifying_start)) {
+    const timeToOpen = (gp as any).qualifying_start ? getTimeUntilFP1((gp as any).qualifying_start) : null
     return (
       <div className="max-w-lg mx-auto mt-16 text-center">
         <div className="text-5xl mb-4">🔒</div>
