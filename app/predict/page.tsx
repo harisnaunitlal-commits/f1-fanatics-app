@@ -111,7 +111,7 @@ export default async function PredictPage() {
                 {/* Not yet open */}
                 {notYetOpen && (
                   <span className="text-sm text-blue-400 bg-blue-900/20 border border-blue-700/30 px-3 py-1.5 rounded-lg">
-                    🔒 Abre no FP1
+                    🔒 Abre após Qualifying
                   </span>
                 )}
 

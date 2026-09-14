@@ -45,7 +45,7 @@ export default async function PredictGpPage({ params }: { params: { gpId: string
         <div className="text-5xl mb-4">🔒</div>
         <h1 className="text-2xl font-bold mb-2">Submissões ainda não abertas</h1>
         <p className="text-gray-400 mb-2">
-          As previsões para o {gp.emoji_bandeira} GP {gp.nome} abrem no início do FP1.
+          As previsões para o {gp.emoji_bandeira} GP {gp.nome} abrem após o Qualifying.
         </p>
         {timeToOpen && (
           <p className="text-blue-400 font-bold text-lg">Abre em {timeToOpen}</p>
