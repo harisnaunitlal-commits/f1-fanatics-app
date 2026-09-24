@@ -85,18 +85,18 @@ export function isDeadlinePassed(deadline: string): boolean {
   return new Date() >= new Date(deadline)
 }
 
-/** Returns true when Qualifying has NOT yet ended (submissions not yet open).
- *  Qualifying duration is assumed to be 60 minutes. */
+/** Returns true when submissions are not yet open.
+ *  Opens 2h after qualifying_start (1h quali duration + 1h buffer). */
 export function isBeforeFP1(qualifyingStart: string | null | undefined): boolean {
   if (!qualifyingStart) return true
-  const qualEnd = new Date(qualifyingStart).getTime() + 60 * 60 * 1000
-  return Date.now() < qualEnd
+  const openAt = new Date(qualifyingStart).getTime() + 2 * 60 * 60 * 1000
+  return Date.now() < openAt
 }
 
-/** Returns a human-readable countdown string until Qualifying ends */
+/** Returns a human-readable countdown string until submissions open */
 export function getTimeUntilFP1(qualifyingStart: string): string {
-  const qualEnd = new Date(qualifyingStart).getTime() + 60 * 60 * 1000
-  const diff = qualEnd - Date.now()
+  const openAt = new Date(qualifyingStart).getTime() + 2 * 60 * 60 * 1000
+  const diff = openAt - Date.now()
   if (diff <= 0) return ''
   const days  = Math.floor(diff / 86400000)
   const hours = Math.floor((diff % 86400000) / 3600000)
