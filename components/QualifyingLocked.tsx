@@ -50,15 +50,15 @@ export default function QualifyingLocked({
       </div>
 
       {/* Qualifying card */}
-      <div className="rounded-2xl border-2 border-yellow-400/60 overflow-hidden mb-4"
-        style={{ background: 'rgba(250,204,21,0.06)', boxShadow: '0 0 24px rgba(250,204,21,0.15)' }}>
-        <div className="flex items-center gap-2 px-4 py-2.5 border-b border-yellow-400/20"
-          style={{ background: 'rgba(250,204,21,0.10)' }}>
+      <div className="rounded-2xl border-2 border-f1red/40 overflow-hidden mb-4"
+        style={{ background: 'rgba(225,6,0,0.06)', boxShadow: '0 0 24px rgba(225,6,0,0.15)' }}>
+        <div className="flex items-center gap-2 px-4 py-2.5 border-b border-f1red/20"
+          style={{ background: 'rgba(225,6,0,0.10)' }}>
           <span className="text-sm">⚡</span>
-          <span className="text-xs font-black text-yellow-400 uppercase tracking-widest">Qualifying</span>
+          <span className="text-xs font-black text-f1red uppercase tracking-widest">Qualifying</span>
         </div>
         <div className="px-4 py-4 text-center">
-          <p className="text-yellow-300 font-bold text-base capitalize">{fmtDay(qualifyingStart)}</p>
+          <p className="text-red-300 font-bold text-base capitalize">{fmtDay(qualifyingStart)}</p>
           <p className="text-white font-black text-3xl mt-1 tabular-nums">
             {fmt(qualifyingStart)} <span className="text-gray-500 text-xl">–</span> {fmt(qualEnd)}
           </p>
