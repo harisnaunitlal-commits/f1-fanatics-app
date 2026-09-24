@@ -80,15 +80,6 @@ export default function QualifyingLocked({
         </div>
       </div>
 
-      {/* Countdown */}
-      {cd && (
-        <div className="rounded-xl border border-blue-500/30 px-4 py-3 text-center mb-4"
-          style={{ background: 'rgba(59,130,246,0.08)' }}>
-          <p className="text-xs text-blue-400 font-bold uppercase tracking-widest mb-1">Abre em</p>
-          <p className="text-blue-300 font-black text-2xl tabular-nums">{cd}</p>
-        </div>
-      )}
-
       <a href="/predict" className="btn-primary w-full text-center block">Ver outros GPs</a>
     </div>
   )
