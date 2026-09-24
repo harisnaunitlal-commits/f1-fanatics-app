@@ -66,12 +66,12 @@ export default function QualifyingLocked({
       </div>
 
       {/* Open time card */}
-      <div className="rounded-2xl border-2 border-f1red/40 overflow-hidden mb-4"
-        style={{ background: 'rgba(225,6,0,0.06)', boxShadow: '0 0 20px rgba(225,6,0,0.12)' }}>
-        <div className="flex items-center gap-2 px-4 py-2.5 border-b border-f1red/20"
-          style={{ background: 'rgba(225,6,0,0.10)' }}>
+      <div className="rounded-2xl border-2 border-green-500/40 overflow-hidden mb-4"
+        style={{ background: 'rgba(34,197,94,0.06)', boxShadow: '0 0 20px rgba(34,197,94,0.12)' }}>
+        <div className="flex items-center gap-2 px-4 py-2.5 border-b border-green-500/20"
+          style={{ background: 'rgba(34,197,94,0.10)' }}>
           <span className="text-sm">🏎️</span>
-          <span className="text-xs font-black text-f1red uppercase tracking-widest">Submissões abrem</span>
+          <span className="text-xs font-black text-green-400 uppercase tracking-widest">Submissões abrem</span>
         </div>
         <div className="px-4 py-4 text-center">
           <p className="text-gray-300 font-bold text-base capitalize">{fmtDay(openAt)}</p>
