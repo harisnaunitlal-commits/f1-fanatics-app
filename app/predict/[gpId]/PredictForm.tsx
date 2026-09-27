@@ -232,6 +232,13 @@ function QHeader({ code, title, pts }: { code: string; title: string; pts: strin
   )
 }
 
+function flagToCC(emoji: string): string {
+  if (!emoji) return ''
+  const pts = Array.from(emoji).map(c => (c.codePointAt(0) ?? 0) - 0x1F1E6)
+  if (pts.length < 2 || pts[0] < 0 || pts[0] > 25) return ''
+  return String.fromCharCode(65 + pts[0], 65 + pts[1])
+}
+
 // ─── Main Form ─────────────────────────────────────────────────────────────────
 export default function PredictForm({
   gp,
@@ -462,60 +469,89 @@ export default function PredictForm({
         })()}
 
         {/* P1 — Top 6 Classificados */}
-        <div className="card">
-          <QHeader code="P1" title="Top 6 Classificados" pts="6 pts" />
-          <p className="text-sm text-yellow-400/80 mb-4">
-            Qual é a sua previsão para os 6 primeiros classificados do {gpNameFull}?
-          </p>
-          {(() => {
-            const slots: { label: string; pos: number; value: string | null; field: keyof FormData }[] = [
-              { label: '1º', pos: 1, value: form.p1_primeiro, field: 'p1_primeiro' },
-              { label: '2º', pos: 2, value: form.p1_segundo,  field: 'p1_segundo'  },
-              { label: '3º', pos: 3, value: form.p1_terceiro, field: 'p1_terceiro' },
-              { label: '4º', pos: 4, value: form.p4_quarto,   field: 'p4_quarto'   },
-              { label: '5º', pos: 5, value: form.p4_quinto,   field: 'p4_quinto'   },
-              { label: '6º', pos: 6, value: form.p4_sexto,    field: 'p4_sexto'    },
-            ]
-            const all6 = slots.map(s => s.value)
-            const usedExcept = (own: string | null) => all6.filter(v => v && v !== own) as string[]
-            const pairs: [number, number][] = [[0, 1], [2, 3], [4, 5]]
-            return (
-              <div
-                className="rounded-xl overflow-hidden border border-white/10"
-                style={{
-                  background: '#0a0a0a',
-                  backgroundImage: 'repeating-conic-gradient(#1a1a1a 0% 25%, transparent 0% 50%)',
-                  backgroundSize: '20px 20px',
-                }}
-              >
-                <div style={{ height: 5, background: 'repeating-linear-gradient(90deg, #fff 0 10px, #000 10px 20px)' }} />
-                <div className="p-3 flex flex-col gap-1.5">
-                  {pairs.map(([li, ri]) => {
-                    const L = slots[li], R = slots[ri]
-                    return (
-                      <div key={li} className="grid grid-cols-2 gap-2 items-start">
-                        <P1GridSlot
-                          label={L.label} pos={L.pos} value={L.value}
-                          onChange={v => setField(L.field, v)}
-                          pilotos={gpPilotos} disabledCodes={gpDisabled}
-                          excludeCodes={usedExcept(L.value)}
-                        />
-                        <div style={{ marginTop: 14 }}>
-                          <P1GridSlot
-                            label={R.label} pos={R.pos} value={R.value}
-                            onChange={v => setField(R.field, v)}
-                            pilotos={gpPilotos} disabledCodes={gpDisabled}
-                            excludeCodes={usedExcept(R.value)}
-                          />
-                        </div>
-                      </div>
-                    )
-                  })}
+        {(() => {
+          const slots: { label: string; pos: number; value: string | null; field: keyof FormData }[] = [
+            { label: '1º', pos: 1, value: form.p1_primeiro, field: 'p1_primeiro' },
+            { label: '2º', pos: 2, value: form.p1_segundo,  field: 'p1_segundo'  },
+            { label: '3º', pos: 3, value: form.p1_terceiro, field: 'p1_terceiro' },
+            { label: '4º', pos: 4, value: form.p4_quarto,   field: 'p4_quarto'   },
+            { label: '5º', pos: 5, value: form.p4_quinto,   field: 'p4_quinto'   },
+            { label: '6º', pos: 6, value: form.p4_sexto,    field: 'p4_sexto'    },
+          ]
+          const all6 = slots.map(s => s.value)
+          const usedExcept = (own: string | null) => all6.filter(v => v && v !== own) as string[]
+          const pairs: [number, number][] = [[0, 1], [2, 3], [4, 5]]
+          const gpCC = flagToCC(gp.emoji_bandeira ?? '')
+          const bgUrl = gpCC ? `/gp-bg/${gpCC}.png` : null
+
+          return (
+            <div className="card overflow-hidden p-0">
+              {/* GP Background Banner */}
+              <div className="relative overflow-hidden" style={{ minHeight: 120 }}>
+                {bgUrl ? (
+                  <img
+                    src={bgUrl}
+                    alt={gp.nome}
+                    className="absolute inset-0 w-full h-full object-cover object-center"
+                  />
+                ) : (
+                  <div className="absolute inset-0" style={{
+                    background: '#0a0a0a',
+                    backgroundImage: 'repeating-conic-gradient(#1a1a1a 0% 25%, transparent 0% 50%)',
+                    backgroundSize: '20px 20px',
+                  }} />
+                )}
+                {/* Gradient overlay */}
+                <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/40 to-black/85" />
+                {/* Top checkered stripe */}
+                <div className="absolute top-0 left-0 right-0" style={{ height: 5, background: 'repeating-linear-gradient(90deg, #fff 0 10px, #000 10px 20px)' }} />
+                {/* GP title */}
+                <div className="relative px-4 pt-7 pb-5">
+                  <div className="flex items-center gap-3">
+                    <span className="text-4xl drop-shadow-lg">{gp.emoji_bandeira}</span>
+                    <div>
+                      <div className="text-white font-black text-xl leading-tight drop-shadow-lg">GP {gp.nome}</div>
+                      <div className="text-gray-300 text-xs font-bold uppercase tracking-widest mt-0.5">Top 6 Classificados</div>
+                    </div>
+                    <div className="ml-auto bg-yellow-400/20 border border-yellow-400/40 rounded-lg px-2.5 py-1">
+                      <span className="text-yellow-300 font-black text-sm">6 pts</span>
+                    </div>
+                  </div>
+                  <p className="text-gray-300/80 text-xs mt-3">
+                    Qual é a sua previsão para os 6 primeiros classificados do {gpNameFull}?
+                  </p>
                 </div>
+                {/* Bottom checkered stripe */}
+                <div className="absolute bottom-0 left-0 right-0" style={{ height: 4, background: 'repeating-linear-gradient(90deg, #fff 0 10px, #000 10px 20px)' }} />
               </div>
-            )
-          })()}
-        </div>
+
+              {/* Selection slots */}
+              <div className="p-3 flex flex-col gap-1.5">
+                {pairs.map(([li, ri]) => {
+                  const L = slots[li], R = slots[ri]
+                  return (
+                    <div key={li} className="grid grid-cols-2 gap-2 items-start">
+                      <P1GridSlot
+                        label={L.label} pos={L.pos} value={L.value}
+                        onChange={v => setField(L.field, v)}
+                        pilotos={gpPilotos} disabledCodes={gpDisabled}
+                        excludeCodes={usedExcept(L.value)}
+                      />
+                      <div style={{ marginTop: 14 }}>
+                        <P1GridSlot
+                          label={R.label} pos={R.pos} value={R.value}
+                          onChange={v => setField(R.field, v)}
+                          pilotos={gpPilotos} disabledCodes={gpDisabled}
+                          excludeCodes={usedExcept(R.value)}
+                        />
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )
+        })()}
 
         {/* P2 — 2ª / 3ª Equipa */}
         <div className="card">
