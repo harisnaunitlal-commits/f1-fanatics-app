@@ -482,7 +482,8 @@ export default function PredictForm({
           const usedExcept = (own: string | null) => all6.filter(v => v && v !== own) as string[]
           const pairs: [number, number][] = [[0, 1], [2, 3], [4, 5]]
           const gpCC = flagToCC(gp.emoji_bandeira ?? '')
-          const bgUrl = gpCC ? `/gp-bg/${gpCC}.png` : null
+          const bgUrl = gpCC ? `/Pilotos/${gpCC}.png` : null
+          const flagUrl = gpCC ? `/flags/${gpCC}.png` : null
 
           return (
             <div className="card overflow-hidden p-0">
@@ -508,7 +509,11 @@ export default function PredictForm({
                 {/* GP title */}
                 <div className="relative px-4 pt-7 pb-5">
                   <div className="flex items-center gap-3">
-                    <span className="text-4xl drop-shadow-lg">{gp.emoji_bandeira}</span>
+                    {flagUrl ? (
+                      <img src={flagUrl} alt={gpCC} className="h-8 w-auto rounded shadow-lg drop-shadow-lg" />
+                    ) : (
+                      <span className="text-4xl drop-shadow-lg">{gp.emoji_bandeira}</span>
+                    )}
                     <div>
                       <div className="text-white font-black text-xl leading-tight drop-shadow-lg">GP {gp.nome}</div>
                       <div className="text-gray-300 text-xs font-bold uppercase tracking-widest mt-0.5">Top 6 Classificados</div>
