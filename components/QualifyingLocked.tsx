@@ -22,6 +22,13 @@ function countdown(openUtc: string): string {
   return `${m}m`
 }
 
+function flagToCC(emoji: string): string {
+  if (!emoji) return ''
+  const pts = Array.from(emoji).map(c => (c.codePointAt(0) ?? 0) - 0x1F1E6)
+  if (pts.length < 2 || pts[0] < 0 || pts[0] > 25) return ''
+  return String.fromCharCode(65 + pts[0], 65 + pts[1])
+}
+
 export default function QualifyingLocked({
   gpEmoji, gpNome, qualifyingStart,
 }: {
@@ -40,13 +47,22 @@ export default function QualifyingLocked({
     return () => clearInterval(t)
   }, [openAt])
 
+  const gpCC = flagToCC(gpEmoji ?? '')
+  const flagUrl = gpCC ? `/flags/${gpCC}.png` : null
+
   return (
     <div className="max-w-lg mx-auto mt-12 px-4">
       {/* Header */}
       <div className="text-center mb-6">
         <div className="text-5xl mb-3">🔒</div>
         <h1 className="text-2xl font-bold">Submissões ainda não abertas</h1>
-        <p className="text-gray-400 mt-1 text-sm">{gpEmoji} GP {gpNome}</p>
+        <div className="flex items-center justify-center gap-2 mt-1">
+          {flagUrl
+            ? <img src={flagUrl} alt={gpCC} className="h-4 w-auto rounded-sm" />
+            : <span>{gpEmoji}</span>
+          }
+          <p className="text-gray-400 text-sm">GP {gpNome}</p>
+        </div>
       </div>
 
       {/* Qualifying card */}
