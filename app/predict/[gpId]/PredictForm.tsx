@@ -488,7 +488,7 @@ export default function PredictForm({
           return (
             <div className="card overflow-hidden p-0">
               {/* GP Background Banner */}
-              <div className="relative overflow-hidden" style={{ minHeight: 200 }}>
+              <div className="relative overflow-hidden" style={{ minHeight: 400 }}>
                 {bgUrl ? (
                   <img
                     src={bgUrl}
@@ -502,32 +502,35 @@ export default function PredictForm({
                     backgroundSize: '20px 20px',
                   }} />
                 )}
-                {/* Gradient overlay */}
-                <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/40 to-black/85" />
+                {/* Strong dark gradient — heavier at bottom so text pops */}
+                <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.45) 40%, rgba(0,0,0,0.82) 100%)' }} />
                 {/* Top checkered stripe */}
-                <div className="absolute top-0 left-0 right-0" style={{ height: 5, background: 'repeating-linear-gradient(90deg, #fff 0 10px, #000 10px 20px)' }} />
-                {/* GP title */}
-                <div className="relative px-4 pt-7 pb-5">
-                  <div className="flex items-center gap-3">
-                    {flagUrl ? (
-                      <img src={flagUrl} alt={gpCC} className="h-8 w-auto rounded shadow-lg drop-shadow-lg" />
-                    ) : (
-                      <span className="text-4xl drop-shadow-lg">{gp.emoji_bandeira}</span>
-                    )}
-                    <div>
-                      <div className="text-white font-black text-xl leading-tight drop-shadow-lg">GP {gp.nome}</div>
-                      <div className="text-gray-300 text-xs font-bold uppercase tracking-widest mt-0.5">Top 6 Classificados</div>
-                    </div>
-                    <div className="ml-auto bg-yellow-400/20 border border-yellow-400/40 rounded-lg px-2.5 py-1">
-                      <span className="text-yellow-300 font-black text-sm">6 pts</span>
+                <div className="absolute top-0 left-0 right-0" style={{ height: 6, background: 'repeating-linear-gradient(90deg, #fff 0 12px, #000 12px 24px)' }} />
+                {/* GP title — centrado verticalmente na parte inferior */}
+                <div className="absolute bottom-0 left-0 right-0 px-5 pb-6 pt-4">
+                  {/* Badge de pontos */}
+                  <div className="flex justify-end mb-3">
+                    <div className="bg-yellow-400/25 border-2 border-yellow-400/60 rounded-xl px-4 py-1.5 backdrop-blur-sm">
+                      <span className="text-yellow-300 font-black text-lg">6 pts</span>
                     </div>
                   </div>
-                  <p className="text-gray-300/80 text-xs mt-3">
-                    Qual é a sua previsão para os 6 primeiros classificados do {gpNameFull}?
-                  </p>
+                  {/* Bandeira + Nome */}
+                  <div className="flex items-center gap-3 mb-2">
+                    {flagUrl && <img src={flagUrl} alt={gpCC} className="h-10 w-auto rounded shadow-xl" />}
+                    <div>
+                      <div className="text-white font-black text-3xl leading-tight drop-shadow-xl">GP {gp.nome}</div>
+                      <div className="text-white/70 text-xs font-bold uppercase tracking-widest mt-0.5">Top 6 Classificados</div>
+                    </div>
+                  </div>
+                  {/* Pergunta */}
+                  <div className="bg-black/50 backdrop-blur-sm rounded-lg px-3 py-2 border border-white/10">
+                    <p className="text-white/90 text-sm font-medium">
+                      Qual é a sua previsão para os 6 primeiros classificados do {gpNameFull}?
+                    </p>
+                  </div>
                 </div>
                 {/* Bottom checkered stripe */}
-                <div className="absolute bottom-0 left-0 right-0" style={{ height: 4, background: 'repeating-linear-gradient(90deg, #fff 0 10px, #000 10px 20px)' }} />
+                <div className="absolute bottom-0 left-0 right-0" style={{ height: 5, background: 'repeating-linear-gradient(90deg, #fff 0 12px, #000 12px 24px)' }} />
               </div>
 
               {/* Selection slots */}
