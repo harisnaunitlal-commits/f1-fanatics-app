@@ -223,11 +223,15 @@ function P1GridSlot({
   )
 }
 
-function QHeader({ code, title, pts }: { code: string; title: string; pts: string }) {
+function QBox({ code, question, pts }: { code: string; question: string; pts: string }) {
   return (
-    <div className="flex items-baseline justify-between mb-1">
-      <h3 className="font-bold text-f1red">{code} · {title}</h3>
-      <span className="text-xs font-bold text-yellow-400">{pts}</span>
+    <div className="flex items-start gap-2 mb-4">
+      <div className="flex-1 bg-yellow-400 rounded-lg px-3 py-2">
+        <p className="text-black text-sm font-black">{code} · {question}</p>
+      </div>
+      <div className="bg-yellow-400/20 border border-yellow-400/50 rounded-lg px-2.5 py-2 flex-shrink-0">
+        <span className="text-yellow-300 font-black text-sm">{pts}</span>
+      </div>
     </div>
   )
 }
@@ -525,7 +529,7 @@ export default function PredictForm({
                   {/* Pergunta */}
                   <div className="bg-yellow-400 rounded-lg px-3 py-2">
                     <p className="text-black text-sm font-black">
-                      Qual é a sua previsão para os 6 primeiros classificados do {gpNameFull}?
+                      P1 · Qual é a sua previsão para os 6 primeiros classificados do {gpNameFull}?
                     </p>
                   </div>
                 </div>
@@ -563,10 +567,7 @@ export default function PredictForm({
 
         {/* P2 — 2ª / 3ª Equipa */}
         <div className="card">
-          <QHeader code="P2" title="Equipa" pts="1 pt" />
-          <p className="text-sm text-yellow-400/80 mb-4">
-            {config?.p2Label ?? `Qual será a segunda equipa, que vai pontuar mais no ${gpNameFull}?`}
-          </p>
+          <QBox code="P2" question={config?.p2Label ?? `Qual será a segunda equipa, que vai pontuar mais no ${gpNameFull}?`} pts="1 pt" />
           <div>
             <label className="label">Equipa</label>
             <select className="select" value={form.p2_equipa ?? ''} onChange={e => setField('p2_equipa', e.target.value)}>
@@ -578,10 +579,7 @@ export default function PredictForm({
 
         {/* P3 — Volta de Avanço */}
         <div className="card">
-          <QHeader code="P3" title="Volta de Avanço" pts="1 pt" />
-          <p className="text-sm text-yellow-400/80 mb-4">
-            Quantos pilotos levarão a volta de avanço (LAP) no {gpNameFull}?
-          </p>
+          <QBox code="P3" question={`Quantos pilotos levarão a volta de avanço (LAP) no ${gpNameFull}?`} pts="1 pt" />
           <div>
             <label className="label">Número de pilotos</label>
             <select className="select" value={form.p3_lap ?? ''} onChange={e => setField('p3_lap', e.target.value)}>
@@ -593,10 +591,7 @@ export default function PredictForm({
 
         {/* P5 — Duelo 1 */}
         <div className="card">
-          <QHeader code="P5" title="Duelo 1" pts="1 pt" />
-          <p className="text-sm text-yellow-400/80 mb-4">
-            Qual piloto vai terminar na frente do outro no {gpNameFull}?
-          </p>
+          <QBox code="P5" question={`Qual piloto vai terminar na frente do outro no ${gpNameFull}?`} pts="1 pt" />
           {config
             ? <DuelSelector cfg={config.p5} value={form.p5_duelo ?? ''} onChange={v => setField('p5_duelo', v)} />
             : <PilotoSelect label="Piloto" value={form.p5_duelo ?? ''} onChange={v => setField('p5_duelo', v)} />
@@ -605,10 +600,7 @@ export default function PredictForm({
 
         {/* P6 — Duelo 2 */}
         <div className="card">
-          <QHeader code="P6" title="Duelo 2" pts="1 pt" />
-          <p className="text-sm text-yellow-400/80 mb-4">
-            Qual piloto vai terminar na frente do outro no {gpNameFull}?
-          </p>
+          <QBox code="P6" question={`Qual piloto vai terminar na frente do outro no ${gpNameFull}?`} pts="1 pt" />
           {config
             ? <DuelSelector cfg={config.p6} value={form.p6_duelo ?? ''} onChange={v => setField('p6_duelo', v)} />
             : <PilotoSelect label="Piloto" value={form.p6_duelo ?? ''} onChange={v => setField('p6_duelo', v)} />
@@ -617,10 +609,7 @@ export default function PredictForm({
 
         {/* P7 — Duelo 3 */}
         <div className="card">
-          <QHeader code="P7" title="Duelo 3" pts="1 pt" />
-          <p className="text-sm text-yellow-400/80 mb-4">
-            Qual piloto vai terminar na frente do outro no {gpNameFull}?
-          </p>
+          <QBox code="P7" question={`Qual piloto vai terminar na frente do outro no ${gpNameFull}?`} pts="1 pt" />
           {config
             ? <DuelSelector cfg={config.p7} value={form.p7_duelo ?? ''} onChange={v => setField('p7_duelo', v)} />
             : <PilotoSelect label="Piloto" value={form.p7_duelo ?? ''} onChange={v => setField('p7_duelo', v)} />
@@ -629,10 +618,7 @@ export default function PredictForm({
 
         {/* P8 — Margem de vitória */}
         <div className="card">
-          <QHeader code="P8" title="Margem de Vitória" pts="1 pt" />
-          <p className="text-sm text-yellow-400/80 mb-4">
-            Qual será a margem de victória, do prímeiro a cruzar a linha de chegada?
-          </p>
+          <QBox code="P8" question="Qual será a margem de victória, do prímeiro a cruzar a linha de chegada?" pts="1 pt" />
           <div>
             <label className="label">Margem</label>
             <select className="select" value={form.p8_margem ?? ''} onChange={e => setField('p8_margem', e.target.value)}>
@@ -644,37 +630,25 @@ export default function PredictForm({
 
         {/* P9 — First to Retire */}
         <div className="card">
-          <QHeader code="P9" title="First to Retire" pts="3 pts" />
-          <p className="text-sm text-yellow-400/80 mb-4">
-            Quem será o primeiro piloto, First to Retire no {gpNameFull}?
-          </p>
+          <QBox code="P9" question={`Quem será o primeiro piloto, First to Retire no ${gpNameFull}?`} pts="3 pts" />
           <PilotoSelect label="Piloto" value={form.p9_retire ?? ''} onChange={v => setField('p9_retire', v)} includeNone pilotos={gpPilotos} disabledCodes={gpDisabled} />
         </div>
 
         {/* P10 — Driver of the Day */}
         <div className="card">
-          <QHeader code="P10" title="Driver of the Day" pts="2 pts" />
-          <p className="text-sm text-yellow-400/80 mb-4">
-            Quem será o piloto eleito 'Driver of the Day' no {gpNameFull}?
-          </p>
+          <QBox code="P10" question={`Quem será o piloto eleito 'Driver of the Day' no ${gpNameFull}?`} pts="2 pts" />
           <PilotoSelect label="Piloto" value={form.p10_dotd ?? ''} onChange={v => setField('p10_dotd', v)} pilotos={gpPilotos} disabledCodes={gpDisabled} />
         </div>
 
         {/* P11 — Volta mais rápida */}
         <div className="card">
-          <QHeader code="P11" title="Volta Mais Rápida" pts="1 pt" />
-          <p className="text-sm text-yellow-400/80 mb-4">
-            Qual piloto fará a volta mais rápida no {gpNameFull}?
-          </p>
+          <QBox code="P11" question={`Qual piloto fará a volta mais rápida no ${gpNameFull}?`} pts="1 pt" />
           <PilotoSelect label="Piloto" value={form.p11_fl ?? ''} onChange={v => setField('p11_fl', v)} pilotos={gpPilotos} disabledCodes={gpDisabled} />
         </div>
 
         {/* P12 — Nº classificados */}
         <div className="card">
-          <QHeader code="P12" title="Nº de Classificados" pts="1 pt" />
-          <p className="text-sm text-yellow-400/80 mb-4">
-            Quantos pilotos classificados, terminaram a corrida no {gpNameFull}?
-          </p>
+          <QBox code="P12" question={`Quantos pilotos classificados, terminaram a corrida no ${gpNameFull}?`} pts="1 pt" />
           <div>
             <label className="label">Número de classificados</label>
             <select className="select" value={form.p12_classif ?? ''} onChange={e => setField('p12_classif', e.target.value)}>
@@ -686,10 +660,7 @@ export default function PredictForm({
 
         {/* P13 — Pergunta Especial */}
         <div className="card">
-          <QHeader code="P13" title="Pergunta Especial" pts="1 pt" />
-          <p className="text-sm text-yellow-400/80 mb-4">
-            {config?.p13Label ?? "Qual piloto terminará a corrida na posição mais alta?"}
-          </p>
+          <QBox code="P13" question={config?.p13Label ?? "Qual piloto terminará a corrida na posição mais alta?"} pts="1 pt" />
           {config
             ? <DriverGrid options={config.p13Options} value={form.p13_especial ?? ''} onChange={v => setField('p13_especial', v)} />
             : <PilotoSelect label="Piloto" value={form.p13_especial ?? ''} onChange={v => setField('p13_especial', v)} />
@@ -702,12 +673,7 @@ export default function PredictForm({
           const isMulti = p14Opts.length > 2
           return (
             <div className="card">
-              <QHeader code="P14" title="Safety Car / VSC / RF" pts="3 pts" />
-              <p className="text-sm text-yellow-400/80 mb-4">
-                {isMulti
-                  ? `Vamos ter um Safety Car ou Virtual Safety Car no ${gpNameFull}?`
-                  : `Haverá um Safety Car na pista durante o ${gpNameFull}?`}
-              </p>
+              <QBox code="P14" question={isMulti ? `Vamos ter um Safety Car ou Virtual Safety Car no ${gpNameFull}?` : `Haverá um Safety Car na pista durante o ${gpNameFull}?`} pts="3 pts" />
               <div className="grid grid-cols-2 gap-3">
                 {p14Opts.map((opt: P14Option) => (
                   <button
@@ -733,10 +699,7 @@ export default function PredictForm({
 
         {/* P15 — Outsider */}
         <div className="card">
-          <QHeader code="P15" title="Outsider" pts="1 pt" />
-          <p className="text-sm text-yellow-400/80 mb-4">
-            {config?.p15Label ?? "Qual piloto terminará a corrida na posição mais alta?"}
-          </p>
+          <QBox code="P15" question={config?.p15Label ?? "Qual piloto terminará a corrida na posição mais alta?"} pts="1 pt" />
           {config
             ? <DriverGrid options={config.p15Options} value={form.p15_outsider ?? ''} onChange={v => setField('p15_outsider', v)} />
             : <PilotoSelect label="Piloto" value={form.p15_outsider ?? ''} onChange={v => setField('p15_outsider', v)} />
