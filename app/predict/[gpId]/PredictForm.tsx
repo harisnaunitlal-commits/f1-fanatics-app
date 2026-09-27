@@ -744,12 +744,28 @@ export default function PredictForm({
         {/* P8 — Margem de vitória */}
         <div className="card">
           <QBox code="P8" question="Qual será a margem de victória, do prímeiro a cruzar a linha de chegada?" pts="1 pt" />
-          <div>
-            <label className="label">Margem</label>
-            <select className="select" value={form.p8_margem ?? ''} onChange={e => setField('p8_margem', e.target.value)}>
-              <option value="">Selecciona...</option>
-              {P8_MARGENS.map(m => <option key={m} value={m}>{m}</option>)}
-            </select>
+          <div className="grid grid-cols-2 gap-2">
+            {P8_MARGENS.map(m => {
+              const isSelected = form.p8_margem === m
+              return (
+                <button
+                  key={m}
+                  type="button"
+                  onClick={() => setField('p8_margem', m)}
+                  className="font-black text-sm uppercase tracking-wide transition-all duration-200 h-12 rounded-full px-4"
+                  style={{
+                    background: isSelected ? '#fff' : 'rgba(255,255,255,0.07)',
+                    color: isSelected ? '#000' : '#ccc',
+                    outline: isSelected ? '3px solid #22c55e' : '2px solid rgba(255,255,255,0.15)',
+                    outlineOffset: '2px',
+                    boxShadow: isSelected ? '0 0 14px #22c55e55' : 'none',
+                    transform: isSelected ? 'scale(1.04)' : 'scale(1)',
+                  }}
+                >
+                  {m}
+                </button>
+              )
+            })}
           </div>
         </div>
 
