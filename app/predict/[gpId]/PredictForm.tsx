@@ -688,12 +688,29 @@ export default function PredictForm({
         {/* P3 — Volta de Avanço */}
         <div className="card">
           <QBox code="P3" question={`Quantos pilotos levarão a volta de avanço (LAP) no ${gpNameFull}?`} pts="1 pt" />
-          <div>
-            <label className="label">Número de pilotos</label>
-            <select className="select" value={form.p3_lap ?? ''} onChange={e => setField('p3_lap', e.target.value)}>
-              <option value="">Selecciona...</option>
-              {(config?.p3Options ?? P3_OPTIONS).map(o => <option key={o} value={o}>{o}</option>)}
-            </select>
+          <div className="flex flex-wrap gap-2">
+            {(config?.p3Options ?? P3_OPTIONS).map(o => {
+              const isNum = /^\d$/.test(o)
+              const isSelected = form.p3_lap === o
+              return (
+                <button
+                  key={o}
+                  type="button"
+                  onClick={() => setField('p3_lap', o)}
+                  className={`font-black text-sm uppercase tracking-wide transition-all duration-200 ${isNum ? 'w-12 h-12 rounded-full flex items-center justify-center text-base' : 'px-4 h-12 rounded-full'}`}
+                  style={{
+                    background: isSelected ? '#facc15' : 'rgba(255,255,255,0.07)',
+                    color: isSelected ? '#000' : '#ccc',
+                    outline: isSelected ? '2px solid #facc15' : '2px solid transparent',
+                    outlineOffset: '2px',
+                    boxShadow: isSelected ? '0 0 16px #facc1566' : 'none',
+                    transform: isSelected ? 'scale(1.08)' : 'scale(1)',
+                  }}
+                >
+                  {o}
+                </button>
+              )
+            })}
           </div>
         </div>
 
