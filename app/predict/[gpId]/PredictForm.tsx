@@ -739,19 +739,19 @@ export default function PredictForm({
         {/* P9 — First to Retire */}
         <div className="card">
           <QBox code="P9" question={`Quem será o primeiro piloto, First to Retire no ${gpNameFull}?`} pts="3 pts" />
-          <PilotoSelectWithCard label="Piloto" value={form.p9_retire ?? ''} onChange={v => setField('p9_retire', v)} includeNone pilotos={gpPilotos} disabledCodes={gpDisabled} badgeText="FIRST TO RETIRE" badgeTextColor="#ef4444" />
+          <PilotoSelectWithCard label="Piloto" value={form.p9_retire ?? ''} onChange={v => setField('p9_retire', v)} includeNone pilotos={gpPilotos} disabledCodes={gpDisabled} badgeImg="/logos/first-to-retire.webp" />
         </div>
 
         {/* P10 — Driver of the Day */}
         <div className="card">
           <QBox code="P10" question={`Quem será o piloto eleito 'Driver of the Day' no ${gpNameFull}?`} pts="2 pts" />
-          <PilotoSelectWithCard label="Piloto" value={form.p10_dotd ?? ''} onChange={v => setField('p10_dotd', v)} pilotos={gpPilotos} disabledCodes={gpDisabled} badgeImg="/logos/driver-of-the-day.jpg" />
+          <PilotoSelectWithCard label="Piloto" value={form.p10_dotd ?? ''} onChange={v => setField('p10_dotd', v)} pilotos={gpPilotos} disabledCodes={gpDisabled} badgeImg="/logos/driver-of-the-day.webp" />
         </div>
 
         {/* P11 — Volta mais rápida */}
         <div className="card">
           <QBox code="P11" question={`Qual piloto fará a volta mais rápida no ${gpNameFull}?`} pts="1 pt" />
-          <PilotoSelectWithCard label="Piloto" value={form.p11_fl ?? ''} onChange={v => setField('p11_fl', v)} pilotos={gpPilotos} disabledCodes={gpDisabled} badgeText="FASTEST LAP" badgeTextColor="#a855f7" />
+          <PilotoSelectWithCard label="Piloto" value={form.p11_fl ?? ''} onChange={v => setField('p11_fl', v)} pilotos={gpPilotos} disabledCodes={gpDisabled} badgeImg="/logos/fastest-lap.png" />
         </div>
 
         {/* P12 — Nº classificados */}
