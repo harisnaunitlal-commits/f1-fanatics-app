@@ -223,6 +223,78 @@ function P1GridSlot({
   )
 }
 
+// ─── Piloto Select + Card de foto ─────────────────────────────────────────────
+function PilotoSelectWithCard({
+  label, value, onChange, includeNone = false, pilotos, disabledCodes = [],
+}: {
+  label: string; value: string; onChange: (v: string) => void
+  includeNone?: boolean
+  pilotos?: { codigo: string; nome: string; equipa: string }[]
+  disabledCodes?: string[]
+}) {
+  const [imgErr, setImgErr] = useState(false)
+  const list = pilotos ?? PILOTOS_2026
+  const drv = value && value !== 'NONE' ? list.find(p => p.codigo === value) ?? null : null
+  const color = drv ? (TEAM_COLORS[drv.equipa] ?? '#888') : '#888'
+  const photoUrl = drv ? getDriverPhoto(drv.codigo) : null
+
+  return (
+    <div className="space-y-3">
+      <div>
+        <label className="label">{label}</label>
+        <select
+          className="select"
+          value={value}
+          onChange={e => { setImgErr(false); onChange(e.target.value) }}
+        >
+          <option value="">Selecciona...</option>
+          {includeNone && <option value="NONE">Nenhum Piloto</option>}
+          {list.map(p => (
+            <option key={p.codigo} value={p.codigo} disabled={disabledCodes.includes(p.codigo)}>
+              {disabledCodes.includes(p.codigo) ? `✕ ${p.nome} (não participa)` : `${p.nome} (${p.equipa})`}
+            </option>
+          ))}
+        </select>
+      </div>
+      {drv && (
+        <div
+          className="rounded-2xl overflow-hidden border-2 flex items-center gap-4 p-3 transition-all duration-300"
+          style={{ borderColor: color + '88', background: color + '15', boxShadow: `0 0 20px ${color}33` }}
+        >
+          <div
+            className="w-24 h-24 rounded-xl overflow-hidden flex-shrink-0 border-2"
+            style={{ borderColor: color + '66', background: color + '22' }}
+          >
+            {photoUrl && !imgErr ? (
+              <img src={photoUrl} alt={drv.nome} className="w-full h-full object-cover object-top" onError={() => setImgErr(true)} />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                <span className="text-2xl font-black" style={{ color }}>{drv.codigo}</span>
+              </div>
+            )}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-white font-black text-xl leading-tight">{drv.nome}</div>
+            <div className="text-sm font-bold mt-1" style={{ color }}>{drv.equipa}</div>
+            <div
+              className="mt-2 inline-block px-2 py-0.5 rounded text-xs font-black text-white"
+              style={{ background: color }}
+            >
+              ✓ Selecionado
+            </div>
+          </div>
+          <div className="w-1.5 self-stretch rounded-full flex-shrink-0" style={{ background: color }} />
+        </div>
+      )}
+      {value === 'NONE' && (
+        <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-gray-400 text-sm font-bold">
+          ✕ Nenhum piloto selecionado
+        </div>
+      )}
+    </div>
+  )
+}
+
 function QBox({ code, question, pts }: { code: string; question: string; pts: string }) {
   return (
     <div className="flex items-start gap-2 mb-4">
@@ -654,19 +726,19 @@ export default function PredictForm({
         {/* P9 — First to Retire */}
         <div className="card">
           <QBox code="P9" question={`Quem será o primeiro piloto, First to Retire no ${gpNameFull}?`} pts="3 pts" />
-          <PilotoSelect label="Piloto" value={form.p9_retire ?? ''} onChange={v => setField('p9_retire', v)} includeNone pilotos={gpPilotos} disabledCodes={gpDisabled} />
+          <PilotoSelectWithCard label="Piloto" value={form.p9_retire ?? ''} onChange={v => setField('p9_retire', v)} includeNone pilotos={gpPilotos} disabledCodes={gpDisabled} />
         </div>
 
         {/* P10 — Driver of the Day */}
         <div className="card">
           <QBox code="P10" question={`Quem será o piloto eleito 'Driver of the Day' no ${gpNameFull}?`} pts="2 pts" />
-          <PilotoSelect label="Piloto" value={form.p10_dotd ?? ''} onChange={v => setField('p10_dotd', v)} pilotos={gpPilotos} disabledCodes={gpDisabled} />
+          <PilotoSelectWithCard label="Piloto" value={form.p10_dotd ?? ''} onChange={v => setField('p10_dotd', v)} pilotos={gpPilotos} disabledCodes={gpDisabled} />
         </div>
 
         {/* P11 — Volta mais rápida */}
         <div className="card">
           <QBox code="P11" question={`Qual piloto fará a volta mais rápida no ${gpNameFull}?`} pts="1 pt" />
-          <PilotoSelect label="Piloto" value={form.p11_fl ?? ''} onChange={v => setField('p11_fl', v)} pilotos={gpPilotos} disabledCodes={gpDisabled} />
+          <PilotoSelectWithCard label="Piloto" value={form.p11_fl ?? ''} onChange={v => setField('p11_fl', v)} pilotos={gpPilotos} disabledCodes={gpDisabled} />
         </div>
 
         {/* P12 — Nº classificados */}
