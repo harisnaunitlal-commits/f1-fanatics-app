@@ -70,8 +70,8 @@ function DriverCard({
 
       {/* Name + team */}
       <div className="px-1.5 py-2 text-center w-full">
-        <div className="font-black text-xs text-white leading-tight truncate">{lastName}</div>
-        <div className="text-[9px] font-medium mt-0.5 truncate" style={{ color }}>{team}</div>
+        <div className="font-black text-sm sm:text-xs text-white leading-tight truncate">{lastName}</div>
+        <div className="text-[10px] sm:text-[9px] font-medium mt-0.5 truncate" style={{ color }}>{team}</div>
       </div>
     </button>
   )
@@ -99,19 +99,22 @@ function DuelSelector({
 }
 
 // ─── 5-Driver Grid Selector ────────────────────────────────────────────────────
+// Mobile: 2+3 layout (first 2 cards wider, last 3 smaller) using a 6-col grid
+// Desktop (sm+): standard 5-column row
 function DriverGrid({
   options, value, onChange,
 }: {
   options: DriverOption[]; value: string; onChange: (v: string) => void
 }) {
   return (
-    <div className="grid grid-cols-5 gap-2">
-      {options.map(d => (
-        <DriverCard
-          key={d.codigo}
-          codigo={d.codigo} name={d.nome} team={d.equipa} color={d.color}
-          selected={value === d.codigo} onClick={() => onChange(d.codigo)}
-        />
+    <div className="grid grid-cols-6 sm:grid-cols-5 gap-2">
+      {options.map((d, i) => (
+        <div key={d.codigo} className={i < 2 ? 'col-span-3 sm:col-span-1' : 'col-span-2 sm:col-span-1'}>
+          <DriverCard
+            codigo={d.codigo} name={d.nome} team={d.equipa} color={d.color}
+            selected={value === d.codigo} onClick={() => onChange(d.codigo)}
+          />
+        </div>
       ))}
     </div>
   )
