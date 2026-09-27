@@ -225,13 +225,15 @@ function P1GridSlot({
 
 // ─── Piloto Select + Card de foto ─────────────────────────────────────────────
 function PilotoSelectWithCard({
-  label, value, onChange, includeNone = false, pilotos, disabledCodes = [], badgeImg,
+  label, value, onChange, includeNone = false, pilotos, disabledCodes = [], badgeImg, badgeText, badgeTextColor,
 }: {
   label: string; value: string; onChange: (v: string) => void
   includeNone?: boolean
   pilotos?: { codigo: string; nome: string; equipa: string }[]
   disabledCodes?: string[]
   badgeImg?: string
+  badgeText?: string
+  badgeTextColor?: string
 }) {
   const [imgErr, setImgErr] = useState(false)
   const list = pilotos ?? PILOTOS_2026
@@ -286,6 +288,13 @@ function PilotoSelectWithCard({
           </div>
           {badgeImg && (
             <img src={badgeImg} alt="badge" className="w-20 h-20 object-contain flex-shrink-0 drop-shadow-lg" />
+          )}
+          {badgeText && !badgeImg && (
+            <div className="flex-shrink-0 text-center px-1">
+              {badgeText.split(' ').map((word, i) => (
+                <div key={i} className="font-black text-sm uppercase leading-tight tracking-wider" style={{ color: badgeTextColor ?? '#fff' }}>{word}</div>
+              ))}
+            </div>
           )}
           <div className="w-1.5 self-stretch rounded-full flex-shrink-0" style={{ background: color }} />
         </div>
@@ -730,13 +739,13 @@ export default function PredictForm({
         {/* P9 — First to Retire */}
         <div className="card">
           <QBox code="P9" question={`Quem será o primeiro piloto, First to Retire no ${gpNameFull}?`} pts="3 pts" />
-          <PilotoSelectWithCard label="Piloto" value={form.p9_retire ?? ''} onChange={v => setField('p9_retire', v)} includeNone pilotos={gpPilotos} disabledCodes={gpDisabled} badgeImg="/logos/first-to-retire.webp" />
+          <PilotoSelectWithCard label="Piloto" value={form.p9_retire ?? ''} onChange={v => setField('p9_retire', v)} includeNone pilotos={gpPilotos} disabledCodes={gpDisabled} badgeText="FIRST TO RETIRE" badgeTextColor="#ef4444" />
         </div>
 
         {/* P10 — Driver of the Day */}
         <div className="card">
           <QBox code="P10" question={`Quem será o piloto eleito 'Driver of the Day' no ${gpNameFull}?`} pts="2 pts" />
-          <PilotoSelectWithCard label="Piloto" value={form.p10_dotd ?? ''} onChange={v => setField('p10_dotd', v)} pilotos={gpPilotos} disabledCodes={gpDisabled} />
+          <PilotoSelectWithCard label="Piloto" value={form.p10_dotd ?? ''} onChange={v => setField('p10_dotd', v)} pilotos={gpPilotos} disabledCodes={gpDisabled} badgeImg="/logos/driver-of-the-day.jpg" />
         </div>
 
         {/* P11 — Volta mais rápida */}
