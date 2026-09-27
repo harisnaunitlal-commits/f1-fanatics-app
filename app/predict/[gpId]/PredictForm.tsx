@@ -168,7 +168,7 @@ function P1GridSlot({
       style={{
         borderColor: isPole ? 'rgba(250,204,21,0.5)' : drv ? color + '55' : 'rgba(255,255,255,0.1)',
         background: isPole ? 'rgba(250,204,21,0.05)' : drv ? color + '11' : 'rgba(0,0,0,0.5)',
-        minHeight: 72,
+        minHeight: 90,
       }}
     >
       {/* Invisible select overlay — clicking anywhere on the box opens the picker */}
@@ -197,27 +197,27 @@ function P1GridSlot({
         {isPole && <span className="text-[8px] font-black text-yellow-400/60 uppercase tracking-widest">Pole</span>}
       </div>
       {drv ? (
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-2.5">
           <div
-            className="w-9 h-9 rounded-md overflow-hidden flex-shrink-0 border"
-            style={{ borderColor: color + '55', background: color + '18' }}
+            className="w-14 h-14 rounded-lg overflow-hidden flex-shrink-0 border-2"
+            style={{ borderColor: color + '88', background: color + '18' }}
           >
             {photoUrl && !imgErr ? (
               <img src={photoUrl} alt={drv.nome} className="w-full h-full object-cover object-top" onError={() => setImgErr(true)} />
             ) : (
               <div className="w-full h-full flex items-center justify-center">
-                <span className="text-[10px] font-black" style={{ color }}>{drv.codigo}</span>
+                <span className="text-xs font-black" style={{ color }}>{drv.codigo}</span>
               </div>
             )}
           </div>
           <div className="flex-1 min-w-0">
-            <div className="text-[11px] font-bold text-white truncate leading-tight">{lastName}</div>
-            <div className="text-[9px] truncate" style={{ color: color + 'bb' }}>{drv.equipa}</div>
-            <div className="text-[9px] text-gray-600 mt-0.5">toca para alterar ↓</div>
+            <div className="text-sm font-bold text-white truncate leading-tight">{lastName}</div>
+            <div className="text-[10px] truncate mt-0.5" style={{ color: color + 'cc' }}>{drv.equipa}</div>
+            <div className="text-[9px] text-gray-600 mt-1">toca para alterar ↓</div>
           </div>
         </div>
       ) : (
-        <div className="text-[11px] text-gray-500 italic">Toca para selecionar...</div>
+        <div className="text-xs text-gray-500 italic">Toca para selecionar...</div>
       )}
     </div>
   )
@@ -488,7 +488,7 @@ export default function PredictForm({
           return (
             <div className="card overflow-hidden p-0">
               {/* GP Background Banner */}
-              <div className="relative overflow-hidden" style={{ minHeight: 120 }}>
+              <div className="relative overflow-hidden" style={{ minHeight: 200 }}>
                 {bgUrl ? (
                   <img
                     src={bgUrl}
