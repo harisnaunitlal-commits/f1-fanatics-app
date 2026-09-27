@@ -523,8 +523,8 @@ export default function PredictForm({
                     </div>
                   </div>
                   {/* Pergunta */}
-                  <div className="bg-black/50 backdrop-blur-sm rounded-lg px-3 py-2 border border-white/10">
-                    <p className="text-white/90 text-sm font-medium">
+                  <div className="bg-yellow-400 rounded-lg px-3 py-2">
+                    <p className="text-black text-sm font-black">
                       Qual é a sua previsão para os 6 primeiros classificados do {gpNameFull}?
                     </p>
                   </div>
