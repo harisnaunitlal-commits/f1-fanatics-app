@@ -568,12 +568,35 @@ export default function PredictForm({
         {/* P2 — 2ª / 3ª Equipa */}
         <div className="card">
           <QBox code="P2" question={config?.p2Label ?? `Qual será a segunda equipa, que vai pontuar mais no ${gpNameFull}?`} pts="1 pt" />
-          <div>
-            <label className="label">Equipa</label>
-            <select className="select" value={form.p2_equipa ?? ''} onChange={e => setField('p2_equipa', e.target.value)}>
-              <option value="">Selecciona...</option>
-              {EQUIPAS_2026.map(eq => <option key={eq} value={eq}>{eq}</option>)}
-            </select>
+          <div className="grid grid-cols-2 gap-2">
+            {EQUIPAS_2026.map(eq => {
+              const color = TEAM_COLORS[eq] ?? '#555'
+              const isSelected = form.p2_equipa === eq
+              // Use black text for light-coloured teams
+              const lightTeams = ['McLaren', 'Haas', 'Alpine', 'Williams', 'Audi', 'Mercedes']
+              const textColor = lightTeams.includes(eq) ? '#000' : '#fff'
+              return (
+                <button
+                  key={eq}
+                  type="button"
+                  onClick={() => setField('p2_equipa', eq)}
+                  className="relative rounded-xl px-3 py-3 font-black text-sm uppercase tracking-wide transition-all duration-200 overflow-hidden"
+                  style={{
+                    background: color,
+                    color: textColor,
+                    outline: isSelected ? `3px solid #fff` : '3px solid transparent',
+                    outlineOffset: '2px',
+                    boxShadow: isSelected ? `0 0 18px ${color}aa` : 'none',
+                    transform: isSelected ? 'scale(1.03)' : 'scale(1)',
+                  }}
+                >
+                  {isSelected && (
+                    <span className="absolute top-1.5 right-2 text-xs font-black opacity-80">✓</span>
+                  )}
+                  {eq}
+                </button>
+              )
+            })}
           </div>
         </div>
 
