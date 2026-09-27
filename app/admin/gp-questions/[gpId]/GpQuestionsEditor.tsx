@@ -138,7 +138,17 @@ export default function GpQuestionsEditor({
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState('')
 
+  // Detect drivers that appear in both P13 and P15
+  const p13Codes = new Set(config.p13Options.map(o => o.codigo))
+  const duplicateDrivers = config.p15Options
+    .filter(o => p13Codes.has(o.codigo))
+    .map(o => o.nome)
+
   async function handleSave() {
+    if (duplicateDrivers.length > 0) {
+      setError(`Piloto(s) duplicado(s) em P13 e P15: ${duplicateDrivers.join(', ')}. Cada piloto só pode aparecer numa pergunta especial.`)
+      return
+    }
     setLoading(true); setError(''); setSuccess(false)
     const res = await fetch('/api/admin/save-gp-questions', {
       method: 'POST',
@@ -209,6 +219,15 @@ export default function GpQuestionsEditor({
         onLabelChange={v => setConfig(c => ({ ...c, p15Label: v }))}
         onOptionsChange={opts => setConfig(c => ({ ...c, p15Options: opts }))}
       />
+
+      {duplicateDrivers.length > 0 && (
+        <div className="bg-yellow-900/30 border border-yellow-500/40 rounded-lg px-4 py-3">
+          <p className="text-yellow-400 font-bold text-sm mb-1">⚠️ Piloto duplicado em P13 e P15</p>
+          <p className="text-yellow-300 text-xs">
+            {duplicateDrivers.join(', ')} aparece nas duas perguntas especiais. Corrige antes de guardar.
+          </p>
+        </div>
+      )}
 
       {error && <p className="text-red-400 bg-red-900/20 rounded-lg px-4 py-3">⚠️ {error}</p>}
 
