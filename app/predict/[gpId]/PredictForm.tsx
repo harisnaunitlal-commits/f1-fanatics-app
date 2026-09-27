@@ -751,7 +751,7 @@ export default function PredictForm({
         {/* P11 — Volta mais rápida */}
         <div className="card">
           <QBox code="P11" question={`Qual piloto fará a volta mais rápida no ${gpNameFull}?`} pts="1 pt" />
-          <PilotoSelectWithCard label="Piloto" value={form.p11_fl ?? ''} onChange={v => setField('p11_fl', v)} pilotos={gpPilotos} disabledCodes={gpDisabled} />
+          <PilotoSelectWithCard label="Piloto" value={form.p11_fl ?? ''} onChange={v => setField('p11_fl', v)} pilotos={gpPilotos} disabledCodes={gpDisabled} badgeText="FASTEST LAP" badgeTextColor="#a855f7" />
         </div>
 
         {/* P12 — Nº classificados */}
