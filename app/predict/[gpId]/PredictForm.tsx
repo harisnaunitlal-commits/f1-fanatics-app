@@ -743,7 +743,7 @@ export default function PredictForm({
 
         {/* P8 — Margem de vitória */}
         <div className="card">
-          <QBox code="P8" question="Qual será a margem de victória, do prímeiro a cruzar a linha de chegada?" pts="1 pt" />
+          <QBox code="P8" question="Qual será a margem de victória, do prímeiro a cruzar a linha de chegada? (em segundos)" pts="1 pt" />
           <div className="grid grid-cols-2 gap-2">
             {P8_MARGENS.map(m => {
               const isSelected = form.p8_margem === m
@@ -762,7 +762,7 @@ export default function PredictForm({
                     transform: isSelected ? 'scale(1.04)' : 'scale(1)',
                   }}
                 >
-                  {m}
+                  {m.replace(/s$/i, '')}
                 </button>
               )
             })}
