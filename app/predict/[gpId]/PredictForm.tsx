@@ -699,11 +699,11 @@ export default function PredictForm({
                   onClick={() => setField('p3_lap', o)}
                   className={`font-black text-sm uppercase tracking-wide transition-all duration-200 ${isNum ? 'w-12 h-12 rounded-full flex items-center justify-center text-base' : 'px-4 h-12 rounded-full'}`}
                   style={{
-                    background: isSelected ? '#facc15' : 'rgba(255,255,255,0.07)',
+                    background: isSelected ? '#fff' : 'rgba(255,255,255,0.07)',
                     color: isSelected ? '#000' : '#ccc',
-                    outline: isSelected ? '2px solid #facc15' : '2px solid transparent',
+                    outline: isSelected ? '3px solid #22c55e' : '2px solid rgba(255,255,255,0.15)',
                     outlineOffset: '2px',
-                    boxShadow: isSelected ? '0 0 16px #facc1566' : 'none',
+                    boxShadow: isSelected ? '0 0 14px #22c55e55' : 'none',
                     transform: isSelected ? 'scale(1.08)' : 'scale(1)',
                   }}
                 >
