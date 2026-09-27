@@ -748,12 +748,18 @@ export default function PredictForm({
             {P8_MARGENS.map(m => {
               const isSelected = form.p8_margem === m
               const label = m.replace(/s$/i, '')
+              const renderLabel = (s: string) =>
+                s.split(/(\.\d+)/).map((part, i) =>
+                  /^\.\d+$/.test(part)
+                    ? <span key={i} style={{ fontSize: '0.6em', verticalAlign: 'middle', opacity: 0.8 }}>{part}</span>
+                    : <span key={i}>{part}</span>
+                )
               return (
                 <button
                   key={m}
                   type="button"
                   onClick={() => setField('p8_margem', m)}
-                  className="font-black text-sm uppercase tracking-wide transition-all duration-200 h-14 rounded-full px-5 flex items-center justify-center"
+                  className="font-black text-sm tracking-wide transition-all duration-200 h-14 rounded-full px-5 flex items-center justify-center"
                   style={{
                     background: isSelected ? '#fff' : 'rgba(255,255,255,0.07)',
                     color: isSelected ? '#000' : '#ccc',
@@ -763,7 +769,7 @@ export default function PredictForm({
                     transform: isSelected ? 'scale(1.08)' : 'scale(1)',
                   }}
                 >
-                  {label}
+                  {renderLabel(label)}
                 </button>
               )
             })}
