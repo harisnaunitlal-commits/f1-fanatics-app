@@ -790,12 +790,29 @@ export default function PredictForm({
         {/* P12 — Nº classificados */}
         <div className="card">
           <QBox code="P12" question={`Quantos pilotos classificados, terminaram a corrida no ${gpNameFull}?`} pts="1 pt" />
-          <div>
-            <label className="label">Número de classificados</label>
-            <select className="select" value={form.p12_classif ?? ''} onChange={e => setField('p12_classif', e.target.value)}>
-              <option value="">Selecciona...</option>
-              {P12_OPTIONS.map(o => <option key={o} value={o}>{o}</option>)}
-            </select>
+          <div className="flex flex-wrap gap-2">
+            {P12_OPTIONS.map(o => {
+              const isNum = /^\d+$/.test(o)
+              const isSelected = form.p12_classif === o
+              return (
+                <button
+                  key={o}
+                  type="button"
+                  onClick={() => setField('p12_classif', o)}
+                  className={`font-black text-sm uppercase tracking-wide transition-all duration-200 ${isNum ? 'w-14 h-14 rounded-full flex items-center justify-center text-base' : 'px-4 h-14 rounded-full'}`}
+                  style={{
+                    background: isSelected ? '#fff' : 'rgba(255,255,255,0.07)',
+                    color: isSelected ? '#000' : '#ccc',
+                    outline: isSelected ? '3px solid #22c55e' : '2px solid rgba(255,255,255,0.15)',
+                    outlineOffset: '2px',
+                    boxShadow: isSelected ? '0 0 14px #22c55e55' : 'none',
+                    transform: isSelected ? 'scale(1.08)' : 'scale(1)',
+                  }}
+                >
+                  {o}
+                </button>
+              )
+            })}
           </div>
         </div>
 
