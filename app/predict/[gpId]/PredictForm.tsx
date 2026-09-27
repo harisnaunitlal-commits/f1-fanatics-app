@@ -225,12 +225,13 @@ function P1GridSlot({
 
 // ─── Piloto Select + Card de foto ─────────────────────────────────────────────
 function PilotoSelectWithCard({
-  label, value, onChange, includeNone = false, pilotos, disabledCodes = [],
+  label, value, onChange, includeNone = false, pilotos, disabledCodes = [], badgeImg,
 }: {
   label: string; value: string; onChange: (v: string) => void
   includeNone?: boolean
   pilotos?: { codigo: string; nome: string; equipa: string }[]
   disabledCodes?: string[]
+  badgeImg?: string
 }) {
   const [imgErr, setImgErr] = useState(false)
   const list = pilotos ?? PILOTOS_2026
@@ -283,6 +284,9 @@ function PilotoSelectWithCard({
               ✓ Selecionado
             </div>
           </div>
+          {badgeImg && (
+            <img src={badgeImg} alt="badge" className="w-20 h-20 object-contain flex-shrink-0 drop-shadow-lg" />
+          )}
           <div className="w-1.5 self-stretch rounded-full flex-shrink-0" style={{ background: color }} />
         </div>
       )}
@@ -726,7 +730,7 @@ export default function PredictForm({
         {/* P9 — First to Retire */}
         <div className="card">
           <QBox code="P9" question={`Quem será o primeiro piloto, First to Retire no ${gpNameFull}?`} pts="3 pts" />
-          <PilotoSelectWithCard label="Piloto" value={form.p9_retire ?? ''} onChange={v => setField('p9_retire', v)} includeNone pilotos={gpPilotos} disabledCodes={gpDisabled} />
+          <PilotoSelectWithCard label="Piloto" value={form.p9_retire ?? ''} onChange={v => setField('p9_retire', v)} includeNone pilotos={gpPilotos} disabledCodes={gpDisabled} badgeImg="/logos/first-to-retire.webp" />
         </div>
 
         {/* P10 — Driver of the Day */}
