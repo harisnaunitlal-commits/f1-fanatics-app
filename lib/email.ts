@@ -27,8 +27,16 @@ const FIELD_LABELS: Record<string, string> = {
   p15_outsider: 'P15 · Outsider',
 }
 
+const LOGO_URL = 'https://app.beiraf1fanatics.com/logos/beira-f1.png'
+
 // ─── Base HTML wrapper ─────────────────────────────────────────────────────────
-function baseHtml(content: string): string {
+function baseHtml(content: string, useLogo = false): string {
+  const headerIcon = useLogo
+    ? `<div style="margin-bottom:14px;display:inline-block;background:#fff;border-radius:50%;width:80px;height:80px;overflow:hidden;line-height:80px;border:3px solid #e10600;box-shadow:0 0 0 3px #1a0000;">
+        <img src="${LOGO_URL}" width="72" height="72" alt="Beira F1 Fanatics" style="display:block;border-radius:50%;">
+       </div>`
+    : `<div style="font-size:32px;margin-bottom:8px;">🏎️</div>`
+
   return `<!DOCTYPE html>
 <html lang="pt">
 <head>
@@ -43,7 +51,7 @@ function baseHtml(content: string): string {
         <!-- Header -->
         <tr>
           <td style="background:#111;border-radius:16px 16px 0 0;padding:28px 32px;text-align:center;border-bottom:3px solid #e10600;">
-            <div style="font-size:32px;margin-bottom:8px;">🏎️</div>
+            ${headerIcon}
             <div style="color:#e10600;font-size:22px;font-weight:900;letter-spacing:1px;">BEIRA F1 FANATICS</div>
             <div style="color:#6b7280;font-size:12px;margin-top:4px;">Beira, Moçambique · Temporada 2026</div>
           </td>
@@ -308,22 +316,30 @@ export async function sendBirthdayEmail({
 
   const html = baseHtml(`
     <!-- Birthday header -->
-    <div style="text-align:center;margin-bottom:28px;">
-      <div style="font-size:52px;margin-bottom:12px;line-height:1;">🎂</div>
-      <div style="background:linear-gradient(135deg,#7f0000,#e10600,#ff6b35);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-size:32px;font-weight:900;letter-spacing:1px;line-height:1.1;">
+    <div style="text-align:center;margin-bottom:20px;">
+      <div style="font-size:52px;margin-bottom:10px;line-height:1;">🎂</div>
+      <div style="background:linear-gradient(135deg,#7f0000,#e10600,#ff6b35);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-size:34px;font-weight:900;letter-spacing:2px;line-height:1.1;">
         PARABÉNS!
       </div>
-      <div style="color:#fbbf24;font-size:22px;font-weight:900;margin-top:6px;">${toName}! 🏎️</div>
+      <div style="color:#fbbf24;font-size:24px;font-weight:900;margin-top:8px;">${toName}! 🏎️</div>
       ${idadeStr ? `<div style="color:#6b7280;font-size:14px;margin-top:6px;">${idadeStr} de grandes momentos</div>` : ''}
     </div>
 
+    <!-- FELIZ ANIVERSÁRIO destaque -->
+    <div style="background:#1a0000;border:2px solid #e10600;border-radius:14px;padding:18px 24px;text-align:center;margin-bottom:22px;">
+      <div style="font-size:20px;margin-bottom:6px;">🎉 🏁 🎉</div>
+      <div style="color:#fbbf24;font-size:26px;font-weight:900;letter-spacing:3px;text-shadow:0 2px 8px rgba(251,191,36,0.3);">
+        FELIZ ANIVERSÁRIO!
+      </div>
+    </div>
+
     <!-- Celebration banner -->
-    <div style="background:linear-gradient(135deg,#1a0000,#1e1a00,#0f1f0f);border:2px solid #fbbf24;border-radius:16px;padding:24px;text-align:center;margin-bottom:24px;">
-      <div style="font-size:24px;margin-bottom:10px;">🎉 ✨ 🏁 ✨ 🎉</div>
+    <div style="background:linear-gradient(135deg,#1a0000,#1e1a00,#0f1f0f);border:2px solid #fbbf2466;border-radius:16px;padding:22px;text-align:center;margin-bottom:24px;">
+      <div style="font-size:22px;margin-bottom:10px;">✨ 🎊 ✨ 🎊 ✨</div>
       <p style="color:#f9fafb;font-size:15px;font-weight:700;margin:0 0 8px;">
         De toda a Comunidade Beira F1 Fanatics,
       </p>
-      <p style="color:#d1d5db;font-size:14px;margin:0;line-height:1.6;">
+      <p style="color:#d1d5db;font-size:14px;margin:0;line-height:1.65;">
         desejamos-te um feliz aniversário cheio de velocidade,<br>
         adrenalina e muitos pódios esta temporada!
       </p>
@@ -366,7 +382,7 @@ export async function sendBirthdayEmail({
         🏎️ Entrar na liga →
       </a>
     </div>
-  `)
+  `, true)
 
   return getResend().emails.send({
     from: FROM,
