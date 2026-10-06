@@ -1,0 +1,947 @@
+
+<title>Beira F1 Fanatics 2026</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap">
+<style>
+  /* ── Layout: single-column doc, max 860px, sidebar nav on desktop ── */
+  :root {
+    --bg:       #0c0c0e;
+    --surface:  #131316;
+    --card:     #1a1a1f;
+    --border:   rgba(255,255,255,0.08);
+    --red:      #e10600;
+    --red-dim:  rgba(225,6,0,0.15);
+    --gold:     #f5c518;
+    --green:    #22c55e;
+    --blue:     #3b82f6;
+    --fg:       #f0f0f2;
+    --muted:    #8b8b99;
+    --tag-bg:   rgba(255,255,255,0.07);
+    color-scheme: dark;
+  }
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      --bg:      #f5f5f7;
+      --surface: #ffffff;
+      --card:    #fafafa;
+      --border:  rgba(0,0,0,0.1);
+      --fg:      #0f0f12;
+      --muted:   #66666f;
+      --tag-bg:  rgba(0,0,0,0.06);
+      color-scheme: light;
+    }
+  }
+  :root[data-theme="light"] {
+    --bg:      #f5f5f7;
+    --surface: #ffffff;
+    --card:    #fafafa;
+    --border:  rgba(0,0,0,0.1);
+    --fg:      #0f0f12;
+    --muted:   #66666f;
+    --tag-bg:  rgba(0,0,0,0.06);
+    color-scheme: light;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'DM Sans', system-ui, sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    padding-inline: 16px;
+  }
+
+  .page {
+    max-width: 860px;
+    margin-inline: auto;
+    padding-block: 48px 80px;
+  }
+
+  /* ── Cover ── */
+  .cover {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 40px;
+    margin-bottom: 48px;
+  }
+  .cover-eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: .14em;
+    color: var(--red);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .cover-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: clamp(40px, 8vw, 72px);
+    font-weight: 900;
+    line-height: 1;
+    letter-spacing: -.01em;
+    text-wrap: balance;
+    margin-bottom: 16px;
+  }
+  .cover-title span { color: var(--red); }
+  .cover-sub {
+    font-size: 16px;
+    color: var(--muted);
+    max-width: 540px;
+    margin-bottom: 28px;
+  }
+  .cover-stats {
+    display: flex;
+    gap: 32px;
+    flex-wrap: wrap;
+  }
+  .stat-item { display: flex; flex-direction: column; gap: 2px; }
+  .stat-num {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--red);
+    font-variant-numeric: tabular-nums;
+  }
+  .stat-label { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+
+  /* ── Section ── */
+  .section { margin-bottom: 56px; }
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .section-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--red);
+    letter-spacing: .12em;
+  }
+  .section-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 26px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    text-wrap: balance;
+  }
+  .divider {
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ── Cards & grids ── */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+  }
+  .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
+
+  /* ── Tech stack ── */
+  .tech-item {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .tech-icon { font-size: 22px; margin-bottom: 4px; }
+  .tech-name { font-weight: 600; font-size: 14px; }
+  .tech-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+  /* ── Feature list ── */
+  .feature-list { display: flex; flex-direction: column; gap: 8px; }
+  .feature-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  .feature-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+  .feature-name { font-weight: 600; font-size: 14px; }
+  .feature-desc { font-size: 13px; color: var(--muted); }
+
+  /* ── Questions table ── */
+  .q-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .q-table thead th {
+    text-align: left;
+    padding: 8px 12px;
+    font-size: 11px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+  }
+  .q-table tbody tr { border-bottom: 1px solid var(--border); }
+  .q-table tbody tr:last-child { border-bottom: none; }
+  .q-table tbody td { padding: 10px 12px; vertical-align: top; }
+  .q-code {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    background: var(--red-dim);
+    color: var(--red);
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-weight: 500;
+  }
+  .pts-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 14px;
+    font-weight: 800;
+    background: var(--tag-bg);
+    color: var(--gold);
+    padding: 1px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+
+  /* ── Admin workflow ── */
+  .workflow { display: flex; flex-direction: column; gap: 4px; }
+  .workflow-step {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .workflow-step:last-child { border-bottom: none; }
+  .step-num {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--red);
+    min-width: 28px;
+    font-variant-numeric: tabular-nums;
+  }
+  .step-content { flex: 1; }
+  .step-title { font-weight: 600; font-size: 14px; margin-bottom: 2px; }
+  .step-desc { font-size: 13px; color: var(--muted); }
+  .step-path {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    background: var(--tag-bg);
+    color: var(--muted);
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-top: 4px;
+    display: inline-block;
+  }
+
+  /* ── Changelog ── */
+  .changelog { display: flex; flex-direction: column; gap: 0; position: relative; }
+  .changelog::before {
+    content: '';
+    position: absolute;
+    left: 18px;
+    top: 8px;
+    bottom: 8px;
+    width: 1px;
+    background: var(--border);
+  }
+  .log-entry { display: flex; gap: 20px; padding-bottom: 28px; position: relative; }
+  .log-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--red);
+    border: 2px solid var(--bg);
+    flex-shrink: 0;
+    margin-top: 5px;
+    position: relative;
+    z-index: 1;
+    box-shadow: 0 0 0 3px var(--red-dim);
+  }
+  .log-dot.minor { background: var(--muted); box-shadow: none; }
+  .log-body { flex: 1; }
+  .log-date {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 4px;
+    letter-spacing: .06em;
+  }
+  .log-title { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
+  .log-items { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 3px; }
+  .log-items li { font-size: 13px; color: var(--muted); display: flex; gap: 8px; }
+  .log-items li::before { content: '—'; color: var(--red); flex-shrink: 0; }
+
+  /* ── Tags / badges ── */
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    padding: 2px 9px;
+    border-radius: 100px;
+    background: var(--tag-bg);
+    color: var(--muted);
+  }
+  .tag.red { background: var(--red-dim); color: var(--red); }
+  .tag.green { background: rgba(34,197,94,.12); color: var(--green); }
+  .tag.blue { background: rgba(59,130,246,.12); color: var(--blue); }
+
+  /* ── DB table ── */
+  .db-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 8px;
+  }
+  .db-item {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+  }
+  .db-name {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--green);
+    margin-bottom: 4px;
+  }
+  .db-desc { font-size: 12px; color: var(--muted); }
+
+  /* ── Leagues ── */
+  .leagues { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+  .league-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    border-top: 3px solid var(--red);
+  }
+  .league-card.blue-top { border-top-color: var(--blue); }
+  .league-card.green-top { border-top-color: var(--green); }
+  .league-name {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 20px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    margin-bottom: 6px;
+  }
+  .league-desc { font-size: 13px; color: var(--muted); line-height: 1.5; }
+
+  /* ── Util ── */
+  p { margin-bottom: 12px; }
+  p:last-child { margin-bottom: 0; }
+  strong { font-weight: 600; }
+  a { color: var(--red); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  .mt-4 { margin-top: 16px; }
+  .mt-6 { margin-top: 24px; }
+  .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+  .spacer { flex: 1; }
+
+  /* ── Print-style footer ── */
+  .footer {
+    margin-top: 64px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+</style>
+
+<div class="page">
+
+  <!-- ══ COVER ══════════════════════════════════════════════════════════════ -->
+  <header class="cover">
+    <div class="cover-eyebrow">📋 Projecto Booklet · Outubro 2026</div>
+    <h1 class="cover-title">Beira <span>F1</span> Fanatics<br>2026</h1>
+    <p class="cover-sub">Plataforma de previsões e fantasy F1 da comunidade de Beira, Moçambique. Compila as três ligas da comunidade — F1 Play, F1 Fantasy e F1 Predict — numa só plataforma.</p>
+    <div class="cover-stats">
+      <div class="stat-item">
+        <div class="stat-num">35+</div>
+        <div class="stat-label">Membros</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">3</div>
+        <div class="stat-label">Ligas</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">24</div>
+        <div class="stat-label">GPs / época</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">15</div>
+        <div class="stat-label">Perguntas / GP</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ══ 1. VISÃO GERAL ══════════════════════════════════════════════════════ -->
+  <section class="section">
+    <div class="section-header">
+      <span class="section-num">01</span>
+      <h2 class="section-title">Visão Geral</h2>
+      <div class="divider"></div>
+    </div>
+
+    <p>A plataforma <strong>Beira F1 Fanatics 2026</strong> foi criada para centralizar e digitalizar as três ligas que a comunidade F1 de Beira já jogava manualmente. A app permite que cada membro faça as suas previsões antes de cada GP, veja os resultados e acompanhe o ranking da temporada em tempo real.</p>
+
+    <div class="leagues mt-6">
+      <div class="league-card">
+        <div class="league-name">🏁 F1 Play</div>
+        <div class="league-desc">Liga principal da comunidade. 15 perguntas por GP com pontos variáveis (1–3 pts). Pontuação calculada automaticamente pela plataforma.</div>
+      </div>
+      <div class="league-card blue-top">
+        <div class="league-name">🏅 F1 Fantasy</div>
+        <div class="league-desc">Liga oficial do site Formula1.com. Pontos importados manualmente pelo admin após cada GP.</div>
+      </div>
+      <div class="league-card green-top">
+        <div class="league-name">📊 F1 Predict</div>
+        <div class="league-desc">Liga do site oficial F1 Predict. Pontos GP e acumulados importados após cada corrida.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ 2. STACK TÉCNICA ═══════════════════════════════════════════════════ -->
+  <section class="section">
+    <div class="section-header">
+      <span class="section-num">02</span>
+      <h2 class="section-title">Stack Técnica</h2>
+      <div class="divider"></div>
+    </div>
+
+    <div class="grid-3">
+      <div class="tech-item">
+        <div class="tech-icon">⚡</div>
+        <div class="tech-name">Next.js 14</div>
+        <div class="tech-desc">App Router com SSR e componentes server-side. <code>export const dynamic = 'force-dynamic'</code> em todas as páginas com dados em tempo real.</div>
+      </div>
+      <div class="tech-item">
+        <div class="tech-icon">🗄️</div>
+        <div class="tech-name">Supabase</div>
+        <div class="tech-desc">PostgreSQL + Autenticação (email/password + OAuth Google). Row Level Security desactivado, lógica de acesso no servidor.</div>
+      </div>
+      <div class="tech-item">
+        <div class="tech-icon">🚀</div>
+        <div class="tech-name">Vercel</div>
+        <div class="tech-desc">Deploy automático a partir de cada push para a branch <code>main</code> no GitHub. HTTPS incluído.</div>
+      </div>
+      <div class="tech-item">
+        <div class="tech-icon">🎨</div>
+        <div class="tech-name">Tailwind CSS</div>
+        <div class="tech-desc">Utilitários de estilo com tema escuro F1. Classes customizadas como <code>btn-primary</code>, <code>card</code>, <code>input</code>.</div>
+      </div>
+      <div class="tech-item">
+        <div class="tech-icon">🔷</div>
+        <div class="tech-name">TypeScript</div>
+        <div class="tech-desc">Tipagem completa dos modelos de dados Supabase. Tipos centralizados em <code>lib/supabase/types.ts</code>.</div>
+      </div>
+      <div class="tech-item">
+        <div class="tech-icon">📱</div>
+        <div class="tech-name">PWA</div>
+        <div class="tech-desc">Service worker com cache offline. Instalável no telemóvel (Add to Home Screen). Página <code>/instalar</code> com instruções.</div>
+      </div>
+    </div>
+
+    <div class="mt-6">
+      <div class="card">
+        <div style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;font-weight:600;">Base de Dados — Tabelas Principais</div>
+        <div class="db-grid">
+          <div class="db-item">
+            <div class="db-name">members</div>
+            <div class="db-desc">Perfil, nicks Fantasy/Predict, foto, admin flag</div>
+          </div>
+          <div class="db-item">
+            <div class="db-name">gp_calendar</div>
+            <div class="db-desc">Calendário 2026: datas, status, qualifying_start, flags</div>
+          </div>
+          <div class="db-item">
+            <div class="db-name">gp_questions</div>
+            <div class="db-desc">Configuração das 15 perguntas por GP (duelos, opções)</div>
+          </div>
+          <div class="db-item">
+            <div class="db-name">predictions</div>
+            <div class="db-desc">Previsões de cada membro por GP (P1–P15)</div>
+          </div>
+          <div class="db-item">
+            <div class="db-name">gp_answers</div>
+            <div class="db-desc">Respostas correctas de cada GP (entradas pelo admin)</div>
+          </div>
+          <div class="db-item">
+            <div class="db-name">scores_play</div>
+            <div class="db-desc">Pontos F1 Play calculados por pergunta por membro</div>
+          </div>
+          <div class="db-item">
+            <div class="db-name">scores_fantasy</div>
+            <div class="db-desc">Pontos GP e acumulados Fantasy por membro</div>
+          </div>
+          <div class="db-item">
+            <div class="db-name">scores_predict</div>
+            <div class="db-desc">Pontos GP e acumulados F1 Predict por membro</div>
+          </div>
+          <div class="db-item">
+            <div class="db-name">global_ranking</div>
+            <div class="db-desc">Ranking global combinado (Play + Fantasy + Predict)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ 3. FUNCIONALIDADES ═════════════════════════════════════════════════ -->
+  <section class="section">
+    <div class="section-header">
+      <span class="section-num">03</span>
+      <h2 class="section-title">Funcionalidades</h2>
+      <div class="divider"></div>
+    </div>
+
+    <div class="feature-list">
+      <div class="feature-row">
+        <div class="feature-icon">🏠</div>
+        <div>
+          <div class="feature-name">Homepage dinâmica</div>
+          <div class="feature-desc">Próximo GP com countdown ao vivo. Top 3 do último GP por liga. Schedule do fim-de-semana. Botão de acesso rápido às previsões.</div>
+        </div>
+      </div>
+      <div class="feature-row">
+        <div class="feature-icon">📝</div>
+        <div>
+          <div class="feature-name">Formulário de Previsões (F1 Play)</div>
+          <div class="feature-desc">15 perguntas configuráveis por GP. Selectores visuais tipo pill/círculo com borda verde ao seleccionar. Badges de sticker nas perguntas P9, P10, P11. Fechado automaticamente pela hora do Qualifying.</div>
+        </div>
+      </div>
+      <div class="feature-row">
+        <div class="feature-icon">🏆</div>
+        <div>
+          <div class="feature-name">Rankings em tempo real</div>
+          <div class="feature-desc">Ranking F1 Play, F1 Fantasy, F1 Predict e Ranking Global (combinação das 3 ligas). Filtro por GP ou Overall.</div>
+        </div>
+      </div>
+      <div class="feature-row">
+        <div class="feature-icon">🔍</div>
+        <div>
+          <div class="feature-name">Resultados de Previsões</div>
+          <div class="feature-desc">Cada membro pode ver as suas respostas e os pontos obtidos pergunta a pergunta após o GP ser pontuado.</div>
+        </div>
+      </div>
+      <div class="feature-row">
+        <div class="feature-icon">🏎️</div>
+        <div>
+          <div class="feature-name">Detalhe do GP</div>
+          <div class="feature-desc">Grelha de partida (imagem), horário do fim-de-semana sempre em hora de Moçambique (UTC+2 forçado, não depende do browser). Nomes de sessões oficiais F1: Practice 1, Sprint Qualifying, Sprint, Qualifying, Grande Prémio.</div>
+        </div>
+      </div>
+      <div class="feature-row">
+        <div class="feature-icon">🎂</div>
+        <div>
+          <div class="feature-name">Sistema de Aniversários</div>
+          <div class="feature-desc">O admin pode enviar emails personalizados de parabéns a membros que fazem anos. Mostra aniversariantes do dia e próximos 30 dias. Email com branding Beira F1 Fanatics, nome do membro, idade, data de membro e pontos F1 Play. Acesso em <code>/admin/birthday</code>.</div>
+        </div>
+      </div>
+      <div class="feature-row">
+        <div class="feature-icon">👤</div>
+        <div>
+          <div class="feature-name">Perfil do membro</div>
+          <div class="feature-desc">Foto, nick Fantasy, nick Predict, piloto e equipa favorita. Estatísticas: GPs participados, pontos totais F1 Play.</div>
+        </div>
+      </div>
+      <div class="feature-row">
+        <div class="feature-icon">📜</div>
+        <div>
+          <div class="feature-name">Histórico</div>
+          <div class="feature-desc">Resultados de todos os GPs pontuados na época.</div>
+        </div>
+      </div>
+      <div class="feature-row">
+        <div class="feature-icon">👥</div>
+        <div>
+          <div class="feature-name">Página de Membros</div>
+          <div class="feature-desc">Lista pública de todos os membros activos com perfil e estatísticas.</div>
+        </div>
+      </div>
+      <div class="feature-row">
+        <div class="feature-icon">📱</div>
+        <div>
+          <div class="feature-name">Instalação PWA</div>
+          <div class="feature-desc">Página /instalar com instruções para Android e iOS. Ícone próprio no ecrã inicial do telemóvel.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ 4. PERGUNTAS F1 PLAY ═══════════════════════════════════════════════ -->
+  <section class="section">
+    <div class="section-header">
+      <span class="section-num">04</span>
+      <h2 class="section-title">Perguntas F1 Play</h2>
+      <div class="divider"></div>
+    </div>
+
+    <p>As 15 perguntas têm pontuações diferentes. As perguntas P5, P6, P7, P13 e P15 são configuradas especificamente para cada GP. As restantes são fixas mas com opções ajustáveis.</p>
+
+    <div class="mt-4" style="overflow-x:auto;">
+      <table class="q-table">
+        <thead>
+          <tr>
+            <th>Código</th>
+            <th>Pergunta</th>
+            <th>Tipo</th>
+            <th>Pts</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="q-code">P1</span></td>
+            <td>Top 3 da corrida (1º, 2º, 3º lugar)</td>
+            <td>Selector de piloto × 3</td>
+            <td><span class="pts-badge">3 pts</span></td>
+          </tr>
+          <tr>
+            <td><span class="q-code">P2</span></td>
+            <td>Construtora vencedora</td>
+            <td>Selector de equipa</td>
+            <td><span class="pts-badge">1 pt</span></td>
+          </tr>
+          <tr>
+            <td><span class="q-code">P3</span></td>
+            <td>Número de pilotos dobrados</td>
+            <td>Botões pill (0–5 / Mais de 5)</td>
+            <td><span class="pts-badge">1 pt</span></td>
+          </tr>
+          <tr>
+            <td><span class="q-code">P4</span></td>
+            <td>4º, 5º e 6º lugar</td>
+            <td>Selector de piloto × 3</td>
+            <td><span class="pts-badge">3 pts</span></td>
+          </tr>
+          <tr>
+            <td><span class="q-code">P5</span></td>
+            <td>Duelo entre pilotos — config. por GP</td>
+            <td>Botões A vs B</td>
+            <td><span class="pts-badge">1 pt</span></td>
+          </tr>
+          <tr>
+            <td><span class="q-code">P6</span></td>
+            <td>Duelo entre pilotos — config. por GP</td>
+            <td>Botões A vs B</td>
+            <td><span class="pts-badge">1 pt</span></td>
+          </tr>
+          <tr>
+            <td><span class="q-code">P7</span></td>
+            <td>Duelo entre pilotos — config. por GP</td>
+            <td>Botões A vs B</td>
+            <td><span class="pts-badge">1 pt</span></td>
+          </tr>
+          <tr>
+            <td><span class="q-code">P8</span></td>
+            <td>Margem de vitória em segundos</td>
+            <td>Botões pill com decimais em fonte menor</td>
+            <td><span class="pts-badge">1 pt</span></td>
+          </tr>
+          <tr>
+            <td><span class="q-code">P9</span></td>
+            <td>Primeiro a abandonar (First to Retire)</td>
+            <td>Selector de piloto + badge sticker vermelho</td>
+            <td><span class="pts-badge">3 pts</span></td>
+          </tr>
+          <tr>
+            <td><span class="q-code">P10</span></td>
+            <td>Driver of the Day</td>
+            <td>Selector de piloto + badge sticker azul</td>
+            <td><span class="pts-badge">2 pts</span></td>
+          </tr>
+          <tr>
+            <td><span class="q-code">P11</span></td>
+            <td>Volta mais rápida (Fastest Lap)</td>
+            <td>Selector de piloto + badge sticker verde</td>
+            <td><span class="pts-badge">1 pt</span></td>
+          </tr>
+          <tr>
+            <td><span class="q-code">P12</span></td>
+            <td>Número de pilotos classificados</td>
+            <td>Botões pill (13 ou menos → 22)</td>
+            <td><span class="pts-badge">1 pt</span></td>
+          </tr>
+          <tr>
+            <td><span class="q-code">P13</span></td>
+            <td>Pergunta especial — config. por GP</td>
+            <td>Selector de piloto</td>
+            <td><span class="pts-badge">1 pt</span></td>
+          </tr>
+          <tr>
+            <td><span class="q-code">P14</span></td>
+            <td>Safety Car / VSC / Bandeira Vermelha?</td>
+            <td>Botões (SC / VSC / RF / Ambos / Nenhum)</td>
+            <td><span class="pts-badge">3 pts</span></td>
+          </tr>
+          <tr>
+            <td><span class="q-code">P15</span></td>
+            <td>Outsider / piloto surpresa — config. por GP</td>
+            <td>Selector de piloto</td>
+            <td><span class="pts-badge">1 pt</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="row mt-4">
+      <span style="font-size:13px;color:var(--muted)">Pontuação máxima por GP:</span>
+      <span class="pts-badge" style="font-size:18px">22 pts</span>
+      <span style="font-size:13px;color:var(--muted)">· Perguntas podem ser anuladas pelo admin</span>
+    </div>
+  </section>
+
+  <!-- ══ 5. SISTEMA DE LOCKS ════════════════════════════════════════════════ -->
+  <section class="section">
+    <div class="section-header">
+      <span class="section-num">05</span>
+      <h2 class="section-title">Sistema de Bloqueio</h2>
+      <div class="divider"></div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div style="font-size:13px;font-weight:600;margin-bottom:8px;">🔒 Deadline F1 Play</div>
+        <div style="font-size:13px;color:var(--muted);line-height:1.6;">Fecho automático quando a hora actual ultrapassa <code>qualifying_start</code> da tabela <code>gp_calendar</code>. Todas as datas em <strong>UTC</strong>. Moçambique = UTC+2.</div>
+      </div>
+      <div class="card">
+        <div style="font-size:13px;font-weight:600;margin-bottom:8px;">⏱️ Abertura após Qualifying</div>
+        <div style="font-size:13px;color:var(--muted);line-height:1.6;">A app abre 1 hora após o fim do Qualifying. Configurado na coluna <code>qualifying_start</code>: hora início + 2h = hora de abertura.</div>
+      </div>
+      <div class="card">
+        <div style="font-size:13px;font-weight:600;margin-bottom:8px;">🏎️ Weekends Sprint</div>
+        <div style="font-size:13px;color:var(--muted);line-height:1.6;">Em fins-de-semana de Sprint, o deadline passa a ser antes da Sprint Race (não do Qualifying). Configurado manualmente por GP.</div>
+      </div>
+      <div class="card">
+        <div style="font-size:13px;font-weight:600;margin-bottom:8px;">📅 Fantasy Deadline</div>
+        <div style="font-size:13px;color:var(--muted);line-height:1.6;">O F1 Fantasy usa o próprio deadline do site Formula1.com, antes do Qualifying (ou Sprint Race em fins-de-semana de Sprint).</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ 6. PAINEL ADMIN ════════════════════════════════════════════════════ -->
+  <section class="section">
+    <div class="section-header">
+      <span class="section-num">06</span>
+      <h2 class="section-title">Painel Admin</h2>
+      <div class="divider"></div>
+    </div>
+
+    <p>Acessível apenas a membros com <code>is_admin = true</code> na tabela <code>members</code>.</p>
+
+    <div class="card mt-4">
+      <div style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:16px;font-weight:600;">Workflow por GP — Pós-Corrida</div>
+      <div class="workflow">
+        <div class="workflow-step">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <div class="step-title">Configurar Perguntas do GP seguinte</div>
+            <div class="step-desc">Definir os duelos P5/P6/P7, pergunta especial P13 e outsider P15. Feito antes do Qualifying abrir.</div>
+            <div class="step-path">/admin/gp-questions/[gpId]</div>
+          </div>
+        </div>
+        <div class="workflow-step">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <div class="step-title">Trancar Previsões (qualifying_start)</div>
+            <div class="step-desc">Actualizar <code>qualifying_start</code> na tabela <code>gp_calendar</code> com a hora correcta em UTC antes do Qualifying.</div>
+            <div class="step-path">Supabase Dashboard → SQL</div>
+          </div>
+        </div>
+        <div class="workflow-step">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <div class="step-title">Inserir Respostas Correctas</div>
+            <div class="step-desc">Após a corrida, introduzir os resultados reais para todas as 15 perguntas.</div>
+            <div class="step-path">/admin/answers/[gpId]</div>
+          </div>
+        </div>
+        <div class="workflow-step">
+          <div class="step-num">4</div>
+          <div class="step-content">
+            <div class="step-title">Calcular Pontos F1 Play</div>
+            <div class="step-desc">Sistema compara previsões com respostas e calcula pontos automaticamente para todos os membros.</div>
+            <div class="step-path">/admin/scores/[gpId]</div>
+          </div>
+        </div>
+        <div class="workflow-step">
+          <div class="step-num">5</div>
+          <div class="step-content">
+            <div class="step-title">Importar F1 Fantasy</div>
+            <div class="step-desc">Colar CSV com <code>NomeEquipa,pontos_gp,pontos_acum</code> copiado do site Formula1.com. O sistema faz a correspondência automática por nick.</div>
+            <div class="step-path">/admin/fantasy</div>
+          </div>
+        </div>
+        <div class="workflow-step">
+          <div class="step-num">6</div>
+          <div class="step-content">
+            <div class="step-title">Importar F1 Predict</div>
+            <div class="step-desc">Colar CSV com <code>NickPredict,pontos_gp,pontos_acum</code> copiado do site F1 Predict. Mesmo sistema de correspondência.</div>
+            <div class="step-path">/admin/predict-scores</div>
+          </div>
+        </div>
+        <div class="workflow-step">
+          <div class="step-num">7</div>
+          <div class="step-content">
+            <div class="step-title">Recalcular Ranking Global</div>
+            <div class="step-desc">Combina os pontos das 3 ligas no ranking global. Botão disponível no painel admin principal.</div>
+            <div class="step-path">/admin → "Recalcular Ranking Global"</div>
+          </div>
+        </div>
+        <div class="workflow-step">
+          <div class="step-num">8</div>
+          <div class="step-content">
+            <div class="step-title">Enviar Resultados por Email</div>
+            <div class="step-desc">Email automático para todos os membros com os resultados do GP e a sua pontuação individual.</div>
+            <div class="step-path">/admin → "Enviar Resultados"</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ 7. CHANGELOG ═══════════════════════════════════════════════════════ -->
+  <section class="section">
+    <div class="section-header">
+      <span class="section-num">07</span>
+      <h2 class="section-title">Histórico de Melhorias</h2>
+      <div class="divider"></div>
+    </div>
+
+    <div class="changelog">
+      <div class="log-entry">
+        <div class="log-dot"></div>
+        <div class="log-body">
+          <div class="log-date">Outubro 2026 · R17 GP Singapura — Sprint Weekend</div>
+          <div class="log-title">Sistema de Aniversários, Sprint Weekend e Melhorias de Admin</div>
+          <ul class="log-items">
+            <li>Sistema de aniversários: painel admin (<code>/admin/birthday</code>) com aniversariantes do dia e próximos 30 dias; email personalizado com branding Beira F1 Fanatics (logo, banner FELIZ ANIVERSÁRIO, estatísticas do membro)</li>
+            <li>Sprint weekend: nomes de sessões oficiais F1 (Practice 1, Sprint Qualifying, Sprint) em vez de FP1/Sprint Race</li>
+            <li>Horário do fim-de-semana forçado para hora de Moçambique (Africa/Maputo UTC+2) — não depende do fuso do browser</li>
+            <li>Label "hora local" → "hora Moçambique" no programa do fim-de-semana</li>
+            <li>Painel admin simplificado: removida lista de "ainda não submeteram"; lista de submetidos agora em chips compactos horizontais</li>
+            <li>GP Singapura R17 configurado como sprint weekend com horários nocturnos correctos (Race 14:00 MZ = 20:00 SGT)</li>
+            <li>Regra de deploy automático: cada alteração de código faz commit + push para Vercel sem esperar instrução</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="log-entry">
+        <div class="log-dot"></div>
+        <div class="log-body">
+          <div class="log-date">Outubro 2026 · R16 GP Bahrein (Malásia)</div>
+          <div class="log-title">Publicação de Resultados e Melhorias Visuais</div>
+          <ul class="log-items">
+            <li>P3, P8, P12: substituição de dropdowns por botões pill visuais com borda verde ao seleccionar</li>
+            <li>P8: renderização dos decimais (ex: <em>.5</em>) em fonte menor (9px vs 15px) para facilitar leitura</li>
+            <li>P9 (First to Retire): badge sticker vermelho substituiu logo de acidente</li>
+            <li>P10 (Driver of the Day): badge sticker azul oficial</li>
+            <li>P11 (Fastest Lap): badge sticker verde oficial</li>
+            <li>Sistema de import CSV Fantasy e Predict melhorado com pré-visualização de correspondências</li>
+            <li>Lock automático por <code>qualifying_start</code> em UTC — corrigido para horário de Moçambique</li>
+            <li>Novo membro: Aiuba Junior (Aiubaj) — Maputo</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="log-entry">
+        <div class="log-dot minor"></div>
+        <div class="log-body">
+          <div class="log-date">Setembro 2026 · R13–R15</div>
+          <div class="log-title">Melhorias de UX e Configuração</div>
+          <ul class="log-items">
+            <li>Editor de perguntas por GP melhorado (duelos P5/P6/P7 com seletor visual)</li>
+            <li>Suporte para fins-de-semana Sprint no sistema de deadlines</li>
+            <li>Grelha de partida por GP (upload de imagem pelo admin)</li>
+            <li>Countdown animado na homepage para o próximo GP</li>
+            <li>Página de perfil pública por membro (<code>/players/[nickname]</code>)</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="log-entry">
+        <div class="log-dot minor"></div>
+        <div class="log-body">
+          <div class="log-date">Julho–Agosto 2026 · R09–R12</div>
+          <div class="log-title">Expansão de Funcionalidades</div>
+          <ul class="log-items">
+            <li>Import CSV para F1 Fantasy e F1 Predict (modo manual e CSV)</li>
+            <li>Ranking Global combinado das 3 ligas</li>
+            <li>Email automático de resultados após cada GP</li>
+            <li>Histórico de GPs pontuados</li>
+            <li>Página de membros pública</li>
+            <li>Recalculação em bulk de todos os GPs pontuados</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="log-entry">
+        <div class="log-dot minor"></div>
+        <div class="log-body">
+          <div class="log-date">Abril–Junho 2026 · R01–R08</div>
+          <div class="log-title">MVP — Lançamento da Plataforma</div>
+          <ul class="log-items">
+            <li>Formulário de previsões com 15 perguntas (F1 Play)</li>
+            <li>Sistema de pontuação automática</li>
+            <li>Autenticação Supabase (email + Google)</li>
+            <li>Painel admin completo (respostas, pontos, ranking)</li>
+            <li>Rankings F1 Play, Fantasy, Predict</li>
+            <li>PWA instalável no telemóvel</li>
+            <li>Calendário da época 2026 com 24 GPs</li>
+            <li>Deploy automático via GitHub → Vercel</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ 8. PRÓXIMOS PASSOS ════════════════════════════════════════════════ -->
+  <section class="section">
+    <div class="section-header">
+      <span class="section-num">08</span>
+      <h2 class="section-title">Próximos Passos</h2>
+      <div class="divider"></div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div style="font-size:13px;font-weight:600;margin-bottom:8px;">🇸🇬 Perguntas GP Singapura (R17)</div>
+        <div style="font-size:13px;color:var(--muted);">Configurar perguntas (duelos P5/P6/P7, P13 especial, P15 outsider) em <code>/admin/gp-questions/</code> antes do Sprint Qualifying de Sexta-feira.</div>
+      </div>
+      <div class="card">
+        <div style="font-size:13px;font-weight:600;margin-bottom:8px;">📊 Resultados R16 Bahrein</div>
+        <div style="font-size:13px;color:var(--muted);">Importar CSVs de F1 Fantasy e F1 Predict para o GP Bahrein e recalcular o Ranking Global.</div>
+      </div>
+      <div class="card">
+        <div style="font-size:13px;font-weight:600;margin-bottom:8px;">👤 Munir Joel</div>
+        <div style="font-size:13px;color:var(--muted);">Verificar se Munir Joel (F1 Predict) é um novo membro a registar na plataforma.</div>
+      </div>
+      <div class="card">
+        <div style="font-size:13px;font-weight:600;margin-bottom:8px;">🏁 Final de Época</div>
+        <div style="font-size:13px;color:var(--muted);">Página de encerramento da temporada 2026 com campeões das 3 ligas.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ FOOTER ══════════════════════════════════════════════════════════════ -->
+  <footer class="footer">
+    <span>Beira F1 Fanatics 2026 · Booklet v1.2 · Outubro 2026</span>
+    <span>Actualizado após cada GP</span>
+  </footer>
+
+</div>
