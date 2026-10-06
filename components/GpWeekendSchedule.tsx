@@ -57,9 +57,9 @@ function buildSessions(
   qual: string | null, race: string | null, isSprint: boolean
 ): SessionDef[] {
   if (isSprint) return [
-    { key: 'fp1',         label: 'FP1',              startUtc: fp1,  durationMin: 60,  type: 'fp1' },
+    { key: 'fp1',         label: 'Practice 1',        startUtc: fp1,  durationMin: 60,  type: 'fp1' },
     { key: 'sprint_qual', label: 'Sprint Qualifying', startUtc: fp2,  durationMin: 60,  type: 'sprint_qual' },
-    { key: 'sprint_race', label: 'Sprint Race',       startUtc: fp3,  durationMin: 45,  type: 'sprint_race' },
+    { key: 'sprint_race', label: 'Sprint',            startUtc: fp3,  durationMin: 45,  type: 'sprint_race' },
     { key: 'qual',        label: 'Qualifying',        startUtc: qual, durationMin: 60,  type: 'qual' },
     { key: 'race',        label: 'Grande Prémio',     startUtc: race, durationMin: 120, type: 'race' },
   ]

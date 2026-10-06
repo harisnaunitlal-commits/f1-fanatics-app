@@ -520,7 +520,7 @@ export default function PredictForm({
           const imgs = gp.session_images ?? []
           if (imgs.length === 0) return null
           const sessionOrder = gp.is_sprint
-            ? ['FP1', 'Sprint Qualifying', 'Sprint Race', 'Qualifying', 'Starting Grid']
+            ? ['Practice 1', 'Sprint Qualifying', 'Sprint', 'Qualifying', 'Starting Grid']
             : ['FP1', 'FP2', 'FP3', 'Qualifying', 'Starting Grid']
           const sorted = [...imgs].sort((a, b) => {
             const ai = sessionOrder.indexOf(a.label)

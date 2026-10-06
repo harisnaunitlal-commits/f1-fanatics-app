@@ -4,7 +4,7 @@ import { useState, useRef } from 'react'
 
 export type SessionImage = { label: string; url: string }
 
-const SPRINT_SESSIONS  = ['FP1', 'Sprint Qualifying', 'Sprint Race', 'Qualifying', 'Starting Grid']
+const SPRINT_SESSIONS  = ['Practice 1', 'Sprint Qualifying', 'Sprint', 'Qualifying', 'Starting Grid']
 const NORMAL_SESSIONS  = ['FP1', 'FP2', 'FP3', 'Qualifying', 'Starting Grid']
 
 export default function SessionImagesUpload({
