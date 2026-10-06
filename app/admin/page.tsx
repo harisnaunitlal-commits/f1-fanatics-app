@@ -363,6 +363,11 @@ export default async function AdminPage() {
             <div className="font-bold">Membros</div>
             <div className="text-sm text-gray-400">{totalMembers} registados · {activeMembers} activos</div>
           </Link>
+          <Link href="/admin/birthday" className="card text-center hover:border-yellow-600/50 transition-colors">
+            <div className="text-2xl mb-2">🎂</div>
+            <div className="font-bold">Aniversários</div>
+            <div className="text-sm text-gray-400">Enviar parabéns personalizados</div>
+          </Link>
         </div>
       </div>
     </div>

@@ -285,6 +285,97 @@ export async function sendTriatloResults({
   })
 }
 
+// ─── Email 3: Birthday Congratulations ────────────────────────────────────────
+export async function sendBirthdayEmail({
+  toEmail,
+  toName,
+  nickname,
+  idade,
+  membroDesde,
+  totalPlayPts,
+}: {
+  toEmail: string
+  toName: string
+  nickname: string
+  idade: number | null
+  membroDesde: string | null
+  totalPlayPts: number
+}) {
+  const idadeStr = idade ? `${idade} anos` : null
+  const membroStr = membroDesde
+    ? new Date(membroDesde).toLocaleDateString('pt-MZ', { year: 'numeric', month: 'long', timeZone: 'Africa/Maputo' })
+    : null
+
+  const html = baseHtml(`
+    <!-- Birthday header -->
+    <div style="text-align:center;margin-bottom:28px;">
+      <div style="font-size:52px;margin-bottom:12px;line-height:1;">🎂</div>
+      <div style="background:linear-gradient(135deg,#7f0000,#e10600,#ff6b35);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-size:32px;font-weight:900;letter-spacing:1px;line-height:1.1;">
+        PARABÉNS!
+      </div>
+      <div style="color:#fbbf24;font-size:22px;font-weight:900;margin-top:6px;">${toName}! 🏎️</div>
+      ${idadeStr ? `<div style="color:#6b7280;font-size:14px;margin-top:6px;">${idadeStr} de grandes momentos</div>` : ''}
+    </div>
+
+    <!-- Celebration banner -->
+    <div style="background:linear-gradient(135deg,#1a0000,#1e1a00,#0f1f0f);border:2px solid #fbbf24;border-radius:16px;padding:24px;text-align:center;margin-bottom:24px;">
+      <div style="font-size:24px;margin-bottom:10px;">🎉 ✨ 🏁 ✨ 🎉</div>
+      <p style="color:#f9fafb;font-size:15px;font-weight:700;margin:0 0 8px;">
+        De toda a Comunidade Beira F1 Fanatics,
+      </p>
+      <p style="color:#d1d5db;font-size:14px;margin:0;line-height:1.6;">
+        desejamos-te um feliz aniversário cheio de velocidade,<br>
+        adrenalina e muitos pódios esta temporada!
+      </p>
+    </div>
+
+    <!-- Stats card -->
+    <div style="background:#0f172a;border-radius:12px;overflow:hidden;margin-bottom:24px;">
+      <div style="background:#1e293b;padding:10px 16px;">
+        <span style="color:#6b7280;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;">🏎️ O teu percurso na liga</span>
+      </div>
+      <table width="100%" cellpadding="0" cellspacing="0">
+        ${membroStr ? `
+        <tr>
+          <td style="padding:12px 16px;color:#9ca3af;font-size:13px;border-bottom:1px solid #1f2937;">Membro desde</td>
+          <td style="padding:12px 16px;text-align:right;color:#f9fafb;font-size:13px;font-weight:700;border-bottom:1px solid #1f2937;">${membroStr}</td>
+        </tr>` : ''}
+        <tr>
+          <td style="padding:12px 16px;color:#9ca3af;font-size:13px;border-bottom:1px solid #1f2937;">Nickname</td>
+          <td style="padding:12px 16px;text-align:right;color:#e10600;font-size:13px;font-weight:900;border-bottom:1px solid #1f2937;">${nickname}</td>
+        </tr>
+        ${totalPlayPts > 0 ? `
+        <tr>
+          <td style="padding:12px 16px;color:#9ca3af;font-size:13px;">Pontos F1 Play</td>
+          <td style="padding:12px 16px;text-align:right;color:#fbbf24;font-size:15px;font-weight:900;">${totalPlayPts} pts</td>
+        </tr>` : ''}
+      </table>
+    </div>
+
+    <!-- F1 birthday message -->
+    <div style="background:#111827;border-left:4px solid #e10600;border-radius:4px 12px 12px 4px;padding:16px 20px;margin-bottom:24px;">
+      <p style="color:#d1d5db;font-size:14px;margin:0;line-height:1.7;font-style:italic;">
+        "Que este novo ano seja como uma corrida perfeita: com um bom passo na qualificação,
+        uma estratégia imbatível e um pódio bem merecido! 🏆"
+      </p>
+    </div>
+
+    <!-- CTA button -->
+    <div style="text-align:center;">
+      <a href="https://app.beiraf1fanatics.com" style="display:inline-block;background:#e10600;color:#fff;font-weight:700;font-size:14px;padding:14px 32px;border-radius:10px;text-decoration:none;letter-spacing:0.5px;">
+        🏎️ Entrar na liga →
+      </a>
+    </div>
+  `)
+
+  return getResend().emails.send({
+    from: FROM,
+    to: toEmail,
+    subject: `🎂 Parabéns, ${toName}! Feliz Aniversário da Beira F1 Fanatics 🏎️`,
+    html,
+  })
+}
+
 // ─── Build payload for batch sending ──────────────────────────────────────────
 export function buildTriatloEmailPayload(params: Parameters<typeof sendTriatloResults>[0] & {
   playGpRanking: { pos: number; nome: string; pts: number; email: string }[]
