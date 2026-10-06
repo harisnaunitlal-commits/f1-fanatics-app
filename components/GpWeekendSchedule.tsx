@@ -20,8 +20,10 @@ type ResultRow = {
   gap: string
 }
 
+const MZ_TZ = 'Africa/Maputo'
+
 function fmt24(utcStr: string): string {
-  return new Date(utcStr).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })
+  return new Date(utcStr).toLocaleTimeString('pt', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: MZ_TZ })
 }
 
 function localDateStr(utcStr: string): string {
@@ -30,9 +32,9 @@ function localDateStr(utcStr: string): string {
 
 function fmtDayHeader(utcStr: string): string {
   const d = new Date(utcStr)
-  const weekday = d.toLocaleDateString('pt', { weekday: 'long' })
-  const day   = d.getDate()
-  const month = d.toLocaleDateString('pt', { month: 'short' }).replace('.', '')
+  const weekday = d.toLocaleDateString('pt', { weekday: 'long', timeZone: MZ_TZ })
+  const day   = d.toLocaleDateString('pt', { day: 'numeric', timeZone: MZ_TZ })
+  const month = d.toLocaleDateString('pt', { month: 'short', timeZone: MZ_TZ }).replace('.', '')
   return `${weekday.charAt(0).toUpperCase() + weekday.slice(1)}, ${day} ${month.charAt(0).toUpperCase() + month.slice(1)}`
 }
 
@@ -220,7 +222,7 @@ export default function GpWeekendSchedule({
           style={{ background: 'rgba(255,255,255,0.04)' }}>
           <span className="text-sm">📅</span>
           <span className="text-xs font-black text-yellow-400 uppercase tracking-widest">Programa do Fim de Semana</span>
-          <span className="ml-auto text-[10px] text-gray-600 font-medium">hora local</span>
+          <span className="ml-auto text-[10px] text-gray-600 font-medium">hora Moçambique</span>
         </div>
 
         {/* Day blocks */}
