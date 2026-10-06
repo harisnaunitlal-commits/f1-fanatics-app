@@ -52,7 +52,6 @@ export default async function AdminPage() {
     : new Set()
 
   const submitted = (members ?? []).filter((m: any) => nextGpSubmitted.has(m.email))
-  const pending   = (members ?? []).filter((m: any) => !nextGpSubmitted.has(m.email))
   const pct = totalMembers > 0 ? Math.round((submitted.length / totalMembers) * 100) : 0
 
   // Total Play pts per member
@@ -140,54 +139,28 @@ export default async function AdminPage() {
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* Submitted */}
-            <div>
-              <h3 className="text-xs font-bold text-green-400 uppercase tracking-widest mb-2">
-                ✅ Já submeteram ({submitted.length})
-              </h3>
-              <div className="space-y-1.5">
-                {submitted.length === 0 && (
-                  <p className="text-gray-600 text-sm italic">Nenhum ainda.</p>
-                )}
+          <div>
+            <h3 className="text-xs font-bold text-green-400 uppercase tracking-widest mb-2">
+              ✅ Já submeteram ({submitted.length})
+            </h3>
+            {submitted.length === 0 ? (
+              <p className="text-gray-600 text-sm italic">Nenhum ainda.</p>
+            ) : (
+              <div className="flex flex-wrap gap-2">
                 {submitted.map((m: any) => (
                   <div key={m.email} className="flex items-center gap-2 bg-green-900/10 border border-green-700/20 rounded-lg px-3 py-2">
                     {m.foto_url
-                      ? <img src={m.foto_url} alt="" className="w-7 h-7 rounded-full object-cover shrink-0" />
-                      : <div className="w-7 h-7 rounded-full bg-green-800/40 text-green-400 flex items-center justify-center text-xs font-bold shrink-0">
+                      ? <img src={m.foto_url} alt="" className="w-6 h-6 rounded-full object-cover shrink-0" />
+                      : <div className="w-6 h-6 rounded-full bg-green-800/40 text-green-400 flex items-center justify-center text-xs font-bold shrink-0">
                           {m.nickname.charAt(0).toUpperCase()}
                         </div>
                     }
                     <span className="text-sm font-medium text-white">{m.nickname}</span>
-                    {m.is_admin && <span className="text-[10px] bg-f1red/20 text-f1red px-1.5 py-0.5 rounded font-bold ml-auto">Admin</span>}
+                    {m.is_admin && <span className="text-[10px] bg-f1red/20 text-f1red px-1.5 py-0.5 rounded font-bold">Admin</span>}
                   </div>
                 ))}
               </div>
-            </div>
-
-            {/* Pending */}
-            <div>
-              <h3 className="text-xs font-bold text-red-400 uppercase tracking-widest mb-2">
-                ⏳ Ainda não submeteram ({pending.length})
-              </h3>
-              <div className="space-y-1.5">
-                {pending.length === 0 && (
-                  <p className="text-gray-600 text-sm italic">Todos submeteram! 🎉</p>
-                )}
-                {pending.map((m: any) => (
-                  <div key={m.email} className="flex items-center gap-2 bg-gray-800/40 border border-gray-700/30 rounded-lg px-3 py-2">
-                    {m.foto_url
-                      ? <img src={m.foto_url} alt="" className="w-7 h-7 rounded-full object-cover shrink-0 opacity-50" />
-                      : <div className="w-7 h-7 rounded-full bg-gray-700 text-gray-500 flex items-center justify-center text-xs font-bold shrink-0">
-                          {m.nickname.charAt(0).toUpperCase()}
-                        </div>
-                    }
-                    <span className="text-sm text-gray-400">{m.nickname}</span>
-                    {!m.activo && <span className="text-[10px] bg-gray-700 text-gray-500 px-1.5 py-0.5 rounded ml-auto">inactivo</span>}
-                  </div>
-                ))}
-              </div>
-            </div>
+            )}
           </div>
         </div>
       )}
