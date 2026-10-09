@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<title>Flyer Notificações</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=DM+Sans:wght@400;500;600;700&display=swap">
+<style>
+  * { box-sizing: border-box; margin: 0; }
+  html, body { width: 1080px; height: 1700px; background: #08080b; }
+  body {
+    color: #f0f0f2;
+    font-family: 'DM Sans', system-ui, sans-serif;
+    position: relative;
+    overflow: hidden;
+    background:
+      radial-gradient(900px 500px at 50% -10%, rgba(225,6,0,0.35), transparent 70%),
+      #08080b;
+  }
+  .stripe { position: absolute; left: 0; right: 0; top: 0; height: 14px; background: #e10600; }
+  .wrap { padding: 70px 72px 60px; display: flex; flex-direction: column; gap: 34px; height: 100%; }
+
+  .head { display: flex; align-items: center; gap: 22px; }
+  .logo { width: 96px; height: 96px; border-radius: 50%; background: #fff; display: flex; align-items: center; justify-content: center; border: 4px solid #e10600; overflow: hidden; }
+  .logo img { width: 86px; height: 86px; object-fit: contain; }
+  .brand { font-family: 'Barlow Condensed'; font-weight: 800; font-size: 40px; line-height: 1; }
+  .brand small { display: block; font-family: 'DM Sans'; font-weight: 500; font-size: 18px; color: #9a9aa8; margin-top: 6px; letter-spacing: .08em; text-transform: uppercase; }
+
+  .badge { display: inline-block; font-family: 'DM Mono', monospace; font-size: 18px; letter-spacing: .2em; color: #e10600; border: 2px solid rgba(225,6,0,.5); border-radius: 999px; padding: 8px 20px; text-transform: uppercase; font-weight: 700; }
+
+  h1 { font-family: 'Barlow Condensed'; font-weight: 900; font-size: 112px; line-height: .92; letter-spacing: -.01em; }
+  h1 span { color: #e10600; }
+  .lead { font-size: 26px; line-height: 1.45; color: #c9c9d2; max-width: 900px; }
+  .lead b { color: #fff; }
+
+  .cards { display: flex; flex-direction: column; gap: 16px; }
+  .card { display: flex; align-items: center; gap: 24px; background: #15151b; border: 1px solid rgba(255,255,255,.08); border-left: 6px solid var(--c); border-radius: 18px; padding: 24px 28px; }
+  .card .ico { font-size: 44px; width: 64px; text-align: center; }
+  .card .t { font-family: 'Barlow Condensed'; font-weight: 800; font-size: 34px; line-height: 1; }
+  .card .d { font-size: 21px; color: #a9a9b6; margin-top: 6px; }
+  .card .when { margin-left: auto; text-align: right; font-family: 'Barlow Condensed'; font-weight: 900; font-size: 36px; color: var(--c); white-space: nowrap; }
+  .card .when small { display: block; font-family: 'DM Sans'; font-weight: 500; font-size: 16px; color: #8a8a98; }
+
+  .steps { background: linear-gradient(135deg, rgba(225,6,0,.16), rgba(225,6,0,.04)); border: 1px solid rgba(225,6,0,.35); border-radius: 22px; padding: 30px 34px; }
+  .steps h2 { font-family: 'Barlow Condensed'; font-weight: 900; font-size: 44px; margin-bottom: 18px; }
+  .step { display: flex; gap: 18px; align-items: flex-start; font-size: 24px; line-height: 1.35; margin-bottom: 14px; }
+  .step .n { flex: none; width: 42px; height: 42px; border-radius: 50%; background: #e10600; color: #fff; font-family: 'Barlow Condensed'; font-weight: 900; font-size: 26px; display: flex; align-items: center; justify-content: center; }
+  .step b { color: #fff; }
+  .bell { display: inline-flex; align-items: center; gap: 8px; background: #2a2a33; border-radius: 10px; padding: 4px 12px; font-size: 22px; vertical-align: middle; }
+  .bell.on { color: #4ade80; }
+
+  .note { display: flex; gap: 16px; align-items: flex-start; font-size: 20px; color: #a9a9b6; line-height: 1.4; background: #111116; border-radius: 14px; padding: 18px 22px; border: 1px solid rgba(255,255,255,.06); }
+  .note b { color: #f5c518; }
+
+  .foot { margin-top: auto; display: flex; justify-content: space-between; align-items: center; font-size: 20px; color: #8a8a98; border-top: 1px solid rgba(255,255,255,.08); padding-top: 22px; }
+  .foot b { color: #fff; font-family: 'Barlow Condensed'; font-size: 28px; letter-spacing: .04em; }
+</style>
+</head>
+<body>
+<div class="stripe"></div>
+<div class="wrap">
+
+  <div class="head">
+    <div class="logo"><img src="../public/logos/beira-f1.png" alt=""></div>
+    <div class="brand">Beira F1 Fanatics<small>Temporada 2026 · Beira, Moçambique</small></div>
+  </div>
+
+  <div>
+    <span class="badge">Nova actualização</span>
+    <h1 style="margin-top:18px">Lembretes no<br><span>telemóvel</span> 🔔</h1>
+  </div>
+
+  <p class="lead">Muitos de nós <b>esquecem de submeter</b> as previsões ao fim de semana. A partir de agora a app avisa-te directamente no telemóvel — <b>sem email</b>, sem WhatsApp. Só tens de activar uma vez.</p>
+
+  <div class="cards">
+    <div class="card" style="--c:#f5c518">
+      <div class="ico">🏆</div>
+      <div><div class="t">F1 Fantasy &amp; F1 Predict</div><div class="d">Última chamada antes de fechar</div></div>
+      <div class="when">1h antes<small>de fechar</small></div>
+    </div>
+    <div class="card" style="--c:#4ade80">
+      <div class="ico">🏎️</div>
+      <div><div class="t">F1 Play abriu</div><div class="d">Assim que as submissões abrem (1h após o Qualifying)</div></div>
+      <div class="when">Na hora<small>de abrir</small></div>
+    </div>
+    <div class="card" style="--c:#e10600">
+      <div class="ico">⏰</div>
+      <div><div class="t">F1 Play fecha</div><div class="d">Última hora antes do início da corrida</div></div>
+      <div class="when">1h antes<small>da corrida</small></div>
+    </div>
+  </div>
+
+  <div class="steps">
+    <h2>Como activar (30 segundos)</h2>
+    <div class="step"><div class="n">1</div><div>Abre a app <b>app.beiraf1fanatics.com</b> e faz login</div></div>
+    <div class="step"><div class="n">2</div><div>Toca no sino <span class="bell">🔔</span> ao lado do teu nome (ou no menu ☰ → <b>Activar notificações</b>)</div></div>
+    <div class="step"><div class="n">3</div><div>Quando o telemóvel perguntar, toca em <b>Permitir</b></div></div>
+    <div class="step" style="margin-bottom:0"><div class="n">4</div><div>O sino fica verde <span class="bell on">🔔 ●</span> — pronto, estás avisado em todos os GPs</div></div>
+  </div>
+
+  <div class="note">
+    <div style="font-size:28px">📱</div>
+    <div><b>Android:</b> funciona no Chrome ou na app instalada. <b>iPhone:</b> tens de instalar a app no ecrã inicial primeiro (Safari → Partilhar → Adicionar ao ecrã principal) e activar o sino a partir daí.</div>
+  </div>
+
+  <div class="foot">
+    <div>Primeiro aviso: <b>GP Singapura · Sáb 10:00</b></div>
+    <div>app.beiraf1fanatics.com</div>
+  </div>
+
+</div>
+</body>
+</html>
