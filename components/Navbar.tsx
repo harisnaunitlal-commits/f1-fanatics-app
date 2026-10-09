@@ -150,12 +150,12 @@ export default function Navbar() {
         </div>
 
         <div className="flex items-center gap-3">
-          {/* Bell notification toggle — only if Push API is supported */}
-          {pushSupported && member && (
+          {/* Bell notification toggle */}
+          {member && (
             <button
-              onClick={togglePush}
+              onClick={pushSupported ? togglePush : () => alert('O teu browser não suporta notificações push. Usa o Chrome no Android.')}
               disabled={pushLoading}
-              title={pushSubscribed ? 'Notificações activas — clica para desactivar' : 'Activar notificações'}
+              title={!pushSupported ? 'Browser não suporta notificações' : pushSubscribed ? 'Notificações activas — clica para desactivar' : 'Activar notificações de GP'}
               className="relative flex items-center justify-center w-8 h-8 rounded-lg bg-f1gray hover:bg-f1gray/70 transition-colors disabled:opacity-50"
             >
               {pushSubscribed ? (
@@ -210,6 +210,17 @@ export default function Navbar() {
               className={`text-sm font-medium px-4 py-1.5 rounded-lg transition-colors ${
                 pathname.startsWith('/admin') ? 'bg-f1red text-white' : 'bg-f1gray text-gray-300'
               }`}>Admin</Link>
+          )}
+          {member && (
+            <button
+              onClick={() => { setMenuOpen(false); pushSupported ? togglePush() : alert('O teu browser não suporta notificações push. Usa o Chrome no Android.') }}
+              disabled={pushLoading}
+              className={`text-sm font-medium px-4 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 ${
+                pushSubscribed ? 'bg-green-900/40 text-green-400 border border-green-800' : 'bg-f1gray text-gray-300'
+              }`}
+            >
+              🔔 {pushSubscribed ? 'Notificações activas' : 'Activar notificações'}
+            </button>
           )}
         </div>
       )}
