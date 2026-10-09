@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import Navbar from '@/components/Navbar'
-import PushNotificationPrompt from '@/components/PushNotificationPrompt'
 
 export const viewport: Viewport = {
   themeColor: '#E10600',
@@ -38,7 +37,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <main className="max-w-5xl mx-auto px-4 py-6">
           {children}
         </main>
-        <PushNotificationPrompt />
         <footer className="text-center text-gray-500 text-sm py-8 mt-12 space-y-1.5">
           <p>🏎️ Beira F1 Fanatics · Fundada 27 Mar 2021 · Beira, Moçambique</p>
           <p>
