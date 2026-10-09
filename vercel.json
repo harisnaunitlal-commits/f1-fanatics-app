@@ -2,6 +2,15 @@
   "functions": {
     "app/api/admin/calc-global-ranking/route.ts": {
       "maxDuration": 60
+    },
+    "app/api/cron/push-notifications/route.ts": {
+      "maxDuration": 60
     }
-  }
+  },
+  "crons": [
+    {
+      "path": "/api/cron/push-notifications",
+      "schedule": "*/5 * * * *"
+    }
+  ]
 }
