@@ -554,6 +554,13 @@
         </div>
       </div>
       <div class="feature-row">
+        <div class="feature-icon">🔔</div>
+        <div>
+          <div class="feature-name">Notificações Push (lembretes no telemóvel)</div>
+          <div class="feature-desc">Cada membro activa no sino da navbar (ou menu ☰ → "Activar notificações"). Três alertas por GP, sem email: <strong>F1 Fantasy &amp; Predict</strong> 1h antes de fechar; <strong>F1 Play abriu</strong> (1h após o Qualifying); <strong>F1 Play fecha</strong> 1h antes da corrida. Web Push (VAPID) com subscrições em <code>push_subscriptions</code>; o Supabase <code>pg_cron</code> chama <code>/api/cron/push-notifications</code> a cada 5 min; <code>notification_log</code> evita duplicados. Funciona na app instalada em Android e iPhone.</div>
+        </div>
+      </div>
+      <div class="feature-row">
         <div class="feature-icon">👤</div>
         <div>
           <div class="feature-name">Perfil do membro</div>
@@ -827,6 +834,23 @@
       <div class="log-entry">
         <div class="log-dot"></div>
         <div class="log-body">
+          <div class="log-date">10 Outubro 2026 · R17 GP Singapura — véspera do Sprint</div>
+          <div class="log-title">Notificações Push no Telemóvel</div>
+          <ul class="log-items">
+            <li>Lembretes por Web Push (sem email): Fantasy/Predict 1h antes de fechar, F1 Play ao abrir e 1h antes de fechar</li>
+            <li>Sino 🔔 na navbar e no menu mobile para activar/desactivar — fica verde quando activo</li>
+            <li>Service worker com handler de push e de clique (abre a página certa da app)</li>
+            <li>Novas tabelas Supabase: <code>push_subscriptions</code> e <code>notification_log</code> (deduplicação por GP + tipo)</li>
+            <li>Agendamento via Supabase <code>pg_cron</code> de 5 em 5 min — o plano Hobby do Vercel só permite crons diários</li>
+            <li>Vercel: o Git integration deixou de disparar deploys desde 6 Out; deploy feito via CLI (<code>vercel --prod</code>). Reconectar em Settings → Git</li>
+            <li>Flyer de divulgação para os membros em <code>docs/flyer-notificacoes.png</code></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="log-entry">
+        <div class="log-dot"></div>
+        <div class="log-body">
           <div class="log-date">Outubro 2026 · R17 GP Singapura — Sprint Weekend</div>
           <div class="log-title">Sistema de Aniversários, Sprint Weekend e Melhorias de Admin</div>
           <ul class="log-items">
@@ -928,6 +952,14 @@
         <div style="font-size:13px;color:var(--muted);">Importar CSVs de F1 Fantasy e F1 Predict para o GP Bahrein e recalcular o Ranking Global.</div>
       </div>
       <div class="card">
+        <div style="font-size:13px;font-weight:600;margin-bottom:8px;">🔔 Validar notificações no R17</div>
+        <div style="font-size:13px;color:var(--muted);">Confirmar os 3 alertas de Singapura (Sáb 10:00, Sáb 17:00, Dom 13:00) em <code>notification_log</code> e quantos membros subscreveram em <code>push_subscriptions</code>.</div>
+      </div>
+      <div class="card">
+        <div style="font-size:13px;font-weight:600;margin-bottom:8px;">🔗 Reconectar Vercel ↔ GitHub</div>
+        <div style="font-size:13px;color:var(--muted);">Vercel → Settings → Git: o auto-deploy parou a 6 Out. Até lá, deploy manual com <code>npx vercel --prod</code>.</div>
+      </div>
+      <div class="card">
         <div style="font-size:13px;font-weight:600;margin-bottom:8px;">👤 Munir Joel</div>
         <div style="font-size:13px;color:var(--muted);">Verificar se Munir Joel (F1 Predict) é um novo membro a registar na plataforma.</div>
       </div>
@@ -940,7 +972,7 @@
 
   <!-- ══ FOOTER ══════════════════════════════════════════════════════════════ -->
   <footer class="footer">
-    <span>Beira F1 Fanatics 2026 · Booklet v1.2 · Outubro 2026</span>
+    <span>Beira F1 Fanatics 2026 · Booklet v1.3 · Outubro 2026</span>
     <span>Actualizado após cada GP</span>
   </footer>
 
