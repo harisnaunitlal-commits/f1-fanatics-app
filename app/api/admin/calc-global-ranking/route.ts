@@ -26,11 +26,26 @@ export async function POST(req: NextRequest) {
     const { gp_id, admin_email, send_only_to, skip_emails } = await req.json()
     if (!gp_id) return NextResponse.json({ error: 'gp_id obrigatório.' }, { status: 400 })
 
-    // 1a. Play acumulado (soma de todos os GPs até gp_id inclusive)
+    // 1a. Play acumulado: todos os GPs até esta ronda. Filtrar por round, não por id —
+    // GPs inseridos mais tarde (ex: Espanha id 25, Bahrein id 31) têm ids fora da ordem do calendário.
+    const { data: thisGp, error: gpErr } = await supabaseAdmin
+      .from('gp_calendar')
+      .select('round, temporada')
+      .eq('id', gp_id)
+      .single()
+    if (gpErr || !thisGp) return NextResponse.json({ error: 'GP não encontrado.' }, { status: 400 })
+
+    const { data: gpsUpToRound } = await supabaseAdmin
+      .from('gp_calendar')
+      .select('id')
+      .eq('temporada', thisGp.temporada)
+      .lte('round', thisGp.round)
+    const gpIdsUpToRound = (gpsUpToRound ?? []).map((g: { id: number }) => g.id)
+
     const { data: playScores, error: playErr } = await supabaseAdmin
       .from('scores_play')
       .select('*')
-      .lte('gp_id', gp_id)
+      .in('gp_id', gpIdsUpToRound)
     if (playErr) return NextResponse.json({ error: playErr.message }, { status: 400 })
 
     const playMap = new Map<string, number>()
