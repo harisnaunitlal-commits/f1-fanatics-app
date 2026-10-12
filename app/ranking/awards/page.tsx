@@ -53,6 +53,16 @@ const LEAGUES = {
   predict: { title: 'F1 Predict', icon: '🎯', accent: 'text-purple-400', ring: 'border-purple-500/40', glow: 'rgba(192,132,252,0.18)' },
 } as const
 
+// Flag emoji (🇦🇺) or text code (AU) → local flag image, same rule as the homepage.
+function flagSrc(code: string | null): string | null {
+  if (!code) return null
+  const iso = Array.from(code).map(c => {
+    const cp = c.codePointAt(0) ?? 0
+    return cp >= 127462 && cp <= 127487 ? String.fromCharCode(cp - 127397) : c.toUpperCase()
+  }).join('')
+  return /^[A-Z]{2}$/.test(iso) ? `/flags/${iso}.png` : null
+}
+
 const RANK_STYLE = [
   { ring: 'bg-yellow-400/15 text-yellow-400 ring-1 ring-yellow-400/60', medal: '🥇' },
   { ring: 'bg-gray-300/15 text-gray-200 ring-1 ring-gray-300/50',       medal: '🥈' },
@@ -91,12 +101,17 @@ function PodiumCard({ league, podium }: { league: keyof typeof LEAGUES; podium: 
                     </div>
                   )}
                   <div className="min-w-0 flex-1">
-                    <Link href={`/players/${encodeURIComponent(name)}`} className="font-semibold text-white hover:text-f1red transition-colors truncate block">
+                    <Link href={`/players/${encodeURIComponent(name)}`} className="text-sm text-gray-300 hover:text-f1red transition-colors truncate block">
                       {name}
                     </Link>
-                    <div className="text-xs text-gray-400 leading-snug">
-                      {e.gp.emoji_bandeira ? `${e.gp.emoji_bandeira} ` : ''}R{String(e.gp.round).padStart(2, '0')} {e.gp.nome}
-                      {e.gp.is_sprint && <span className="ml-1.5 text-yellow-400/90 whitespace-nowrap">⚡ Sprint</span>}
+                    <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                      {flagSrc(e.gp.emoji_bandeira) && (
+                        <img src={flagSrc(e.gp.emoji_bandeira)!} alt="" className="w-6 h-4 rounded-[3px] object-cover ring-1 ring-white/15 shrink-0" />
+                      )}
+                      <span className="font-bold text-white text-base leading-tight">{e.gp.nome}</span>
+                      {league === 'fantasy' && e.gp.is_sprint && (
+                        <span className="text-[11px] font-semibold text-yellow-400 whitespace-nowrap">⚡ Sprint</span>
+                      )}
                     </div>
                   </div>
                   <span className={`text-2xl font-black tabular-nums ${L.accent}`}>{e.pts}</span>
@@ -165,7 +180,7 @@ export default async function AwardsPage() {
       </div>
 
       <p className="text-gray-600 text-xs mt-6">
-        ⚡ Fins de semana Sprint têm corrida extra e, por isso, mais pontos disponíveis no Fantasy e no Predict.
+        ⚡ No F1 Fantasy, os fins de semana Sprint têm corrida extra e, por isso, mais pontos disponíveis.
       </p>
     </div>
   )
