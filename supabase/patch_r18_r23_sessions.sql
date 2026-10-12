@@ -1,6 +1,6 @@
 -- =====================================================
 -- PATCH: Horários das sessões R18–R23 (fim de época 2026)
--- Aplicado via API em 2026-10-12. Guardado aqui para registo / re-execução.
+-- Aplicado via API em 2026-10-12 e confirmado GP a GP no site F1 ("My time" Moçambique). Guardado para registo / re-execução.
 -- Regra: deadline_fantasy = deadline_predict = qualifying_start (fim-de-semana normal)
 --        deadline_play = data_corrida ; F1 Play abre em qualifying_start + 2h
 -- Todas as horas em UTC. Moçambique = UTC+2 (sem hora de verão).
@@ -31,7 +31,7 @@ UPDATE gp_calendar SET
   deadline_fantasy='2026-11-07 18:00+00', deadline_predict='2026-11-07 18:00+00', is_sprint=false
 WHERE id=18;
 
--- R21 Las Vegas (PST = UTC-8) — CONFIRMAR NO SITE F1. Corrida Sáb 21 Nov 20:00 local = Dom 22 Nov 06:00 MZ
+-- R21 Las Vegas (PST = UTC-8) — confirmado no site F1. Corrida Sáb 21 Nov 20:00 local = Dom 22 Nov 06:00 MZ
 -- P1 Sex 20 Nov 02:30 MZ · P2 06:00 MZ · P3 Sáb 21 Nov 02:30 MZ · Q 06:00 MZ
 UPDATE gp_calendar SET
   fp1_start='2026-11-20 00:30+00', fp2_start='2026-11-20 04:00+00',
