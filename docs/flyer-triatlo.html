@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<title>Flyer Triatlo Score</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@500&display=swap">
+<style>
+  * { box-sizing: border-box; margin: 0; }
+  html, body { width: 1080px; height: 1700px; background: #08080b; }
+  body {
+    color: #f0f0f2; font-family: 'DM Sans', system-ui, sans-serif; position: relative; overflow: hidden;
+    background: radial-gradient(900px 500px at 50% -10%, rgba(225,6,0,0.35), transparent 70%), #08080b;
+  }
+  .stripe { position: absolute; left: 0; right: 0; top: 0; height: 14px; background: #e10600; }
+  .wrap { padding: 64px 72px 56px; display: flex; flex-direction: column; gap: 28px; height: 100%; }
+
+  .head { display: flex; align-items: center; gap: 22px; }
+  .logo { width: 88px; height: 88px; border-radius: 50%; background: #fff; display: flex; align-items: center; justify-content: center; border: 4px solid #e10600; overflow: hidden; }
+  .logo img { width: 78px; height: 78px; object-fit: contain; }
+  .brand { font-family: 'Barlow Condensed'; font-weight: 800; font-size: 38px; line-height: 1; }
+  .brand small { display: block; font-family: 'DM Sans'; font-weight: 500; font-size: 17px; color: #9a9aa8; margin-top: 6px; letter-spacing: .08em; text-transform: uppercase; }
+
+  .badge { display: inline-block; font-family: 'DM Mono', monospace; font-size: 17px; letter-spacing: .2em; color: #f5c518; border: 2px solid rgba(245,197,24,.5); border-radius: 999px; padding: 7px 18px; text-transform: uppercase; font-weight: 700; }
+  h1 { font-family: 'Barlow Condensed'; font-weight: 900; font-size: 96px; line-height: .92; letter-spacing: -.01em; margin-top: 14px; }
+  h1 span { color: #f5c518; }
+  .lead { font-size: 24px; line-height: 1.45; color: #c9c9d2; }
+  .lead b { color: #fff; }
+
+  /* steps */
+  .steps { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+  .step { background: #15151b; border: 1px solid rgba(255,255,255,.08); border-top: 5px solid var(--c); border-radius: 16px; padding: 20px 22px; }
+  .step .n { font-family: 'Barlow Condensed'; font-weight: 900; font-size: 40px; color: var(--c); line-height: 1; }
+  .step .t { font-family: 'Barlow Condensed'; font-weight: 800; font-size: 26px; margin: 8px 0 6px; line-height: 1.05; }
+  .step .d { font-size: 18px; color: #b4b4c0; line-height: 1.4; }
+  .step .d b { color: #fff; }
+  .formula { margin-top: 10px; background: rgba(0,0,0,.4); border-radius: 10px; padding: 10px 12px; font-family: 'DM Mono', monospace; font-size: 16px; color: #f5c518; line-height: 1.4; }
+
+  /* case study */
+  .case { border: 2px solid rgba(245,197,24,.45); border-radius: 22px; overflow: hidden; background: rgba(0,0,0,.45); box-shadow: 0 0 28px rgba(245,197,24,.12); }
+  .case-h { display: flex; align-items: center; gap: 14px; padding: 16px 24px; background: rgba(245,197,24,.08); border-bottom: 1px solid rgba(255,255,255,.08); }
+  .case-h .av { width: 46px; height: 46px; border-radius: 50%; background: linear-gradient(135deg,#e10600,#800); display: flex; align-items: center; justify-content: center; font-family: 'Barlow Condensed'; font-weight: 900; font-size: 22px; border: 2px solid #f5c518; }
+  .case-h .ttl { font-family: 'Barlow Condensed'; font-weight: 900; font-size: 30px; }
+  .case-h .ttl small { display: block; font-family: 'DM Sans'; font-weight: 500; font-size: 15px; color: #a9a9b6; margin-top: 2px; }
+  .case-h .tag { margin-left: auto; font-family: 'DM Mono'; font-size: 13px; letter-spacing: .15em; color: #f5c518; text-transform: uppercase; }
+
+  table { width: 100%; border-collapse: collapse; }
+  th { font-family: 'DM Mono', monospace; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: #8a8a98; text-align: left; padding: 12px 18px; border-bottom: 1px solid rgba(255,255,255,.08); }
+  th.r, td.r { text-align: right; }
+  td { padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,.05); font-size: 20px; vertical-align: middle; }
+  td .lg { font-family: 'Barlow Condensed'; font-weight: 800; font-size: 24px; white-space: nowrap; }
+  td .lg.p { color: #60a5fa; } td .lg.f { color: #4ade80; } td .lg.r { color: #c084fc; }
+  td .sub { font-size: 14px; color: #8a8a98; }
+  td .pct { font-family: 'Barlow Condensed'; font-weight: 900; font-size: 32px; color: #fff; }
+  td .pct.gold { color: #f5c518; }
+  td .div { font-family: 'DM Mono', monospace; font-size: 16px; white-space: nowrap; color: #c9c9d2; }
+  td .div b { color: #fff; }
+  tr.total td { background: rgba(245,197,24,.07); border-bottom: 0; }
+  tr.total .lbl { font-family: 'Barlow Condensed'; font-weight: 900; font-size: 26px; color: #f5c518; }
+  tr.total .calc { font-family: 'DM Mono', monospace; font-size: 15px; white-space: nowrap; color: #c9c9d2; }
+  tr.total .score { font-family: 'Barlow Condensed'; font-weight: 900; font-size: 44px; color: #f5c518; line-height: 1; }
+  tr.total .pos { font-family: 'Barlow Condensed'; font-weight: 800; font-size: 18px; color: #fff; background: #e10600; border-radius: 999px; padding: 4px 12px; margin-left: 10px; vertical-align: middle; }
+
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .mini { background: #15151b; border: 1px solid rgba(255,255,255,.08); border-radius: 16px; padding: 18px 22px; }
+  .mini .t { font-family: 'Barlow Condensed'; font-weight: 800; font-size: 24px; margin-bottom: 8px; }
+  .mini .t.red { color: #f87171; } .mini .t.gold { color: #f5c518; }
+  .mini .d { font-size: 17px; color: #b4b4c0; line-height: 1.45; }
+  .mini .d b { color: #fff; }
+  .mini .ex { margin-top: 10px; font-family: 'DM Mono', monospace; font-size: 13.5px; white-space: nowrap; color: #c9c9d2; background: rgba(0,0,0,.4); border-radius: 10px; padding: 9px 12px; }
+
+  .foot { margin-top: auto; display: flex; justify-content: space-between; align-items: center; font-size: 18px; color: #8a8a98; border-top: 1px solid rgba(255,255,255,.08); padding-top: 20px; }
+  .foot b { color: #fff; font-family: 'Barlow Condensed'; font-size: 26px; letter-spacing: .04em; }
+</style>
+</head>
+<body>
+<div class="stripe"></div>
+<div class="wrap">
+
+  <div class="head">
+    <div class="logo"><img src="../public/logos/beira-f1.png" alt=""></div>
+    <div class="brand">Beira F1 Fanatics<small>Temporada 2026 · Beira, Moçambique</small></div>
+  </div>
+
+  <div>
+    <span class="badge">Como funciona</span>
+    <h1>O <span>Triatlo</span> Score<br>explicado em 3 passos</h1>
+  </div>
+
+  <p class="lead">O Triatlo não soma pontos — compara-te com o <b>líder de cada liga</b> e faz a <b>média das três</b>. Por isso, quem é <b>bom nas três ligas</b> ganha a quem é o melhor numa só.</p>
+
+  <div class="steps">
+    <div class="step" style="--c:#60a5fa">
+      <div class="n">1</div>
+      <div class="t">Acumulado em cada liga</div>
+      <div class="d">Conta o teu <b>total da época</b> (todos os GPs somados) no F1 Play, no F1 Fantasy e no F1 Predict. Os pontos de um GP isolado <b>não</b> entram directamente.</div>
+    </div>
+    <div class="step" style="--c:#4ade80">
+      <div class="n">2</div>
+      <div class="t">O líder vale 100%</div>
+      <div class="d">Em cada liga, divide-se o teu acumulado pelo do <b>1º classificado</b>. Se és o líder, tens 100%. Se tens metade dos pontos dele, tens 50%.</div>
+      <div class="formula">% = teu acumulado ÷ acumulado do líder × 100</div>
+    </div>
+    <div class="step" style="--c:#f5c518">
+      <div class="n">3</div>
+      <div class="t">Média das três</div>
+      <div class="d">O Triatlo Score é a <b>média dos 3 percentuais</b>. Máximo possível: 100 (líder nas três ligas).</div>
+      <div class="formula">Score = (Play% + Fantasy% + Predict%) ÷ 3</div>
+    </div>
+  </div>
+
+  <div class="case">
+    <div class="case-h">
+      <div class="av">H</div>
+      <div class="ttl">Caso de estudo: Haris<small>Resultados reais recebidos por email após cada GP</small></div>
+      <div class="tag">R16 → R17</div>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th style="width:22%">Liga</th>
+          <th style="width:28%">GP Bahrein (R16)</th>
+          <th class="r" style="width:11%">%</th>
+          <th style="width:28%">GP Singapura (R17)</th>
+          <th class="r" style="width:11%">%</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="lg p">🎮 F1 Play</span><div class="sub">4º na liga</div></td>
+          <td><span class="div"><b>109</b> ÷ 129 <span style="color:#8a8a98">líder</span></span><div class="sub">+10 pts no GP</div></td>
+          <td class="r"><span class="pct">84.5</span></td>
+          <td><span class="div"><b>118</b> ÷ 137 <span style="color:#8a8a98">líder</span></span><div class="sub">+9 pts no GP</div></td>
+          <td class="r"><span class="pct">86.1</span></td>
+        </tr>
+        <tr>
+          <td><span class="lg f">💰 F1 Fantasy</span><div class="sub">5º na liga</div></td>
+          <td><span class="div"><b>3575</b> ÷ 3967 <span style="color:#8a8a98">líder</span></span><div class="sub">+297 pts no GP</div></td>
+          <td class="r"><span class="pct">90.1</span></td>
+          <td><span class="div"><b>3822</b> ÷ 4217 <span style="color:#8a8a98">líder</span></span><div class="sub">+247 pts no GP</div></td>
+          <td class="r"><span class="pct">90.6</span></td>
+        </tr>
+        <tr>
+          <td><span class="lg r">🎯 F1 Predict</span><div class="sub">1º na liga (líder)</div></td>
+          <td><span class="div"><b>1754</b> ÷ 1754 <span style="color:#8a8a98">líder</span></span><div class="sub">+139 pts no GP</div></td>
+          <td class="r"><span class="pct gold">100</span></td>
+          <td><span class="div"><b>1890</b> ÷ 1890 <span style="color:#8a8a98">líder</span></span><div class="sub">+136 pts no GP</div></td>
+          <td class="r"><span class="pct gold">100</span></td>
+        </tr>
+        <tr class="total">
+          <td><span class="lbl">🏆 Triatlo</span></td>
+          <td><span class="calc">(84.5 + 90.1 + 100) ÷ 3</span></td>
+          <td class="r"><span class="score">91.5</span><span class="pos">1º</span></td>
+          <td><span class="calc">(86.1 + 90.6 + 100) ÷ 3</span></td>
+          <td class="r"><span class="score">92.3</span><span class="pos">1º</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="two">
+    <div class="mini">
+      <div class="t gold">Porque é que o Haris é 1º sem liderar o Play nem o Fantasy?</div>
+      <div class="d">Porque é <b>consistente nas três</b>. O Amarildo lidera o F1 Play (100%) e tem 96% no Fantasy, mas só 78.6% no Predict:</div>
+      <div class="ex">Amarildo: (100 + 96.0 + 78.6) ÷ 3 = 91.5 → 2º<br>Haris:&nbsp;&nbsp;&nbsp;&nbsp;(86.1 + 90.6 + 100) ÷ 3 = 92.3 → 1º</div>
+    </div>
+    <div class="mini">
+      <div class="t red">Não jogar uma liga custa muito</div>
+      <div class="d">Quem não participa numa liga tem <b>0%</b> nessa liga — e a média cai a pique, mesmo liderando as outras duas:</div>
+      <div class="ex">(100 + 100 + 0) ÷ 3 = 66.7<br>Dois 100% valem menos que três 70% (= 70)</div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <div>Vê o teu score em <b>app.beiraf1fanatics.com/ranking</b></div>
+    <div>Actualiza após cada GP</div>
+  </div>
+
+</div>
+</body>
+</html>
