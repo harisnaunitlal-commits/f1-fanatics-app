@@ -20,10 +20,18 @@ type ResultRow = {
   gap: string
 }
 
-const MZ_TZ = 'Africa/Maputo'
+const MZ_OFFSET_MIN = -120 // Africa/Maputo = UTC+2, sem hora de verão
+
+// Times render in the viewer's own timezone; the header says which one it is.
+function viewerTzLabel(): string {
+  if (new Date().getTimezoneOffset() === MZ_OFFSET_MIN) return 'hora Moçambique'
+  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone ?? ''
+  const city = tz.split('/').pop()?.replace(/_/g, ' ')
+  return city ? `hora local · ${city}` : 'hora local'
+}
 
 function fmt24(utcStr: string): string {
-  return new Date(utcStr).toLocaleTimeString('pt', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: MZ_TZ })
+  return new Date(utcStr).toLocaleTimeString('pt', { hour: '2-digit', minute: '2-digit', hour12: false })
 }
 
 function localDateStr(utcStr: string): string {
@@ -32,9 +40,9 @@ function localDateStr(utcStr: string): string {
 
 function fmtDayHeader(utcStr: string): string {
   const d = new Date(utcStr)
-  const weekday = d.toLocaleDateString('pt', { weekday: 'long', timeZone: MZ_TZ })
-  const day   = d.toLocaleDateString('pt', { day: 'numeric', timeZone: MZ_TZ })
-  const month = d.toLocaleDateString('pt', { month: 'short', timeZone: MZ_TZ }).replace('.', '')
+  const weekday = d.toLocaleDateString('pt', { weekday: 'long' })
+  const day   = d.toLocaleDateString('pt', { day: 'numeric' })
+  const month = d.toLocaleDateString('pt', { month: 'short' }).replace('.', '')
   return `${weekday.charAt(0).toUpperCase() + weekday.slice(1)}, ${day} ${month.charAt(0).toUpperCase() + month.slice(1)}`
 }
 
@@ -184,8 +192,10 @@ export default function GpWeekendSchedule({
 }) {
   const [now, setNow]           = useState(new Date())
   const [expanded, setExpanded] = useState<string | null>(null)
+  const [tzLabel, setTzLabel]   = useState('hora Moçambique')
 
   useEffect(() => {
+    setTzLabel(viewerTzLabel())
     const t = setInterval(() => setNow(new Date()), 1000)
     return () => clearInterval(t)
   }, [])
@@ -222,7 +232,7 @@ export default function GpWeekendSchedule({
           style={{ background: 'rgba(255,255,255,0.04)' }}>
           <span className="text-sm">📅</span>
           <span className="text-xs font-black text-yellow-400 uppercase tracking-widest">Programa do Fim de Semana</span>
-          <span className="ml-auto text-[10px] text-gray-600 font-medium">hora Moçambique</span>
+          <span className="ml-auto text-[10px] text-gray-600 font-medium">{tzLabel}</span>
         </div>
 
         {/* Day blocks */}
