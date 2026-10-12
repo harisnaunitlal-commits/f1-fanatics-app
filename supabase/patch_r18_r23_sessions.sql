@@ -40,12 +40,12 @@ UPDATE gp_calendar SET
   deadline_fantasy='2026-11-21 04:00+00', deadline_predict='2026-11-21 04:00+00', is_sprint=false
 WHERE id=19;
 
--- R22 Qatar (AST = UTC+3) — CONFIRMAR NO SITE F1. P1 Sex 27 Nov 15:30 MZ · P2 19:00 MZ · P3 Sáb 28 Nov 16:00 MZ · Q 19:00 MZ · Corrida Dom 29 Nov 18:00 MZ
+-- R22 Qatar (AST = UTC+3) — confirmado no site F1: P1 Sex 27 Nov 15:30 MZ · P2 19:00 MZ · P3 Sáb 28 Nov 16:30 MZ · Q 20:00 MZ · Corrida Dom 29 Nov 18:00 MZ
 UPDATE gp_calendar SET
   fp1_start='2026-11-27 13:30+00', fp2_start='2026-11-27 17:00+00',
-  fp3_start='2026-11-28 14:00+00', qualifying_start='2026-11-28 17:00+00',
+  fp3_start='2026-11-28 14:30+00', qualifying_start='2026-11-28 18:00+00',
   data_corrida='2026-11-29 16:00+00', deadline_play='2026-11-29 16:00+00',
-  deadline_fantasy='2026-11-28 17:00+00', deadline_predict='2026-11-28 17:00+00', is_sprint=false
+  deadline_fantasy='2026-11-28 18:00+00', deadline_predict='2026-11-28 18:00+00', is_sprint=false
 WHERE id=20;
 
 -- R23 Abu Dhabi (GST = UTC+4) — P1 Sex 4 Dez 11:30 MZ · P2 15:00 MZ · P3 Sáb 5 Dez 12:30 MZ · Q 16:00 MZ · Corrida Dom 6 Dez 15:00 MZ
