@@ -561,6 +561,13 @@
         </div>
       </div>
       <div class="feature-row">
+        <div class="feature-icon">🏅</div>
+        <div>
+          <div class="feature-name">Awards — recordes num único GP</div>
+          <div class="feature-desc">Separador <code>/ranking/awards</code> com três pódios (F1 Play, Fantasy, Predict): quem fez mais pontos numa única corrida, com o GP em que aconteceu. Agregado desde a R01, actualiza sozinho a cada GP pontuado. Empates partilham o lugar; fins de semana Sprint marcados com ⚡. Para o Predict/Fantasy antigos sem pontos por GP, calcula a diferença de acumulados.</div>
+        </div>
+      </div>
+      <div class="feature-row">
         <div class="feature-icon">👤</div>
         <div>
           <div class="feature-name">Perfil do membro</div>
@@ -834,6 +841,22 @@
       <div class="log-entry">
         <div class="log-dot"></div>
         <div class="log-body">
+          <div class="log-date">12 Outubro 2026 · R17 Singapura fechado</div>
+          <div class="log-title">Resultados R17, Awards e Horários até ao Fim da Época</div>
+          <ul class="log-items">
+            <li>R17 Singapura pontuado: F1 Play (24), Fantasy (27), Predict (25) e Ranking Global recalculado — Haris 94.8, Amarildo 91.6, Remane 90.6</li>
+            <li>Notificações push validadas no R17: os 3 alertas saíram à hora certa (Sáb 09:55, Sáb 16:55, Dom 12:55)</li>
+            <li>Nova página <strong>Awards</strong> (<code>/ranking/awards</code>): pódios do maior score num único GP por liga</li>
+            <li>Causa do "F1 Play abre logo após fechar o GP anterior": os GPs R18–R23 não tinham sessões carregadas (FP1–FP3 a null, <code>qualifying_start</code> inválido). Horários carregados e confirmados GP a GP no site F1 — <code>supabase/patch_r18_r23_sessions.sql</code></li>
+            <li>Programa do fim de semana mostra na hora local de quem vê ("hora Moçambique" ou "hora local · Cidade")</li>
+            <li>Deploy continua via CLI (<code>npx vercel --prod</code>) — Git integration do Vercel ainda não dispara</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="log-entry">
+        <div class="log-dot"></div>
+        <div class="log-body">
           <div class="log-date">10 Outubro 2026 · R17 GP Singapura — véspera do Sprint</div>
           <div class="log-title">Notificações Push no Telemóvel</div>
           <ul class="log-items">
@@ -944,16 +967,12 @@
 
     <div class="grid-2">
       <div class="card">
-        <div style="font-size:13px;font-weight:600;margin-bottom:8px;">🇸🇬 Perguntas GP Singapura (R17)</div>
-        <div style="font-size:13px;color:var(--muted);">Configurar perguntas (duelos P5/P6/P7, P13 especial, P15 outsider) em <code>/admin/gp-questions/</code> antes do Sprint Qualifying de Sexta-feira.</div>
+        <div style="font-size:13px;font-weight:600;margin-bottom:8px;">🇺🇸 Perguntas GP EUA (R18)</div>
+        <div style="font-size:13px;color:var(--muted);">Configurar perguntas (duelos P5/P6/P7, P13 especial, P15 outsider) em <code>/admin/gp-questions/</code> antes do Qualifying de Sábado 24 Out, 23:00.</div>
       </div>
       <div class="card">
-        <div style="font-size:13px;font-weight:600;margin-bottom:8px;">📊 Resultados R16 Bahrein</div>
-        <div style="font-size:13px;color:var(--muted);">Importar CSVs de F1 Fantasy e F1 Predict para o GP Bahrein e recalcular o Ranking Global.</div>
-      </div>
-      <div class="card">
-        <div style="font-size:13px;font-weight:600;margin-bottom:8px;">🔔 Validar notificações no R17</div>
-        <div style="font-size:13px;color:var(--muted);">Confirmar os 3 alertas de Singapura (Sáb 10:00, Sáb 17:00, Dom 13:00) em <code>notification_log</code> e quantos membros subscreveram em <code>push_subscriptions</code>.</div>
+        <div style="font-size:13px;font-weight:600;margin-bottom:8px;">📅 Época 2027: carregar sessões de todos os GPs no arranque</div>
+        <div style="font-size:13px;color:var(--muted);">Preencher FP1/FP2/FP3/Qualifying/corrida e deadlines de <em>todos</em> os GPs antes da R01, para o F1 Play nunca abrir fora de horas nem o programa aparecer incompleto. Só 3 membros subscreveram notificações — reenviar o flyer.</div>
       </div>
       <div class="card">
         <div style="font-size:13px;font-weight:600;margin-bottom:8px;">🔗 Reconectar Vercel ↔ GitHub</div>
@@ -972,7 +991,7 @@
 
   <!-- ══ FOOTER ══════════════════════════════════════════════════════════════ -->
   <footer class="footer">
-    <span>Beira F1 Fanatics 2026 · Booklet v1.3 · Outubro 2026</span>
+    <span>Beira F1 Fanatics 2026 · Booklet v1.4 · Outubro 2026</span>
     <span>Actualizado após cada GP</span>
   </footer>
 
