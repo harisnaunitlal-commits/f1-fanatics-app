@@ -23,9 +23,9 @@ UPDATE gp_calendar SET
   deadline_fantasy='2026-10-31 21:00+00', deadline_predict='2026-10-31 21:00+00', is_sprint=false
 WHERE id=17;
 
--- R20 Brasil (BRT = UTC-3) — P1 Sex 6 Nov 16:30 MZ · P2 20:00 MZ · P3 Sáb 7 Nov 16:30 MZ · Q 20:00 MZ · Corrida Dom 8 Nov 19:00 MZ
+-- R20 Brasil (BRT = UTC-3) — confirmado no site F1: P1 Sex 6 Nov 17:30 MZ · P2 21:00 MZ · P3 Sáb 7 Nov 16:30 MZ · Q 20:00 MZ · Corrida Dom 8 Nov 19:00 MZ
 UPDATE gp_calendar SET
-  fp1_start='2026-11-06 14:30+00', fp2_start='2026-11-06 18:00+00',
+  fp1_start='2026-11-06 15:30+00', fp2_start='2026-11-06 19:00+00',
   fp3_start='2026-11-07 14:30+00', qualifying_start='2026-11-07 18:00+00',
   data_corrida='2026-11-08 17:00+00', deadline_play='2026-11-08 17:00+00',
   deadline_fantasy='2026-11-07 18:00+00', deadline_predict='2026-11-07 18:00+00', is_sprint=false
