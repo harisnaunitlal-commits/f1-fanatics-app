@@ -64,9 +64,9 @@ function flagSrc(code: string | null): string | null {
 }
 
 const RANK_STYLE = [
-  { ring: 'bg-yellow-400/15 text-yellow-400 ring-1 ring-yellow-400/60', medal: '🥇' },
-  { ring: 'bg-gray-300/15 text-gray-200 ring-1 ring-gray-300/50',       medal: '🥈' },
-  { ring: 'bg-amber-600/15 text-amber-500 ring-1 ring-amber-600/50',    medal: '🥉' },
+  { ring: 'bg-yellow-400/15 text-yellow-400 ring-1 ring-yellow-400/60' },
+  { ring: 'bg-gray-300/15 text-gray-200 ring-1 ring-gray-300/50' },
+  { ring: 'bg-amber-600/15 text-amber-500 ring-1 ring-amber-600/50' },
 ]
 
 function PodiumCard({ league, podium }: { league: keyof typeof LEAGUES; podium: Podium }) {
@@ -86,12 +86,12 @@ function PodiumCard({ league, podium }: { league: keyof typeof LEAGUES; podium: 
         <ul className="divide-y divide-white/5">
           {podium.map(place => {
             const rs = RANK_STYLE[place.rank - 1]
-            return place.entries.map((e, idx) => {
+            return place.entries.map(e => {
               const name = e.member?.nickname ?? e.email.split('@')[0]
               return (
                 <li key={`${e.email}-${e.gp.id}`} className="flex items-center gap-3 px-4 py-3.5">
-                  <span className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${rs.ring}`}>
-                    {idx === 0 ? rs.medal : place.rank}
+                  <span className={`w-9 h-9 rounded-full flex items-center justify-center text-base font-black tabular-nums shrink-0 ${rs.ring}`}>
+                    {place.rank}
                   </span>
                   {e.member?.foto_url ? (
                     <img src={e.member.foto_url} alt="" className="w-10 h-10 rounded-full object-cover shrink-0 ring-1 ring-gray-700" />
