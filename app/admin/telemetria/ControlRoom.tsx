@@ -28,6 +28,8 @@ export default function ControlRoom({ initialScene, sessions, gps, liveReady }: 
   const [banner, setBanner] = useState(initialScene.banner ?? '')
   const [totalLaps, setTotalLaps] = useState(initialScene.total_laps ? String(initialScene.total_laps) : '')
   const [drag, setDrag] = useState<number | null>(null)
+  const [checking, setChecking] = useState(false)
+  const [checkMsg, setCheckMsg] = useState('')
 
   const session = sessions.find(s => s.key === scene.session_key)
   const startMs = session ? Date.parse(session.start) : 0
@@ -99,6 +101,18 @@ export default function ControlRoom({ initialScene, sessions, gps, liveReady }: 
         <div className="flex gap-2">
           <button disabled={busy} onClick={() => call('set', { mode: 'replay' })} className={`px-4 py-2 rounded-lg text-sm font-bold ${isReplay ? 'bg-f1red text-white' : 'bg-gray-800 text-gray-400 hover:text-white'}`}>↺ Replay</button>
           <button disabled={busy || !liveReady} onClick={() => call('set', { mode: 'live' })} className={`px-4 py-2 rounded-lg text-sm font-bold ${!isReplay ? 'bg-f1red text-white' : 'bg-gray-800 text-gray-400 hover:text-white'} disabled:opacity-40`}>● Ao vivo</button>
+        </div>
+        <div className="flex flex-wrap items-center gap-3">
+          <button disabled={busy || checking} onClick={async () => {
+            setChecking(true); setCheckMsg('')
+            try {
+              const r = await fetch('/api/admin/telemetria/check', { cache: 'no-store' })
+              const j = await r.json() as { configured?: boolean; ok?: boolean; status?: number; error?: string }
+              setCheckMsg(j.error ? `⚠️ ${j.error}` : !j.configured ? '⚠️ Variáveis OPENF1_USERNAME/OPENF1_PASSWORD em falta.' : j.ok ? '✅ Credenciais válidas — o OpenF1 aceitou o login.' : `❌ O OpenF1 recusou o login${j.status ? ` (HTTP ${j.status})` : ''}. Confirma o email e a palavra-passe no Vercel.`)
+            } catch { setCheckMsg('⚠️ Sem ligação ao servidor.') }
+            setChecking(false)
+          }} className="btn-secondary">{checking ? 'A testar…' : '🔑 Testar credenciais OpenF1'}</button>
+          {checkMsg && <span className="text-sm">{checkMsg}</span>}
         </div>
         {!liveReady && <p className="text-xs text-yellow-300 bg-yellow-900/20 rounded-lg px-3 py-2">O modo ao vivo precisa das variáveis <code>OPENF1_USERNAME</code> e <code>OPENF1_PASSWORD</code> no Vercel (Settings → Environment Variables, como <b>Secret</b>) e um redeploy. Nunca as escrevas no chat.</p>}
 

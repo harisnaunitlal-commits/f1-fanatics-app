@@ -21,6 +21,21 @@ async function getToken(): Promise<string | null> {
   } catch { return null }
 }
 
+// Explicit credential test for the control room (getToken above fails silently by design).
+export async function checkCredentials(): Promise<{ configured: boolean; ok: boolean; status?: number; expiresIn?: number }> {
+  const u = process.env.OPENF1_USERNAME, p = process.env.OPENF1_PASSWORD
+  if (!u || !p) return { configured: false, ok: false }
+  try {
+    const res = await fetch(`${BASE}/token`, {
+      method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ username: u, password: p }), cache: 'no-store',
+    })
+    if (!res.ok) return { configured: true, ok: false, status: res.status }
+    const j = await res.json() as { expires_in?: string | number }
+    return { configured: true, ok: true, expiresIn: Number(j.expires_in) || undefined }
+  } catch { return { configured: true, ok: false } }
+}
+
 export function hasLiveCredentials(): boolean {
   return !!(process.env.OPENF1_USERNAME && process.env.OPENF1_PASSWORD)
 }
