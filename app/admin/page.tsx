@@ -341,6 +341,11 @@ export default async function AdminPage() {
             <div className="font-bold">Aniversários</div>
             <div className="text-sm text-gray-400">Enviar parabéns personalizados</div>
           </Link>
+          <Link href="/admin/telemetria" className="card text-center hover:border-f1red/50 transition-colors">
+            <div className="text-2xl mb-2">📡</div>
+            <div className="font-bold">Telemetria</div>
+            <div className="text-sm text-gray-400">Mesa de controlo OpenF1</div>
+          </Link>
         </div>
       </div>
     </div>

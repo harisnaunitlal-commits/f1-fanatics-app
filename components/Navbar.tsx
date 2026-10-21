@@ -113,6 +113,7 @@ export default function Navbar() {
     { href: '/predict',      label: 'Previsões' },
     { href: '/instrucoes',   label: 'Como Jogar' },
     { href: '/instalar',     label: '📲 App' },
+    ...(member?.is_admin ? [{ href: '/telemetria', label: '📡 Telemetria' }] : []),
   ]
 
   return (
