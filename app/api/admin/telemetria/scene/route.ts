@@ -39,6 +39,11 @@ export async function POST(req: NextRequest) {
     const p = body.panels as Record<string, unknown>
     patch.panels = Object.fromEntries(PANEL_KEYS.map(k => [k, p[k] !== false]))
   }
+  if ('tyre_allocation' in body) {
+    const a = body.tyre_allocation as Record<string, unknown> | null
+    const n = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? Math.min(20, Math.max(0, Math.round(v))) : 0)
+    patch.tyre_allocation = a && (n(a.HARD) || n(a.MEDIUM) || n(a.SOFT)) ? { HARD: n(a.HARD), MEDIUM: n(a.MEDIUM), SOFT: n(a.SOFT) } : null
+  }
   if (body.compare_mode === 'best' || body.compare_mode === 'last') patch.compare_mode = body.compare_mode
 
   if (typeof patch.session_key === 'number' && patch.session_key !== scene.session_key) {

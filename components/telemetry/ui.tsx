@@ -15,3 +15,11 @@ export function fmtLap(s: number | null | undefined): string {
   const m = Math.floor(s / 60)
   return `${m}:${(s - m * 60).toFixed(3).padStart(6, '0')}`
 }
+
+export const COMPOUND: Record<string, { letter: string; cls: string; bar: string; name: string }> = {
+  SOFT: { letter: 'S', cls: 'border-red-500 text-red-400', bar: '#ef4444', name: 'Macio' },
+  MEDIUM: { letter: 'M', cls: 'border-yellow-400 text-yellow-300', bar: '#facc15', name: 'Médio' },
+  HARD: { letter: 'H', cls: 'border-gray-200 text-gray-100', bar: '#e5e7eb', name: 'Duro' },
+  INTERMEDIATE: { letter: 'I', cls: 'border-green-500 text-green-400', bar: '#22c55e', name: 'Intermédio' },
+  WET: { letter: 'W', cls: 'border-blue-500 text-blue-400', bar: '#3b82f6', name: 'Chuva' },
+}

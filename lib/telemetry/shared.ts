@@ -1,9 +1,16 @@
 // Types and constants shared by the telemetry API routes and the UI (no server-only imports).
 
-export const PANEL_KEYS = ['tower', 'strategy', 'control', 'ours', 'map', 'compare', 'positions', 'laps', 'championship'] as const
+export const PANEL_KEYS = ['tower', 'strategy', 'control', 'ours', 'map', 'compare', 'positions', 'laps', 'championship', 'tyres'] as const
 export type PanelKey = typeof PANEL_KEYS[number]
 export type Panels = Partial<Record<PanelKey, boolean>>
 export const panelOn = (p: Panels | null | undefined, k: PanelKey): boolean => p?.[k] !== false
+
+export type TyreAllocation = { HARD: number; MEDIUM: number; SOFT: number }
+
+export interface TyreHistory {
+  sessions: { key: number; short: string }[]
+  drivers: { code: string; colour: string; bySession: { compound: string | null; laps: number }[][]; totals: Record<string, number> }[]
+}
 
 export interface Scene {
   id: number
@@ -17,6 +24,7 @@ export interface Scene {
   total_laps: number | null
   panels: Panels
   compare_mode: 'best' | 'last'
+  tyre_allocation: TyreAllocation | null
   featured: string[]
   banner: string | null
   members_enabled: boolean
@@ -76,13 +84,14 @@ export interface StateResponse {
   disabled?: boolean
   message?: string
   isAdmin?: boolean
-  scene?: Pick<Scene, 'mode' | 'banner' | 'featured' | 'panels' | 'members_enabled' | 'total_laps' | 'replay_playing' | 'replay_speed' | 'compare_mode'>
+  scene?: Pick<Scene, 'mode' | 'banner' | 'featured' | 'panels' | 'members_enabled' | 'total_laps' | 'replay_playing' | 'replay_speed' | 'compare_mode' | 'tyre_allocation'>
   session?: { name: string; country: string; date_start: string; date_end: string }
   gp?: { nome: string; emoji: string | null; round: number } | null
   drivers?: { code: string; name: string; team: string; colour: string }[]
   state?: import('./engine').TelemetryState
   outline?: { x: number; y: number }[] | null
   compare?: import('./compare').CompareData | null
+  tyreHistory?: TyreHistory | null
   favCode?: string | null
   play?: { closed: boolean; answers: Record<string, string | null>; leaderboard: LeaderRow[]; participants: number; me: { total: number; rank: number | null; lines: PlayLine[] } | null }
 }

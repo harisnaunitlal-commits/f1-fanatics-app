@@ -1,8 +1,8 @@
 import { createServiceClient } from '@/lib/supabase/service'
 import { loadRaw, of1, isoNoZ, type SessionMeta } from './openf1'
-import { buildState, provisionalAnswers, driverFromText, type PlayCfg, type RawSession, type OF1Lap, type OF1Location } from './engine'
+import { buildState, provisionalAnswers, driverFromText, type PlayCfg, type RawSession, type OF1Lap, type OF1Location, type OF1Stint, type TelemetryState } from './engine'
 import { resampleLap, compareLaps, type CarSample, type CompareData, type LapTrace } from './compare'
-import { PLAY_FIELDS, QUANTUM_MS, sceneTime, type Scene, type StateResponse, type PlayLine, type LeaderRow } from './shared'
+import { PLAY_FIELDS, QUANTUM_MS, sceneTime, type Scene, type StateResponse, type PlayLine, type LeaderRow, type TyreHistory } from './shared'
 import { getEffectiveGpConfig } from '@/lib/gp-config'
 import { P8_MARGENS } from '@/lib/gp-questions'
 import { calculatePlayScore } from '@/lib/scoring'
@@ -54,6 +54,28 @@ async function buildCompare(sessionKey: number, raw: RawSession, featured: strin
   return a && b ? compareLaps(mode, a, b) : null
 }
 
+// ── tyres used in the earlier sessions of the same weekend (finished sessions never change: cached a day) ──
+const SHORT: [RegExp, string][] = [[/sprint qualifying|sprint shootout/i, 'SQ'], [/sprint/i, 'Sprint'], [/practice 1/i, 'FP1'], [/practice 2/i, 'FP2'], [/practice 3/i, 'FP3'], [/qualifying/i, 'Q'], [/race/i, 'Corrida']]
+const shortName = (n: string) => SHORT.find(([re]) => re.test(n))?.[1] ?? n
+
+async function buildTyreHistory(meta: SessionMeta, raw: RawSession, state: TelemetryState): Promise<TyreHistory | null> {
+  const all = await of1<SessionMeta>('sessions', [['meeting_key', '', meta.meeting_key]], 3600)
+  const before = all.filter(s => Date.parse(s.date_start) < Date.parse(meta.date_start)).sort((a, b) => Date.parse(a.date_start) - Date.parse(b.date_start))
+  if (before.length === 0) return { sessions: [], drivers: [] } // first session of the weekend
+  const stintsBy = await Promise.all(before.map(s => of1<OF1Stint>('stints', [['session_key', '', s.session_key]], 86_400)))
+  const numToCode = new Map(raw.drivers.map(d => [d.driver_number, d.name_acronym]))
+  const drivers: TyreHistory['drivers'] = state.tower.map(r => {
+    const bySession = stintsBy.map(st => st
+      .filter(x => numToCode.get(x.driver_number) === r.code && x.lap_start != null)
+      .sort((a, b) => a.stint_number - b.stint_number)
+      .map(x => ({ compound: x.compound, laps: x.lap_end != null ? x.lap_end - (x.lap_start as number) + 1 : 0 })))
+    const totals: Record<string, number> = {}
+    bySession.flat().forEach(x => { if (x.compound) totals[x.compound] = (totals[x.compound] ?? 0) + x.laps })
+    return { code: r.code, colour: r.colour, bySession, totals }
+  })
+  return { sessions: before.map(s => ({ key: s.session_key, short: shortName(s.session_name) })), drivers }
+}
+
 // Predictions, members and question config barely change during a race: keep them 30 s.
 interface PlayData {
   at: number
@@ -93,9 +115,10 @@ export async function buildStateResponse(viewer: { email: string; isAdmin: boole
     const raw = await loadRaw(sc.session_key, t, sc.mode === 'live', meta.session_name)
     const state = buildState(raw, t, sc.total_laps, meta.session_name)
     const panels = sc.panels ?? {}
-    const [outline, compare] = await Promise.all([
+    const [outline, compare, tyreHistory] = await Promise.all([
       panels.map !== false ? trackOutline(sc.session_key, raw, t).catch(() => null) : Promise.resolve(null),
       panels.compare !== false ? buildCompare(sc.session_key, raw, sc.featured, sc.compare_mode ?? 'best', t).catch(() => null) : Promise.resolve(null),
+      panels.tyres !== false ? buildTyreHistory(meta, raw, state).catch(() => null) : Promise.resolve(null),
     ])
     const drivers = raw.drivers.map(d => ({ code: d.name_acronym, name: d.full_name, team: d.team_name, colour: d.team_colour.startsWith('#') ? d.team_colour : `#${d.team_colour}` }))
     const favCode = driverFromText(viewer.pilotoFav, drivers.map(d => ({ code: d.code, name: d.name })))
@@ -140,9 +163,9 @@ export async function buildStateResponse(viewer: { email: string; isAdmin: boole
       status: 200,
       body: {
         ready: true, isAdmin,
-        scene: { mode: sc.mode, banner: sc.banner, featured: sc.featured, panels: sc.panels, members_enabled: sc.members_enabled, total_laps: sc.total_laps, replay_playing: sc.replay_playing, replay_speed: Number(sc.replay_speed), compare_mode: sc.compare_mode ?? 'best' },
+        scene: { mode: sc.mode, banner: sc.banner, featured: sc.featured, panels: sc.panels, members_enabled: sc.members_enabled, total_laps: sc.total_laps, replay_playing: sc.replay_playing, replay_speed: Number(sc.replay_speed), compare_mode: sc.compare_mode ?? 'best', tyre_allocation: sc.tyre_allocation ?? null },
         session: { name: meta.session_name, country: meta.country_name, date_start: meta.date_start, date_end: meta.date_end },
-        gp, drivers, state, outline, compare, favCode, play,
+        gp, drivers, state, outline, compare, tyreHistory, favCode, play,
       },
     }
   } catch (e) {

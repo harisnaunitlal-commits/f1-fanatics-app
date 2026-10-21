@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import { flagSrc, panelOn, type StateResponse } from '@/lib/telemetry/shared'
-import { Section, fmtLap } from './ui'
+import { Section, fmtLap, COMPOUND } from './ui'
+import { TyreHistory } from './TyreHistory'
 import { TrackMap } from './TrackMap'
 import { TelemetryCompare } from './TelemetryCompare'
 import { PositionChart, OvertakeFeed } from './PositionChart'
@@ -21,14 +22,6 @@ const STATUS: Record<TrackStatus, { label: string; cls: string }> = {
   SC_ENDING: { label: 'SC ENTRA NA BOX', cls: 'bg-orange-400 text-black' },
   RED: { label: 'BANDEIRA VERMELHA', cls: 'bg-red-600 text-white' },
   FINISHED: { label: 'BANDEIRA XADREZ', cls: 'bg-white text-black' },
-}
-
-const COMPOUND: Record<string, { letter: string; cls: string; bar: string }> = {
-  SOFT: { letter: 'S', cls: 'border-red-500 text-red-400', bar: '#ef4444' },
-  MEDIUM: { letter: 'M', cls: 'border-yellow-400 text-yellow-300', bar: '#facc15' },
-  HARD: { letter: 'H', cls: 'border-gray-200 text-gray-100', bar: '#e5e7eb' },
-  INTERMEDIATE: { letter: 'I', cls: 'border-green-500 text-green-400', bar: '#22c55e' },
-  WET: { letter: 'W', cls: 'border-blue-500 text-blue-400', bar: '#3b82f6' },
 }
 
 const RC_ICON: Record<RcKind, string> = { flag: '🏁', safetycar: '🚗', penalty: '⚖️', investigation: '🔍', noted: '📝', cleared: '✅', deleted: '⏱️', info: 'ℹ️' }
@@ -372,6 +365,12 @@ export default function TelemetryView({ endpoint = '/api/telemetria/state' }: { 
               </div>
             </div>
           )}
+        </Section>
+      )}
+
+      {panelOn(scene.panels, 'tyres') && (
+        <Section title="Pneus do fim-de-semana" hint="o que cada piloto já usou nas sessões anteriores">
+          <TyreHistory data={data.tyreHistory ?? null} allocation={scene.tyre_allocation} />
         </Section>
       )}
 

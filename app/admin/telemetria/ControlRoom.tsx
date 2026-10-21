@@ -12,6 +12,7 @@ const PANELS: { key: PanelKey; label: string }[] = [
   { key: 'map', label: 'Mapa da pista com os carros' },
   { key: 'championship', label: 'Campeonato em directo (corridas e sprints)' },
   { key: 'strategy', label: 'Estratégia (pneus, paragens, undercut, "se parasse agora")' },
+  { key: 'tyres', label: 'Pneus do fim-de-semana (usados em sessões anteriores + alocação)' },
   { key: 'compare', label: 'Telemetria de piloto: comparar 2 pilotos (velocidade, acelerador, travão, mudança)' },
   { key: 'positions', label: 'Gráfico de posições + ultrapassagens (corridas)' },
   { key: 'laps', label: 'Análise de voltas (sectores, velocidade máxima, ritmo)' },
@@ -33,6 +34,7 @@ export default function ControlRoom({ initialScene, sessions, gps, liveReady }: 
   const [banner, setBanner] = useState(initialScene.banner ?? '')
   const [totalLaps, setTotalLaps] = useState(initialScene.total_laps ? String(initialScene.total_laps) : '')
   const [drag, setDrag] = useState<number | null>(null)
+  const [alloc, setAlloc] = useState({ SOFT: String(initialScene.tyre_allocation?.SOFT ?? ''), MEDIUM: String(initialScene.tyre_allocation?.MEDIUM ?? ''), HARD: String(initialScene.tyre_allocation?.HARD ?? '') })
   const [checking, setChecking] = useState(false)
   const [checkMsg, setCheckMsg] = useState('')
 
@@ -167,6 +169,20 @@ export default function ControlRoom({ initialScene, sessions, gps, liveReady }: 
                   style={on ? { borderColor: d.colour } : undefined}>{d.code}</button>
               )
             })}
+          </div>
+        </div>
+        <div>
+          <label className="label">Alocação de pneus do fim-de-semana, por piloto (anúncio da Pirelli) — opcional</label>
+          <div className="flex flex-wrap items-center gap-3">
+            {([['SOFT', 'Macios'], ['MEDIUM', 'Médios'], ['HARD', 'Duros']] as const).map(([k, name]) => (
+              <label key={k} className="flex items-center gap-2 text-sm text-gray-300">
+                {name}
+                <input className="input !w-16 text-center" inputMode="numeric" placeholder="0" value={alloc[k]} disabled={busy}
+                  onChange={e => setAlloc({ ...alloc, [k]: e.target.value.replace(/D/g, '').slice(0, 2) })} />
+              </label>
+            ))}
+            <button disabled={busy} className="btn-secondary" onClick={() => call('set', { tyre_allocation: { SOFT: Number(alloc.SOFT) || 0, MEDIUM: Number(alloc.MEDIUM) || 0, HARD: Number(alloc.HARD) || 0 } })}>Aplicar</button>
+            <button disabled={busy} className="btn-secondary" onClick={() => { setAlloc({ SOFT: '', MEDIUM: '', HARD: '' }); call('set', { tyre_allocation: null }) }}>Limpar</button>
           </div>
         </div>
         <div>

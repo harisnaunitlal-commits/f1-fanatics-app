@@ -32,3 +32,6 @@ SELECT id, mode, members_enabled FROM telemetry_scene;
 
 -- 2026-10-22: modo da comparação de telemetria (melhor volta / última volta) — já aplicado
 ALTER TABLE telemetry_scene ADD COLUMN IF NOT EXISTS compare_mode text NOT NULL DEFAULT 'best' CHECK (compare_mode IN ('best', 'last'));
+
+-- 2026-10-22: alocação de pneus do fim-de-semana (inserida pelo admin) — já aplicado
+ALTER TABLE telemetry_scene ADD COLUMN IF NOT EXISTS tyre_allocation jsonb;
