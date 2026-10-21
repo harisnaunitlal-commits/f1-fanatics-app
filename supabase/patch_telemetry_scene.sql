@@ -29,3 +29,6 @@ ALTER TABLE telemetry_scene ENABLE ROW LEVEL SECURITY;
 INSERT INTO telemetry_scene (id) VALUES (1) ON CONFLICT (id) DO NOTHING;
 
 SELECT id, mode, members_enabled FROM telemetry_scene;
+
+-- 2026-10-22: modo da comparação de telemetria (melhor volta / última volta) — já aplicado
+ALTER TABLE telemetry_scene ADD COLUMN IF NOT EXISTS compare_mode text NOT NULL DEFAULT 'best' CHECK (compare_mode IN ('best', 'last'));

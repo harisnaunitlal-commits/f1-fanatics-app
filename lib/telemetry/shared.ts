@@ -1,5 +1,10 @@
 // Types and constants shared by the telemetry API routes and the UI (no server-only imports).
 
+export const PANEL_KEYS = ['tower', 'strategy', 'control', 'ours', 'map', 'compare', 'positions', 'laps', 'championship'] as const
+export type PanelKey = typeof PANEL_KEYS[number]
+export type Panels = Partial<Record<PanelKey, boolean>>
+export const panelOn = (p: Panels | null | undefined, k: PanelKey): boolean => p?.[k] !== false
+
 export interface Scene {
   id: number
   session_key: number | null
@@ -10,14 +15,15 @@ export interface Scene {
   replay_speed: number
   replay_playing: boolean
   total_laps: number | null
-  panels: { tower: boolean; strategy: boolean; control: boolean; ours: boolean }
+  panels: Panels
+  compare_mode: 'best' | 'last'
   featured: string[]
   banner: string | null
   members_enabled: boolean
   updated_at: string
 }
 
-export const QUANTUM_MS = 4000
+export const QUANTUM_MS = 5000
 
 // Instant of the session that everyone is looking at. Replay is driven by an anchor stored in the
 // scene, so it keeps running without any admin tab open and all members see the same moment.
@@ -70,11 +76,13 @@ export interface StateResponse {
   disabled?: boolean
   message?: string
   isAdmin?: boolean
-  scene?: Pick<Scene, 'mode' | 'banner' | 'featured' | 'panels' | 'members_enabled' | 'total_laps' | 'replay_playing' | 'replay_speed'>
+  scene?: Pick<Scene, 'mode' | 'banner' | 'featured' | 'panels' | 'members_enabled' | 'total_laps' | 'replay_playing' | 'replay_speed' | 'compare_mode'>
   session?: { name: string; country: string; date_start: string; date_end: string }
   gp?: { nome: string; emoji: string | null; round: number } | null
   drivers?: { code: string; name: string; team: string; colour: string }[]
   state?: import('./engine').TelemetryState
+  outline?: { x: number; y: number }[] | null
+  compare?: import('./compare').CompareData | null
   favCode?: string | null
   play?: { closed: boolean; answers: Record<string, string | null>; leaderboard: LeaderRow[]; participants: number; me: { total: number; rank: number | null; lines: PlayLine[] } | null }
 }

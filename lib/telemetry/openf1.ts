@@ -1,4 +1,4 @@
-import type { RawSession, OF1Driver, OF1Position, OF1Interval, OF1Stint, OF1Pit, OF1RaceControl, OF1Weather, OF1Lap, OF1Result } from './engine'
+import type { RawSession, OF1Driver, OF1Position, OF1Interval, OF1Stint, OF1Pit, OF1RaceControl, OF1Weather, OF1Lap, OF1Result, OF1Overtake, OF1Location, OF1ChampDriver, OF1ChampTeam } from './engine'
 
 const BASE = 'https://api.openf1.org'
 
@@ -53,11 +53,22 @@ async function throttle(gapMs: number) {
   if (wait) await new Promise(r => setTimeout(r, wait))
 }
 
-export async function of1<T>(endpoint: string, filters: Filter[], ttlSec: number): Promise<T[]> {
+// Identical requests that are already in flight share one upstream call (many viewers opening at once).
+const inflight = new Map<string, Promise<unknown[]>>()
+
+export function of1<T>(endpoint: string, filters: Filter[], ttlSec: number): Promise<T[]> {
   const qs = filters.map(([k, op, v]) => `${k}${op || '='}${encodeURIComponent(String(v))}`).join('&')
   const url = `${BASE}/v1/${endpoint}${qs ? `?${qs}` : ''}`
   const hit = memo.get(url)
-  if (hit && Date.now() - hit.at < ttlSec * 1000) return hit.data as T[]
+  if (hit && Date.now() - hit.at < ttlSec * 1000) return Promise.resolve(hit.data as T[])
+  const pending = inflight.get(url)
+  if (pending) return pending as Promise<T[]>
+  const p = fetchUpstream<T>(endpoint, url, ttlSec, hit?.data as T[] | undefined).finally(() => inflight.delete(url))
+  inflight.set(url, p)
+  return p
+}
+
+async function fetchUpstream<T>(endpoint: string, url: string, ttlSec: number, stale: T[] | undefined): Promise<T[]> {
   const token = await getToken()
   let res: Response | null = null
   for (let attempt = 0; attempt < 3; attempt++) {
@@ -69,7 +80,7 @@ export async function of1<T>(endpoint: string, filters: Filter[], ttlSec: number
   if (!res) throw new Error(`OpenF1 ${endpoint} → sem resposta`)
   if (res.status === 404) { memo.set(url, { at: Date.now(), data: [] }); return [] }
   if (!res.ok) {
-    if (hit) return hit.data as T[] // rate-limited or upstream hiccup: keep serving the last good copy
+    if (stale) return stale // rate-limited or upstream hiccup: keep serving the last good copy
     throw new Error(`OpenF1 ${endpoint} → HTTP ${res.status}`)
   }
   const data = await res.json() as T[]
@@ -88,21 +99,28 @@ export async function listSessions(year: number): Promise<SessionMeta[]> {
 // Loads everything the engine needs for one session. Static datasets are cached for long when the
 // session is over (replay) and for a few seconds when it is live. Intervals are fetched as a short
 // window around t: they are by far the biggest dataset.
-export async function loadRaw(sessionKey: number, tMs: number, live: boolean): Promise<RawSession> {
+export const isoNoZ = (ms: number): string => new Date(ms).toISOString().slice(0, 23)
+
+// Live refresh budget (sponsor plan: 60 req/min): position 8s, intervals 5s, location 5s, rc 12s, pit 20s,
+// overtakes 20s, laps 25s, stints 40s, weather 60s, results 180s, championship 15min ≈ 50 req/min.
+export async function loadRaw(sessionKey: number, tMs: number, live: boolean, sessionName: string): Promise<RawSession> {
   const sk: Filter = ['session_key', '', sessionKey]
   const ttl = (liveSec: number) => (live ? liveSec : 3600)
-  const from = new Date(tMs - 90_000).toISOString().slice(0, 19)
-  const to = new Date(tMs).toISOString().slice(0, 19)
-  const [drivers, positions, stints, pits, raceControl, weather, laps, results, intervals] = await Promise.all([
+  const isRace = /race|sprint/i.test(sessionName) && !/qualif|shootout/i.test(sessionName)
+  const [drivers, positions, stints, pits, raceControl, weather, laps, results, intervals, locations, overtakes, champDrivers, champTeams] = await Promise.all([
     of1<OF1Driver>('drivers', [sk], live ? 300 : 3600),
-    of1<OF1Position>('position', [sk], ttl(4)),
-    of1<OF1Stint>('stints', [sk], ttl(15)),
-    of1<OF1Pit>('pit', [sk], ttl(8)),
-    of1<OF1RaceControl>('race_control', [sk], ttl(6)),
-    of1<OF1Weather>('weather', [sk], ttl(30)),
-    of1<OF1Lap>('laps', [sk], ttl(12)),
-    of1<OF1Result>('session_result', [sk], live ? 60 : 3600),
-    of1<OF1Interval>('intervals', [sk, ['date', '>=', from], ['date', '<=', to]], ttl(4)),
+    of1<OF1Position>('position', [sk], ttl(8)),
+    of1<OF1Stint>('stints', [sk], ttl(40)),
+    of1<OF1Pit>('pit', [sk], ttl(20)),
+    of1<OF1RaceControl>('race_control', [sk], ttl(12)),
+    of1<OF1Weather>('weather', [sk], ttl(60)),
+    of1<OF1Lap>('laps', [sk], ttl(25)),
+    of1<OF1Result>('session_result', [sk], live ? 180 : 3600),
+    isRace ? of1<OF1Interval>('intervals', [sk, ['date', '>=', isoNoZ(tMs - 90_000)], ['date', '<=', isoNoZ(tMs)]], ttl(5)) : Promise.resolve([] as OF1Interval[]),
+    of1<OF1Location>('location', [sk, ['date', '>=', isoNoZ(tMs - 3_500)], ['date', '<=', isoNoZ(tMs)]], ttl(5)),
+    isRace ? of1<OF1Overtake>('overtakes', [sk], ttl(20)) : Promise.resolve([] as OF1Overtake[]),
+    isRace ? of1<OF1ChampDriver>('championship_drivers', [sk], live ? 900 : 3600) : Promise.resolve([] as OF1ChampDriver[]),
+    isRace ? of1<OF1ChampTeam>('championship_teams', [sk], live ? 900 : 3600) : Promise.resolve([] as OF1ChampTeam[]),
   ])
-  return { drivers, positions, intervals, stints, pits, raceControl, weather, laps, results }
+  return { drivers, positions, intervals, stints, pits, raceControl, weather, laps, results, overtakes, locations, champDrivers, champTeams }
 }

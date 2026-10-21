@@ -8,8 +8,15 @@ export interface OF1Stint { stint_number: number; driver_number: number; lap_sta
 export interface OF1Pit { date: string; driver_number: number; lap_number: number | null; lane_duration: number | null; pit_duration?: number | null; stop_duration: number | null }
 export interface OF1RaceControl { date: string; driver_number: number | null; lap_number: number | null; category: string; flag: string | null; scope: string | null; sector: number | null; message: string }
 export interface OF1Weather { date: string; air_temperature: number; track_temperature: number; humidity: number; pressure: number; rainfall: number; wind_speed: number; wind_direction: number }
-export interface OF1Lap { driver_number: number; lap_number: number; date_start: string | null; lap_duration: number | null; is_pit_out_lap: boolean | null }
+export interface OF1Lap {
+  driver_number: number; lap_number: number; date_start: string | null; lap_duration: number | null; is_pit_out_lap: boolean | null
+  duration_sector_1?: number | null; duration_sector_2?: number | null; duration_sector_3?: number | null; st_speed?: number | null
+}
 export interface OF1Result { driver_number: number; position: number | null; number_of_laps: number | null; dnf: boolean; dns: boolean; dsq: boolean }
+export interface OF1Overtake { date: string; overtaking_driver_number: number; overtaken_driver_number: number; position: number }
+export interface OF1Location { date: string; driver_number: number; x: number; y: number }
+export interface OF1ChampDriver { driver_number: number; position_start: number | null; points_start: number | null }
+export interface OF1ChampTeam { team_name: string; position_start: number | null; points_start: number | null }
 
 export interface RawSession {
   drivers: OF1Driver[]
@@ -21,7 +28,19 @@ export interface RawSession {
   weather: OF1Weather[]
   laps: OF1Lap[]
   results: OF1Result[]
+  overtakes: OF1Overtake[]
+  locations: OF1Location[]
+  champDrivers: OF1ChampDriver[]
+  champTeams: OF1ChampTeam[]
 }
+
+export type SectorColour = 'purple' | 'green' | 'yellow' | null
+export interface MapCar { code: string; colour: string; x: number; y: number; out: boolean; inPit: boolean }
+export interface OvertakeItem { date: string; lap: number | null; by: string; over: string; pos: number }
+export interface PositionLine { code: string; colour: string; pos: (number | null)[] }
+export interface LapTimeLine { code: string; colour: string; laps: { lap: number; t: number }[] }
+export interface ChampRow { code: string; name: string; colour: string; posStart: number; pointsStart: number; pointsNow: number; posNow: number; delta: number }
+export interface ChampTeamRow { name: string; colour: string; posStart: number; pointsStart: number; pointsNow: number; posNow: number; delta: number }
 
 export type TrackStatus = 'NOT_STARTED' | 'GREEN' | 'VSC' | 'VSC_ENDING' | 'SC' | 'SC_ENDING' | 'RED' | 'FINISHED'
 
@@ -49,6 +68,9 @@ export interface TowerRow {
   out: boolean
   stints: StintInfo[]
   degPerLap: number | null
+  sectors: (number | null)[]
+  sectorColour: SectorColour[]
+  topSpeed: number | null
 }
 
 export interface RejoinSim {
@@ -88,6 +110,12 @@ export interface TelemetryState {
   deletedLaps: number
   weather: WeatherInfo | null
   firstRetirement: string | null
+  map: MapCar[]
+  overtakes: OvertakeItem[]
+  lapChart: PositionLine[]
+  lapTimes: LapTimeLine[]
+  fastestSectors: (number | null)[]
+  championship: { drivers: ChampRow[]; teams: ChampTeamRow[]; sprint: boolean } | null
 }
 
 // ───────────────────────────── helpers ─────────────────────────────
@@ -185,7 +213,7 @@ function trackStatusAt(rc: OF1RaceControl[], t: number): { status: TrackStatus; 
 }
 
 // ───────────────────────────── main ─────────────────────────────
-export function buildState(raw: RawSession, tMs: number, totalLapsHint: number | null = null): TelemetryState {
+export function buildState(raw: RawSession, tMs: number, totalLapsHint: number | null = null, sessionName = ''): TelemetryState {
   const drivers = new Map(raw.drivers.map(d => [d.driver_number, d]))
   const rc = [...raw.raceControl].sort((a, b) => ms(a.date) - ms(b.date))
   const ts = trackStatusAt(rc, tMs)
@@ -220,6 +248,26 @@ export function buildState(raw: RawSession, tMs: number, totalLapsHint: number |
   const leaderNum = Array.from(posBy.entries()).sort((a, b) => a[1] - b[1])[0]?.[0]
   const leaderClean = (lapsBy.get(leaderNum ?? -1) ?? []).filter(l => isComplete(l) && !l.is_pit_out_lap && l.lap_number > 1).map(l => l.lap_duration as number)
   const refLap = median(leaderClean.slice(-8)) ?? 95
+
+  // best sector times: session-wide (purple) and per driver (green)
+  const sessionBest: (number | null)[] = [null, null, null]
+  const personalBest = new Map<number, (number | null)[]>()
+  const topSpeedBy = new Map<number, number>()
+  for (const [num, arr] of Array.from(lapsBy.entries())) {
+    const pb: (number | null)[] = [null, null, null]
+    for (const l of arr) {
+      if (!isComplete(l)) continue
+      if (l.st_speed != null) topSpeedBy.set(num, Math.max(topSpeedBy.get(num) ?? 0, l.st_speed))
+      if (l.is_pit_out_lap) continue
+      const sec = [l.duration_sector_1 ?? null, l.duration_sector_2 ?? null, l.duration_sector_3 ?? null]
+      sec.forEach((v, i) => {
+        if (v == null) return
+        if (pb[i] === null || v < (pb[i] as number)) pb[i] = v
+        if (sessionBest[i] === null || v < (sessionBest[i] as number)) sessionBest[i] = v
+      })
+    }
+    personalBest.set(num, pb)
+  }
 
   // pit stops so far
   const pits = raw.pits.filter(p => ms(p.date) <= tMs).sort((a, b) => ms(a.date) - ms(b.date))
@@ -288,7 +336,14 @@ export function buildState(raw: RawSession, tMs: number, totalLapsHint: number |
     const gapLabel = position === 1 ? 'LÍDER' : g.lapsDown ? `+${g.lapsDown}V` : g.sec != null ? `+${g.sec.toFixed(1)}` : '—'
     const intervalLabel = position === 1 ? '—' : itv.lapsDown ? `+${itv.lapsDown}V` : itv.sec != null ? `+${itv.sec.toFixed(1)}` : '—'
 
+    const secs = [lastDone?.duration_sector_1 ?? null, lastDone?.duration_sector_2 ?? null, lastDone?.duration_sector_3 ?? null]
+    const pbs = personalBest.get(num) ?? [null, null, null]
+    const sectorColour: SectorColour[] = secs.map((v, i) => v == null ? null
+      : sessionBest[i] !== null && v <= (sessionBest[i] as number) + 0.0005 ? 'purple'
+      : pbs[i] !== null && v <= (pbs[i] as number) + 0.0005 ? 'green' : 'yellow')
+
     rows.push({
+      sectors: secs, sectorColour, topSpeed: topSpeedBy.get(num) ?? null,
       pos: position, num, code: d.name_acronym, name: d.full_name, team: d.team_name, colour: d.team_colour.startsWith('#') ? d.team_colour : `#${d.team_colour}`,
       gapLabel, intervalLabel, gapS: position === 1 ? 0 : g.sec, intervalS: position === 1 ? null : itv.sec, lapsDown: g.lapsDown,
       lap, lastLap: lastDone?.lap_duration ?? null, bestLap: best?.lap_duration ?? null,
@@ -380,8 +435,75 @@ export function buildState(raw: RawSession, tMs: number, totalLapsHint: number |
     rain: w.rainfall > 0, trackTrend: wOld ? Math.round((w.track_temperature - wOld.track_temperature) * 10) / 10 : null,
   } : null
 
+  // ── map: latest location of every car ──
+  const locBy = new Map<number, OF1Location>()
+  for (const l of raw.locations) { if (ms(l.date) <= tMs) { const c = locBy.get(l.driver_number); if (!c || ms(l.date) >= ms(c.date)) locBy.set(l.driver_number, l) } }
+  const mapCars: MapCar[] = tower.flatMap(r => { const l = locBy.get(r.num); return l ? [{ code: r.code, colour: r.colour, x: l.x, y: l.y, out: r.out, inPit: r.inPit }] : [] })
+
+  // ── overtakes ──
+  const lapAt = (num: number, at: number): number | null => {
+    const arr = lapsBy.get(num) ?? []
+    let v: number | null = null
+    for (const l of arr) { if (l.date_start && ms(l.date_start) <= at) v = l.lap_number; else break }
+    return v
+  }
+  const overtakes: OvertakeItem[] = raw.overtakes.filter(o => ms(o.date) <= tMs).sort((a, b) => ms(a.date) - ms(b.date)).slice(-10).reverse().map(o => ({
+    date: o.date, lap: lapAt(o.overtaking_driver_number, ms(o.date)), pos: o.position,
+    by: drivers.get(o.overtaking_driver_number)?.name_acronym ?? '?', over: drivers.get(o.overtaken_driver_number)?.name_acronym ?? '?',
+  }))
+
+  // ── lap chart: position at the start of each lap, and clean lap times ──
+  const posHist = new Map<number, OF1Position[]>()
+  for (const p of raw.positions) { if (ms(p.date) <= tMs) { const a = posHist.get(p.driver_number) ?? []; a.push(p); posHist.set(p.driver_number, a) } }
+  const posAt = (num: number, at: number): number | null => {
+    let v: number | null = null
+    for (const p of posHist.get(num) ?? []) { if (ms(p.date) <= at) v = p.position; else break }
+    return v
+  }
+  const lapChart: PositionLine[] = tower.map(r => {
+    const dl = lapsBy.get(r.num) ?? []
+    return { code: r.code, colour: r.colour, pos: Array.from({ length: leaderLap }, (_, i) => { const l = dl.find(x => x.lap_number === i + 1); return l?.date_start ? posAt(r.num, ms(l.date_start)) : null }) }
+  })
+  const lapTimes: LapTimeLine[] = tower.map(r => ({
+    code: r.code, colour: r.colour,
+    laps: (lapsBy.get(r.num) ?? []).filter(l => isComplete(l) && !l.is_pit_out_lap && l.lap_number > 1 && (l.lap_duration as number) < refLap * 1.12).map(l => ({ lap: l.lap_number, t: l.lap_duration as number })),
+  }))
+
+  // ── championship if the race ended now (start-of-session standings + points for the current order) ──
+  let championship: TelemetryState['championship'] = null
+  const isRaceSession = /race|sprint/i.test(sessionName) && !/qualif|shootout/i.test(sessionName)
+  if (isRaceSession && raw.champDrivers.length > 0) {
+    const sprint = /sprint/i.test(sessionName)
+    const table = sprint ? [8, 7, 6, 5, 4, 3, 2, 1] : POINTS
+    const gained = new Map<number, number>()
+    tower.forEach((r, i) => { gained.set(r.num, started && (!r.out || r.lap >= 0.9 * leaderLap) ? (table[i] ?? 0) : 0) })
+    const drows = raw.champDrivers.flatMap(c => {
+      const d = drivers.get(c.driver_number)
+      if (c.points_start == null || c.position_start == null) return []
+      const g = gained.get(c.driver_number) ?? 0
+      // drivers not in this session (replaced) keep their standings position
+      return [{
+        code: d?.name_acronym ?? `#${c.driver_number}`, name: d?.full_name ?? `Piloto ${c.driver_number}`,
+        colour: d ? (d.team_colour.startsWith('#') ? d.team_colour : `#${d.team_colour}`) : '#666666',
+        posStart: c.position_start, pointsStart: c.points_start, pointsNow: c.points_start + g, posNow: 0, delta: g,
+      }]
+    }).sort((a, b) => b.pointsNow - a.pointsNow || a.posStart - b.posStart)
+    drows.forEach((r, i) => { r.posNow = i + 1 })
+    const teamGain = new Map<string, number>()
+    for (const r of tower) { const k = teamKey(r.team); teamGain.set(k, (teamGain.get(k) ?? 0) + (gained.get(r.num) ?? 0)) }
+    const trows = raw.champTeams.flatMap(c => {
+      if (c.points_start == null || c.position_start == null) return []
+      const g = teamGain.get(teamKey(c.team_name)) ?? 0
+      const dd = raw.drivers.find(d => teamKey(d.team_name) === teamKey(c.team_name))
+      return [{ name: c.team_name, colour: dd ? (dd.team_colour.startsWith('#') ? dd.team_colour : `#${dd.team_colour}`) : '#888888', posStart: c.position_start, pointsStart: c.points_start, pointsNow: c.points_start + g, posNow: 0, delta: g }]
+    }).sort((a, b) => b.pointsNow - a.pointsNow || a.posStart - b.posStart)
+    trows.forEach((r, i) => { r.posNow = i + 1 })
+    championship = { drivers: drows, teams: trows, sprint }
+  }
+
   const resLaps = Math.max(0, ...raw.results.map(r => r.number_of_laps ?? 0))
   return {
+    map: mapCars, overtakes, lapChart, lapTimes, fastestSectors: sessionBest, championship,
     t: new Date(tMs).toISOString(), started, status: ts.status, yellowSectors: ts.yellow, leaderLap,
     totalLaps: totalLapsHint ?? (resLaps > 0 ? resLaps : null), tower, fastestLap: fastest,
     pitLoss, rejoin, undercuts, events: { sc: ts.sc, vsc: ts.vsc, red: ts.red }, raceControl, penalties, deletedLaps, weather, firstRetirement,

@@ -1,16 +1,21 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { sceneTime, type Scene, type StateResponse } from '@/lib/telemetry/shared'
+import { sceneTime, panelOn, type PanelKey, type Scene, type StateResponse } from '@/lib/telemetry/shared'
 
 export interface SessionOpt { key: number; label: string; start: string; end: string; gpGuess: number | null }
 export interface GpOpt { id: number; label: string }
 
-const PANELS: { key: keyof Scene['panels']; label: string }[] = [
+const PANELS: { key: PanelKey; label: string }[] = [
   { key: 'tower', label: 'Tabela de tempos' },
-  { key: 'strategy', label: 'Estratégia (pneus, paragens, undercut, "se parasse agora")' },
-  { key: 'control', label: 'Direcção de corrida + penalizações' },
   { key: 'ours', label: 'Os nossos (piloto favorito + pontos F1 Play)' },
+  { key: 'map', label: 'Mapa da pista com os carros' },
+  { key: 'championship', label: 'Campeonato em directo (corridas e sprints)' },
+  { key: 'strategy', label: 'Estratégia (pneus, paragens, undercut, "se parasse agora")' },
+  { key: 'compare', label: 'Telemetria de piloto: comparar 2 pilotos (velocidade, acelerador, travão, mudança)' },
+  { key: 'positions', label: 'Gráfico de posições + ultrapassagens (corridas)' },
+  { key: 'laps', label: 'Análise de voltas (sectores, velocidade máxima, ritmo)' },
+  { key: 'control', label: 'Direcção de corrida + penalizações' },
 ]
 const SPEEDS = [1, 2, 5, 10, 20, 30]
 
@@ -144,7 +149,7 @@ export default function ControlRoom({ initialScene, sessions, gps, liveReady }: 
         <div className="space-y-2">
           {PANELS.map(p => (
             <label key={p.key} className="flex items-center gap-3 text-sm cursor-pointer">
-              <input type="checkbox" className="w-4 h-4 accent-red-600" checked={scene.panels[p.key]} disabled={busy} onChange={e => call('set', { panels: { ...scene.panels, [p.key]: e.target.checked } })} />
+              <input type="checkbox" className="w-4 h-4 accent-red-600" checked={panelOn(scene.panels, p.key)} disabled={busy} onChange={e => call('set', { panels: { ...scene.panels, [p.key]: e.target.checked } })} />
               {p.label}
             </label>
           ))}
@@ -162,6 +167,17 @@ export default function ControlRoom({ initialScene, sessions, gps, liveReady }: 
                   style={on ? { borderColor: d.colour } : undefined}>{d.code}</button>
               )
             })}
+          </div>
+        </div>
+        <div>
+          <label className="label">Telemetria de piloto: compara os 2 <b>primeiros</b> pilotos destacados ({scene.featured.slice(0, 2).join(' vs ') || 'escolhe 2'}) — usando</label>
+          <div className="flex gap-2">
+            {(['best', 'last'] as const).map(m => (
+              <button key={m} disabled={busy} onClick={() => call('set', { compare_mode: m })}
+                className={`px-3 py-1.5 rounded-lg text-sm font-bold ${scene.compare_mode === m ? 'bg-f1red text-white' : 'bg-gray-800 text-gray-400 hover:text-white'}`}>
+                {m === 'best' ? 'Melhor volta de cada um' : 'Última volta de cada um'}
+              </button>
+            ))}
           </div>
         </div>
         <div>

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { of1, type SessionMeta } from '@/lib/telemetry/openf1'
-import { sceneTime, type Scene } from '@/lib/telemetry/shared'
+import { sceneTime, PANEL_KEYS, type Scene } from '@/lib/telemetry/shared'
 
 export const dynamic = 'force-dynamic'
 
@@ -37,8 +37,9 @@ export async function POST(req: NextRequest) {
   if (Array.isArray(body.featured)) patch.featured = body.featured.filter((c): c is string => typeof c === 'string' && /^[A-Z]{3}$/.test(c)).slice(0, 4)
   if (body.panels && typeof body.panels === 'object') {
     const p = body.panels as Record<string, unknown>
-    patch.panels = { tower: p.tower !== false, strategy: p.strategy !== false, control: p.control !== false, ours: p.ours !== false }
+    patch.panels = Object.fromEntries(PANEL_KEYS.map(k => [k, p[k] !== false]))
   }
+  if (body.compare_mode === 'best' || body.compare_mode === 'last') patch.compare_mode = body.compare_mode
 
   if (typeof patch.session_key === 'number' && patch.session_key !== scene.session_key) {
     const [meta] = await of1<SessionMeta>('sessions', [['session_key', '', patch.session_key]], 600)

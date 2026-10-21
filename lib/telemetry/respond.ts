@@ -1,11 +1,83 @@
 import { createServiceClient } from '@/lib/supabase/service'
-import { loadRaw, of1, type SessionMeta } from './openf1'
-import { buildState, provisionalAnswers, driverFromText, type PlayCfg } from './engine'
+import { loadRaw, of1, isoNoZ, type SessionMeta } from './openf1'
+import { buildState, provisionalAnswers, driverFromText, type PlayCfg, type RawSession, type OF1Lap, type OF1Location } from './engine'
+import { resampleLap, compareLaps, type CarSample, type CompareData, type LapTrace } from './compare'
 import { PLAY_FIELDS, QUANTUM_MS, sceneTime, type Scene, type StateResponse, type PlayLine, type LeaderRow } from './shared'
 import { getEffectiveGpConfig } from '@/lib/gp-config'
 import { P8_MARGENS } from '@/lib/gp-questions'
 import { calculatePlayScore } from '@/lib/scoring'
 import type { Prediction, GpAnswers } from '@/lib/supabase/types'
+
+// ── track outline: one clean lap of x/y, chosen once per session and kept ──
+const outlineChoice = new Map<number, { driver: number; start: number; dur: number }>()
+const outlineCache = new Map<string, { x: number; y: number }[]>()
+
+async function trackOutline(sessionKey: number, raw: RawSession, tMs: number): Promise<{ x: number; y: number }[] | null> {
+  let choice = outlineChoice.get(sessionKey)
+  if (!choice) {
+    const done = raw.laps.filter(l => l.date_start && l.lap_duration && !l.is_pit_out_lap && l.lap_number > 1 && Date.parse(l.date_start) + l.lap_duration * 1000 <= tMs)
+    if (done.length === 0) return null
+    const best = Math.min(...done.map(l => l.lap_duration as number))
+    const l = done.find(x => (x.lap_duration as number) <= best * 1.08)!
+    choice = { driver: l.driver_number, start: Date.parse(l.date_start as string), dur: l.lap_duration as number }
+    outlineChoice.set(sessionKey, choice)
+  }
+  const key = `${sessionKey}|${choice.driver}|${choice.start}`
+  const hit = outlineCache.get(key)
+  if (hit) return hit
+  const rows = await of1<OF1Location>('location', [['session_key', '', sessionKey], ['driver_number', '', choice.driver], ['date', '>=', isoNoZ(choice.start)], ['date', '<=', isoNoZ(choice.start + choice.dur * 1000)]], 86_400)
+  const sorted = rows.sort((a, b) => Date.parse(a.date) - Date.parse(b.date))
+  if (sorted.length < 40) return null
+  const step = Math.max(1, Math.ceil(sorted.length / 180))
+  const pts = sorted.filter((_, i) => i % step === 0).map(r => ({ x: r.x, y: r.y }))
+  outlineCache.set(key, pts)
+  return pts
+}
+
+// ── telemetry comparison of the two featured drivers (best lap or last lap each) ──
+async function lapTraceFor(sessionKey: number, raw: RawSession, code: string, mode: 'best' | 'last', tMs: number): Promise<LapTrace | null> {
+  const d = raw.drivers.find(x => x.name_acronym === code)
+  if (!d) return null
+  const done = raw.laps.filter((l: OF1Lap) => l.driver_number === d.driver_number && l.date_start && l.lap_duration && !l.is_pit_out_lap && l.lap_number > 1 && Date.parse(l.date_start) + (l.lap_duration as number) * 1000 <= tMs)
+  if (done.length === 0) return null
+  const lap = mode === 'best'
+    ? done.reduce((a, b) => ((b.lap_duration as number) < (a.lap_duration as number) ? b : a))
+    : done.reduce((a, b) => (b.lap_number > a.lap_number ? b : a))
+  const start = Date.parse(lap.date_start as string)
+  const samples = await of1<CarSample>('car_data', [['session_key', '', sessionKey], ['driver_number', '', d.driver_number], ['date', '>=', isoNoZ(start - 300)], ['date', '<=', isoNoZ(start + (lap.lap_duration as number) * 1000 + 300)]], 86_400)
+  return resampleLap(samples, start, lap.lap_duration as number, { code, colour: d.team_colour.startsWith('#') ? d.team_colour : `#${d.team_colour}`, lap: lap.lap_number })
+}
+
+async function buildCompare(sessionKey: number, raw: RawSession, featured: string[], mode: 'best' | 'last', tMs: number): Promise<CompareData | null> {
+  if (featured.length < 2) return null
+  const [a, b] = await Promise.all([lapTraceFor(sessionKey, raw, featured[0], mode, tMs), lapTraceFor(sessionKey, raw, featured[1], mode, tMs)])
+  return a && b ? compareLaps(mode, a, b) : null
+}
+
+// Predictions, members and question config barely change during a race: keep them 30 s.
+interface PlayData {
+  at: number
+  gpRow: { nome: string; emoji_bandeira: string | null; round: number; deadline_play: string } | null
+  cfg: PlayCfg | undefined
+  preds: Prediction[]
+  members: { email: string; nickname: string; foto_url: string | null }[]
+}
+const playCache = new Map<number, PlayData>()
+
+async function loadPlayData(gpId: number): Promise<PlayData> {
+  const hit = playCache.get(gpId)
+  if (hit && Date.now() - hit.at < 30_000) return hit
+  const db = createServiceClient()
+  const { data: gpRow } = await db.from('gp_calendar').select('nome, emoji_bandeira, round, deadline_play').eq('id', gpId).single()
+  const [cfg, { data: preds }, { data: members }] = await Promise.all([
+    gpRow ? getEffectiveGpConfig(null, gpId, gpRow.round) as Promise<PlayCfg | undefined> : Promise.resolve(undefined),
+    db.from('predictions').select('*').eq('gp_id', gpId),
+    db.from('members').select('email, nickname, foto_url'),
+  ])
+  const pd: PlayData = { at: Date.now(), gpRow: gpRow ?? null, cfg, preds: (preds ?? []) as Prediction[], members: members ?? [] }
+  playCache.set(gpId, pd)
+  return pd
+}
 
 // Everything the /telemetria screen needs for one viewer. Identical for all viewers except `me`/`favCode`.
 export async function buildStateResponse(viewer: { email: string; isAdmin: boolean; pilotoFav: string | null }, sc: Scene | null): Promise<{ status: number; body: StateResponse }> {
@@ -18,29 +90,28 @@ export async function buildStateResponse(viewer: { email: string; isAdmin: boole
     if (!meta) return { status: 200, body: { ready: false, isAdmin, message: 'Sessão não encontrada no OpenF1.' } }
 
     const t = Math.floor(sceneTime(sc, Date.now(), Date.parse(meta.date_end) + 20 * 60_000) / QUANTUM_MS) * QUANTUM_MS // everyone shares the same upstream calls
-    const raw = await loadRaw(sc.session_key, t, sc.mode === 'live')
-    const state = buildState(raw, t, sc.total_laps)
+    const raw = await loadRaw(sc.session_key, t, sc.mode === 'live', meta.session_name)
+    const state = buildState(raw, t, sc.total_laps, meta.session_name)
+    const panels = sc.panels ?? {}
+    const [outline, compare] = await Promise.all([
+      panels.map !== false ? trackOutline(sc.session_key, raw, t).catch(() => null) : Promise.resolve(null),
+      panels.compare !== false ? buildCompare(sc.session_key, raw, sc.featured, sc.compare_mode ?? 'best', t).catch(() => null) : Promise.resolve(null),
+    ])
     const drivers = raw.drivers.map(d => ({ code: d.name_acronym, name: d.full_name, team: d.team_name, colour: d.team_colour.startsWith('#') ? d.team_colour : `#${d.team_colour}` }))
     const favCode = driverFromText(viewer.pilotoFav, drivers.map(d => ({ code: d.code, name: d.name })))
 
     let gp: StateResponse['gp'] = null
     let play: StateResponse['play']
     if (sc.gp_id) {
-      const db = createServiceClient()
-      const { data: gpRow } = await db.from('gp_calendar').select('nome, emoji_bandeira, round, deadline_play').eq('id', sc.gp_id).single()
+      const { gpRow, cfg, preds, members } = await loadPlayData(sc.gp_id)
       if (gpRow) {
         gp = { nome: gpRow.nome, emoji: gpRow.emoji_bandeira, round: gpRow.round }
-        const cfg = (await getEffectiveGpConfig(null, sc.gp_id, gpRow.round)) as PlayCfg | undefined
         const answers = provisionalAnswers(state, cfg, P8_MARGENS)
         const closed = Date.now() >= Date.parse(gpRow.deadline_play)
         const liveAnswers = { gp_id: sc.gp_id, ...answers, perguntas_anuladas: [] } as unknown as GpAnswers
-        const [{ data: preds }, { data: members }] = await Promise.all([
-          db.from('predictions').select('*').eq('gp_id', sc.gp_id),
-          db.from('members').select('email, nickname, foto_url'),
-        ])
-        const mBy = new Map((members ?? []).map(m => [m.email, m]))
+        const mBy = new Map(members.map(m => [m.email, m]))
         const nick = (email: string) => mBy.get(email)?.nickname ?? email.split('@')[0]
-        const scored = ((preds ?? []) as Prediction[]).map(p => ({ p, s: calculatePlayScore(p, liveAnswers) }))
+        const scored = preds.map(p => ({ p, s: calculatePlayScore(p, liveAnswers) }))
           .sort((a, b) => b.s.total - a.s.total || nick(a.p.member_email).localeCompare(nick(b.p.member_email))) // stable order for ties
 
         // other members' standings only appear once predictions are locked (race start); ties share a rank
@@ -69,9 +140,9 @@ export async function buildStateResponse(viewer: { email: string; isAdmin: boole
       status: 200,
       body: {
         ready: true, isAdmin,
-        scene: { mode: sc.mode, banner: sc.banner, featured: sc.featured, panels: sc.panels, members_enabled: sc.members_enabled, total_laps: sc.total_laps, replay_playing: sc.replay_playing, replay_speed: Number(sc.replay_speed) },
+        scene: { mode: sc.mode, banner: sc.banner, featured: sc.featured, panels: sc.panels, members_enabled: sc.members_enabled, total_laps: sc.total_laps, replay_playing: sc.replay_playing, replay_speed: Number(sc.replay_speed), compare_mode: sc.compare_mode ?? 'best' },
         session: { name: meta.session_name, country: meta.country_name, date_start: meta.date_start, date_end: meta.date_end },
-        gp, drivers, state, favCode, play,
+        gp, drivers, state, outline, compare, favCode, play,
       },
     }
   } catch (e) {

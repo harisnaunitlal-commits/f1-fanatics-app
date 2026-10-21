@@ -1,10 +1,16 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { flagSrc, type StateResponse } from '@/lib/telemetry/shared'
+import { flagSrc, panelOn, type StateResponse } from '@/lib/telemetry/shared'
+import { Section, fmtLap } from './ui'
+import { TrackMap } from './TrackMap'
+import { TelemetryCompare } from './TelemetryCompare'
+import { PositionChart, OvertakeFeed } from './PositionChart'
+import { LapAnalysis } from './LapAnalysis'
+import { Championship } from './Championship'
 import type { TowerRow, TrackStatus, RcItem, RcKind, TelemetryState, RejoinSim } from '@/lib/telemetry/engine'
 
-const POLL_MS = 3000
+const POLL_MS = 5000
 
 const STATUS: Record<TrackStatus, { label: string; cls: string }> = {
   NOT_STARTED: { label: 'ANTES DO INÍCIO', cls: 'bg-gray-700 text-gray-100' },
@@ -28,11 +34,6 @@ const COMPOUND: Record<string, { letter: string; cls: string; bar: string }> = {
 const RC_ICON: Record<RcKind, string> = { flag: '🏁', safetycar: '🚗', penalty: '⚖️', investigation: '🔍', noted: '📝', cleared: '✅', deleted: '⏱️', info: 'ℹ️' }
 const FLAG_ICON: Record<string, string> = { YELLOW: '🟡', 'DOUBLE YELLOW': '🟡🟡', GREEN: '🟢', CLEAR: '🟢', BLUE: '🔵', RED: '🔴', CHEQUERED: '🏁', 'BLACK AND WHITE': '⚫⚪', BLACK: '⚫' }
 
-function fmtLap(s: number | null): string {
-  if (s === null) return '—'
-  const m = Math.floor(s / 60)
-  return `${m}:${(s - m * 60).toFixed(3).padStart(6, '0')}`
-}
 const clock = (iso: string) => new Date(iso).toLocaleTimeString('pt', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
 
 function Tyre({ compound, age }: { compound: string | null; age: number | null }) {
@@ -43,18 +44,6 @@ function Tyre({ compound, age }: { compound: string | null; age: number | null }
       <span className={`inline-flex w-5 h-5 rounded-full border-2 items-center justify-center text-[10px] font-black ${c.cls}`}>{c.letter}</span>
       <span className="text-xs text-gray-400 tabular-nums">{age ?? ''}</span>
     </span>
-  )
-}
-
-function Section({ title, hint, children }: { title: string; hint?: string; children: React.ReactNode }) {
-  return (
-    <section className="card p-0 overflow-hidden">
-      <div className="flex items-center gap-2 px-4 py-2.5 border-b border-gray-700/60 bg-white/[0.03]">
-        <h2 className="text-xs font-black uppercase tracking-widest text-yellow-400">{title}</h2>
-        {hint && <span className="ml-auto text-[10px] text-gray-500 text-right">{hint}</span>}
-      </div>
-      <div className="p-4">{children}</div>
-    </section>
   )
 }
 
@@ -173,14 +162,17 @@ export default function TelemetryView({ endpoint = '/api/telemetria/state' }: { 
 
   useEffect(() => {
     let stop = false
+    let busy = false
     async function tick() {
-      if (document.hidden) return
+      if (document.hidden || busy) return
+      busy = true
       try {
         const res = await fetch(endpoint, { cache: 'no-store' })
         const j = await res.json() as StateResponse
         if (stop) return
         setData(j); setErr(res.ok ? null : (j.message ?? `Erro ${res.status}`))
       } catch { if (!stop) setErr('Sem ligação ao servidor.') }
+      busy = false
     }
     tick()
     const id = setInterval(tick, POLL_MS)
@@ -201,6 +193,8 @@ export default function TelemetryView({ endpoint = '/api/telemetria/state' }: { 
   const st = STATUS[s.status]
   const featured = scene.featured
   const favRow = favCode ? s.tower.find(r => r.code === favCode) : undefined
+  const focus = Array.from(new Set([...(favCode ? [favCode] : []), ...featured]))
+  const { outline, compare } = data
   const rejoinCodes = Array.from(new Set([...(favCode ? [favCode] : []), ...featured]))
   const rejoinList = (rejoinCodes.length ? rejoinCodes : s.tower.filter(r => !r.out).slice(0, 4).map(r => r.code))
     .map(c => s.rejoin.find(x => x.code === c)).filter((x): x is RejoinSim => !!x)
@@ -245,16 +239,16 @@ export default function TelemetryView({ endpoint = '/api/telemetria/state' }: { 
       )}
 
       <div className="grid gap-4 lg:grid-cols-3">
-        {scene.panels.tower && (
-          <div className={scene.panels.ours ? 'lg:col-span-2' : 'lg:col-span-3'}>
+        {panelOn(scene.panels, 'tower') && (
+          <div className={panelOn(scene.panels, 'ours') ? 'lg:col-span-2' : 'lg:col-span-3'}>
             <Section title="Tabela de tempos" hint={s.fastestLap ? `Volta mais rápida: ${s.fastestLap.code} ${fmtLap(s.fastestLap.time)} (V${s.fastestLap.lap})` : undefined}>
               <Tower s={s} favCode={favCode ?? null} featured={featured} />
             </Section>
           </div>
         )}
 
-        {scene.panels.ours && (
-          <aside className={`space-y-4 ${scene.panels.tower ? '' : 'lg:col-span-3'}`}>
+        {panelOn(scene.panels, 'ours') && (
+          <aside className={`space-y-4 ${panelOn(scene.panels, 'tower') ? '' : 'lg:col-span-3'}`}>
             <Section title="O teu piloto">
               {favRow ? (
                 <div>
@@ -324,7 +318,19 @@ export default function TelemetryView({ endpoint = '/api/telemetria/state' }: { 
         )}
       </div>
 
-      {scene.panels.strategy && (
+      {panelOn(scene.panels, 'map') && (
+        <Section title="Mapa da pista" hint={s.map.length ? `${s.map.filter(c => !c.out).length} carros em pista` : undefined}>
+          <TrackMap outline={outline} cars={s.map} favCode={favCode ?? null} featured={featured} />
+        </Section>
+      )}
+
+      {panelOn(scene.panels, 'championship') && s.championship && (
+        <Section title="Campeonato em directo" hint="se a corrida acabasse agora">
+          <Championship data={s.championship} favCode={favCode ?? null} featured={featured} />
+        </Section>
+      )}
+
+      {panelOn(scene.panels, 'strategy') && (
         <Section title="Estratégia" hint="contas feitas com os tempos reais, não é IA">
           <div className="grid gap-4 lg:grid-cols-3">
             <div className="lg:col-span-2 space-y-4">
@@ -369,7 +375,30 @@ export default function TelemetryView({ endpoint = '/api/telemetria/state' }: { 
         </Section>
       )}
 
-      {scene.panels.control && (
+      {panelOn(scene.panels, 'compare') && (
+        <Section title="Telemetria de piloto" hint={compare ? (scene.compare_mode === 'last' ? 'última volta de cada um' : 'melhor volta de cada um') : undefined}>
+          {compare ? <TelemetryCompare data={compare} /> : (
+            <p className="text-sm text-gray-500">{featured.length < 2 ? 'O admin ainda não escolheu 2 pilotos em destaque para comparar.' : 'Ainda não há voltas completas destes pilotos para comparar.'}</p>
+          )}
+        </Section>
+      )}
+
+      {panelOn(scene.panels, 'positions') && (
+        <div className="grid gap-4 lg:grid-cols-3">
+          <div className="lg:col-span-2">
+            <Section title="Gráfico de posições"><PositionChart lines={s.lapChart} highlight={focus} totalLaps={s.totalLaps} leaderLap={s.leaderLap} /></Section>
+          </div>
+          <Section title="Ultrapassagens"><OvertakeFeed items={s.overtakes} /></Section>
+        </div>
+      )}
+
+      {panelOn(scene.panels, 'laps') && (
+        <Section title="Análise de voltas" hint="sectores, velocidades e ritmo">
+          <LapAnalysis s={s} focus={focus} />
+        </Section>
+      )}
+
+      {panelOn(scene.panels, 'control') && (
         <div className="grid gap-4 lg:grid-cols-3">
           <div className="lg:col-span-2">
             <Section title="Direcção de corrida" hint={`SC ${s.events.sc} · VSC ${s.events.vsc} · Bandeira vermelha ${s.events.red}${s.deletedLaps ? ` · ⏱ ${s.deletedLaps} tempos anulados (limites da pista)` : ''}`}>
