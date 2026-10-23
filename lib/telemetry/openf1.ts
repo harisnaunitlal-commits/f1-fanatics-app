@@ -83,7 +83,8 @@ async function fetchUpstream<T>(endpoint: string, url: string, ttlSec: number, s
     if (stale) return stale // rate-limited or upstream hiccup: keep serving the last good copy
     throw new Error(`OpenF1 ${endpoint} → HTTP ${res.status}`)
   }
-  const data = await res.json() as T[]
+  const data = await res.json() as T[] | { detail?: string }
+  if (!Array.isArray(data)) { if (stale) return stale; throw new Error(`OpenF1 ${endpoint} → ${data?.detail ?? 'resposta inesperada'}`.slice(0, 160)) }
   memo.set(url, { at: Date.now(), data })
   if (memo.size > 400) memo.delete(memo.keys().next().value as string)
   return data

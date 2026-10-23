@@ -76,6 +76,18 @@ async function buildTyreHistory(meta: SessionMeta, raw: RawSession, state: Telem
   return { sessions: before.map(s => ({ key: s.session_key, short: shortName(s.session_name) })), drivers }
 }
 
+// Auto-follow: during a live weekend, show the session in progress (or the latest finished one) of the same meeting.
+async function followSession(baseKey: number, nowMs: number): Promise<number> {
+  try {
+    const [base] = await of1<SessionMeta>('sessions', [['session_key', '', baseKey]], 3600)
+    if (!base) return baseKey
+    const sibs = (await of1<SessionMeta>('sessions', [['meeting_key', '', base.meeting_key]], 600)).sort((a, b) => Date.parse(a.date_start) - Date.parse(b.date_start))
+    if (sibs.length === 0) return baseKey
+    const started = sibs.filter(x => Date.parse(x.date_start) - 10 * 60_000 <= nowMs)
+    return (started.length ? started[started.length - 1] : sibs[0]).session_key
+  } catch { return baseKey }
+}
+
 // Predictions, members and question config barely change during a race: keep them 30 s.
 interface PlayData {
   at: number
@@ -108,16 +120,17 @@ export async function buildStateResponse(viewer: { email: string; isAdmin: boole
   if (!sc.members_enabled && !isAdmin) return { status: 200, body: { ready: false, disabled: true, message: 'A telemetria ainda está em preparação.' } }
 
   try {
-    const [meta] = await of1<SessionMeta>('sessions', [['session_key', '', sc.session_key]], 3600)
+    const sessionKey = sc.auto_follow && sc.mode === 'live' ? await followSession(sc.session_key, Date.now()) : sc.session_key
+    const [meta] = await of1<SessionMeta>('sessions', [['session_key', '', sessionKey]], 3600)
     if (!meta) return { status: 200, body: { ready: false, isAdmin, message: 'Sessão não encontrada no OpenF1.' } }
 
     const t = Math.floor(sceneTime(sc, Date.now(), Date.parse(meta.date_end) + 20 * 60_000) / QUANTUM_MS) * QUANTUM_MS // everyone shares the same upstream calls
-    const raw = await loadRaw(sc.session_key, t, sc.mode === 'live', meta.session_name)
+    const raw = await loadRaw(sessionKey, t, sc.mode === 'live', meta.session_name)
     const state = buildState(raw, t, sc.total_laps, meta.session_name)
     const panels = sc.panels ?? {}
     const [outline, compare, tyreHistory] = await Promise.all([
-      panels.map !== false ? trackOutline(sc.session_key, raw, t).catch(() => null) : Promise.resolve(null),
-      panels.compare !== false ? buildCompare(sc.session_key, raw, sc.featured, sc.compare_mode ?? 'best', t).catch(() => null) : Promise.resolve(null),
+      panels.map !== false ? trackOutline(sessionKey, raw, t).catch(() => null) : Promise.resolve(null),
+      panels.compare !== false ? buildCompare(sessionKey, raw, sc.featured, sc.compare_mode ?? 'best', t).catch(() => null) : Promise.resolve(null),
       panels.tyres !== false ? buildTyreHistory(meta, raw, state).catch(() => null) : Promise.resolve(null),
     ])
     const drivers = raw.drivers.map(d => ({ code: d.name_acronym, name: d.full_name, team: d.team_name, colour: d.team_colour.startsWith('#') ? d.team_colour : `#${d.team_colour}` }))
@@ -163,7 +176,7 @@ export async function buildStateResponse(viewer: { email: string; isAdmin: boole
       status: 200,
       body: {
         ready: true, isAdmin,
-        scene: { mode: sc.mode, banner: sc.banner, featured: sc.featured, panels: sc.panels, members_enabled: sc.members_enabled, total_laps: sc.total_laps, replay_playing: sc.replay_playing, replay_speed: Number(sc.replay_speed), compare_mode: sc.compare_mode ?? 'best', tyre_allocation: sc.tyre_allocation ?? null },
+        scene: { mode: sc.mode, banner: sc.banner, featured: sc.featured, panels: sc.panels, members_enabled: sc.members_enabled, total_laps: sc.total_laps, replay_playing: sc.replay_playing, replay_speed: Number(sc.replay_speed), compare_mode: sc.compare_mode ?? 'best', tyre_allocation: sc.tyre_allocation ?? null, auto_follow: !!sc.auto_follow },
         session: { name: meta.session_name, country: meta.country_name, date_start: meta.date_start, date_end: meta.date_end },
         gp, drivers, state, outline, compare, tyreHistory, favCode, play,
       },

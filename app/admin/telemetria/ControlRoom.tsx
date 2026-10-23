@@ -121,6 +121,10 @@ export default function ControlRoom({ initialScene, sessions, gps, liveReady }: 
           }} className="btn-secondary">{checking ? 'A testar…' : '🔑 Testar credenciais OpenF1'}</button>
           {checkMsg && <span className="text-sm">{checkMsg}</span>}
         </div>
+        <label className="flex items-center gap-3 text-sm cursor-pointer">
+          <input type="checkbox" className="w-4 h-4 accent-red-600" checked={!!scene.auto_follow} disabled={busy} onChange={e => call('set', { auto_follow: e.target.checked })} />
+          <span>🔄 Seguir as sessões do fim-de-semana automaticamente <span className="text-gray-500">(só no modo ao vivo: mostra a sessão em curso, ou a última terminada)</span></span>
+        </label>
         {!liveReady && <p className="text-xs text-yellow-300 bg-yellow-900/20 rounded-lg px-3 py-2">O modo ao vivo precisa das variáveis <code>OPENF1_USERNAME</code> e <code>OPENF1_PASSWORD</code> no Vercel (Settings → Environment Variables, como <b>Secret</b>) e um redeploy. Nunca as escrevas no chat.</p>}
 
         {isReplay && session && (
@@ -220,6 +224,7 @@ export default function ControlRoom({ initialScene, sessions, gps, liveReady }: 
         {!preview?.ready || !st ? <p className="text-sm text-gray-400">{preview?.message ?? 'A carregar…'}</p> : (
           <div className="text-sm text-gray-300 space-y-1">
             <div>Estado: <b>{st.status}</b> · Volta <b>{st.leaderLap}{st.totalLaps ? `/${st.totalLaps}` : ''}</b> · Líder: <b>{st.tower[0]?.code ?? '—'}</b></div>
+            {st.results?.phase != null && <div className="text-xs text-yellow-300">Qualificação: fase detectada Q{st.results.phase}{st.results.finished ? ' (terminada)' : st.results.phaseEnded ? ' (acabou, a aguardar a seguinte)' : ' (em curso)'} · eliminados: {st.results.rows.filter(r => r.eliminatedIn).length}</div>}
             <div className="text-xs text-gray-500">Pista {st.weather ? `${st.weather.track}°` : '—'} · SC {st.events.sc} · VSC {st.events.vsc} · RF {st.events.red} · 1º a desistir: {st.firstRetirement ?? '—'}</div>
           </div>
         )}

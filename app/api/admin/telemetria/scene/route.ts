@@ -44,6 +44,7 @@ export async function POST(req: NextRequest) {
     const n = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? Math.min(20, Math.max(0, Math.round(v))) : 0)
     patch.tyre_allocation = a && (n(a.HARD) || n(a.MEDIUM) || n(a.SOFT)) ? { HARD: n(a.HARD), MEDIUM: n(a.MEDIUM), SOFT: n(a.SOFT) } : null
   }
+  if (typeof body.auto_follow === 'boolean') patch.auto_follow = body.auto_follow
   if (body.compare_mode === 'best' || body.compare_mode === 'last') patch.compare_mode = body.compare_mode
 
   if (typeof patch.session_key === 'number' && patch.session_key !== scene.session_key) {

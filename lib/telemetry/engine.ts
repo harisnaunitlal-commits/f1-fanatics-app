@@ -6,7 +6,7 @@ export interface OF1Position { date: string; driver_number: number; position: nu
 export interface OF1Interval { date: string; driver_number: number; gap_to_leader: number | string | null; interval: number | string | null }
 export interface OF1Stint { stint_number: number; driver_number: number; lap_start: number | null; lap_end: number | null; compound: string | null; tyre_age_at_start: number | null }
 export interface OF1Pit { date: string; driver_number: number; lap_number: number | null; lane_duration: number | null; pit_duration?: number | null; stop_duration: number | null }
-export interface OF1RaceControl { date: string; driver_number: number | null; lap_number: number | null; category: string; flag: string | null; scope: string | null; sector: number | null; message: string }
+export interface OF1RaceControl { date: string; driver_number: number | null; lap_number: number | null; category: string; flag: string | null; scope: string | null; sector: number | null; message: string; qualifying_phase?: number | null }
 export interface OF1Weather { date: string; air_temperature: number; track_temperature: number; humidity: number; pressure: number; rainfall: number; wind_speed: number; wind_direction: number }
 export interface OF1Lap {
   driver_number: number; lap_number: number; date_start: string | null; lap_duration: number | null; is_pit_out_lap: boolean | null
@@ -35,6 +35,40 @@ export interface RawSession {
 }
 
 export type SectorColour = 'purple' | 'green' | 'yellow' | null
+export type SessionKind = 'race' | 'practice' | 'quali'
+
+export interface ResultRow {
+  pos: number
+  num: number
+  code: string
+  name: string
+  team: string
+  colour: string
+  best: number | null
+  gap: number | null
+  gapPrev: number | null
+  bestTyre: string | null
+  bestTyreAge: number | null
+  laps: number
+  lastLap: number | null
+  lastLapColour: 'purple' | 'green' | null
+  phaseTimes: (number | null)[]
+  group: number
+  eliminatedIn: number | null
+  inDanger: boolean
+  tyre: string | null
+  tyreAge: number | null
+  inPit: boolean
+}
+export interface SessionResults {
+  kind: SessionKind
+  phase: number | null
+  phaseEnded: boolean
+  finished: boolean
+  advance: number | null
+  rows: ResultRow[]
+  sessionBest: number | null
+}
 export interface MapCar { code: string; colour: string; x: number; y: number; out: boolean; inPit: boolean }
 export interface OvertakeItem { date: string; lap: number | null; by: string; over: string; pos: number }
 export interface PositionLine { code: string; colour: string; pos: (number | null)[] }
@@ -110,6 +144,8 @@ export interface TelemetryState {
   deletedLaps: number
   weather: WeatherInfo | null
   firstRetirement: string | null
+  kind: SessionKind
+  results: SessionResults | null
   map: MapCar[]
   overtakes: OvertakeItem[]
   lapChart: PositionLine[]
@@ -210,6 +246,138 @@ function trackStatusAt(rc: OF1RaceControl[], t: number): { status: TrackStatus; 
   if (status === 'VSC_ENDING' && t - endingAt > 45_000) status = 'GREEN'
   if (status === 'SC_ENDING' && t - endingAt > 120_000) status = 'GREEN'
   return { status, yellow: Array.from(yellow).sort((a, b) => a - b), sc, vsc, red, chequeredMs, redEndMs, startMs }
+}
+
+export function sessionKindOf(name: string): SessionKind {
+  if (/qualif|shootout/i.test(name)) return 'quali'
+  if (/practice/i.test(name)) return 'practice'
+  return 'race'
+}
+
+type DriverLaps = { r: TowerRow; dl: OF1Lap[]; times: (number | null)[]; ran: boolean[] }
+
+// Practice and qualifying: only the best lap counts. Qualifying is split into Q1/Q2/Q3 using the
+// race-control "qualifying_phase" field, with the 2026 cut: 22 cars -> 16 -> 10.
+function buildResults(raw: RawSession, tMs: number, kind: SessionKind, tower: TowerRow[], lapsBy: Map<number, OF1Lap[]>, deleted: Set<string>, rc: OF1RaceControl[], status: TrackStatus): SessionResults {
+  const code = new Map(raw.drivers.map(d => [d.driver_number, d.name_acronym]))
+  const isDone = (l: OF1Lap) => l.lap_duration != null && l.date_start != null && ms(l.date_start) + l.lap_duration * 1000 <= tMs
+  const valid = (num: number, l: OF1Lap) => isDone(l) && !deleted.has(code.get(num) + '|' + (l.lap_duration as number).toFixed(3))
+
+  const phaseStart = new Map<number, number>()
+  const chequeredAt: number[] = []
+  if (kind === 'quali') {
+    for (const r of rc) {
+      const at = ms(r.date)
+      if (at > tMs) break
+      if (r.qualifying_phase && !phaseStart.has(r.qualifying_phase)) phaseStart.set(r.qualifying_phase, at)
+      if (r.category === 'Flag' && (r.flag ?? '').toUpperCase() === 'CHEQUERED') chequeredAt.push(at)
+    }
+  }
+  const maxPhase = kind === 'quali' ? Math.max(1, ...Array.from(phaseStart.keys())) : 1
+  const phaseOf = (at: number): number => {
+    let ph = 1
+    phaseStart.forEach((v, k) => { if (at >= v && k > ph) ph = k })
+    return ph
+  }
+  const lastCheq = chequeredAt.length ? chequeredAt[chequeredAt.length - 1] : null
+  const phaseEnded = kind === 'quali' && lastCheq !== null && lastCheq >= (phaseStart.get(maxPhase) ?? 0)
+  const finished = status === 'FINISHED' || (kind === 'quali' && maxPhase === 3 && phaseEnded)
+
+  const nPhases = kind === 'quali' ? 3 : 1
+  const perDriver: DriverLaps[] = tower.map(r => {
+    const dl = lapsBy.get(r.num) ?? []
+    const times: (number | null)[] = Array.from({ length: nPhases }, () => null)
+    const ran = Array.from({ length: nPhases }, () => false)
+    for (const l of dl) {
+      if (!l.date_start) continue
+      const ph = kind === 'quali' ? phaseOf(ms(l.date_start)) : 1
+      ran[ph - 1] = true
+      if (valid(r.num, l)) {
+        const t = l.lap_duration as number
+        if (times[ph - 1] === null || t < (times[ph - 1] as number)) times[ph - 1] = t
+      }
+    }
+    return { r, dl, times, ran }
+  })
+
+  // who advanced: those who ran in the next phase; in the current phase the top N, provisionally
+  const n = tower.length
+  const advanceN = (ph: number): number => (ph === 1 ? n - (n >= 22 ? 6 : 5) : 10)
+  const rank = (ph: number, pool: DriverLaps[]): DriverLaps[] => [...pool].sort((a, b) => {
+    const ta = a.times[ph - 1], tb = b.times[ph - 1]
+    if (ta === null && tb === null) return a.r.pos - b.r.pos
+    if (ta === null) return 1
+    if (tb === null) return -1
+    return ta - tb
+  })
+  const eliminatedIn = new Map<number, number>()
+  const inDanger = new Set<number>()
+  if (kind === 'quali') {
+    let pool = perDriver
+    for (let ph = 1; ph <= Math.min(maxPhase, 2); ph++) {
+      const ranked = rank(ph, pool)
+      let advancing: DriverLaps[]
+      if (ph < maxPhase) advancing = pool.filter(d => d.ran[ph])
+      else {
+        advancing = ranked.slice(0, advanceN(ph))
+        if (phaseEnded || finished) ranked.slice(advanceN(ph)).forEach(d => eliminatedIn.set(d.r.num, ph))
+        else ranked.slice(advanceN(ph)).forEach(d => inDanger.add(d.r.num))
+        if (!(phaseEnded || finished)) break
+      }
+      const adv = advancing
+      pool.filter(d => !adv.includes(d)).forEach(d => eliminatedIn.set(d.r.num, ph))
+      pool = advancing
+    }
+  }
+
+  const groupOf = (num: number): number => (kind === 'quali' ? (eliminatedIn.get(num) ?? maxPhase) : 1)
+  const phaseLeader = (ph: number): number | null => {
+    const ts = perDriver.map(d => d.times[ph - 1]).filter((t): t is number => t !== null)
+    return ts.length ? Math.min(...ts) : null
+  }
+
+  const ordered = [...perDriver].sort((a, b) => {
+    const ga = groupOf(a.r.num), gb = groupOf(b.r.num)
+    if (ga !== gb) return gb - ga
+    const ta = a.times[ga - 1], tb = b.times[ga - 1]
+    if (ta === null && tb === null) return a.r.pos - b.r.pos
+    if (ta === null) return 1
+    if (tb === null) return -1
+    return ta - tb
+  })
+
+  const rows: ResultRow[] = []
+  ordered.forEach((d, i) => {
+    const g = groupOf(d.r.num)
+    const best = d.times[g - 1]
+    const lead = phaseLeader(g)
+    const before = rows.length ? rows[rows.length - 1] : null
+    const prev = before && before.group === g ? before.best : null
+    let bestTyre: string | null = null, bestTyreAge: number | null = null
+    if (best !== null) {
+      const bl = d.dl.find(l => l.lap_duration === best)
+      if (bl) {
+        const st = raw.stints
+          .filter(x => x.driver_number === d.r.num && x.lap_start != null && x.lap_start <= bl.lap_number && (x.lap_end == null || x.lap_end >= bl.lap_number))
+          .sort((a, b) => b.stint_number - a.stint_number)[0]
+        if (st) { bestTyre = st.compound; bestTyreAge = (st.tyre_age_at_start ?? 0) + bl.lap_number - (st.lap_start as number) }
+      }
+    }
+    const done = d.dl.filter(isDone)
+    const lastDone = done[done.length - 1]
+    const lastT = lastDone?.lap_duration ?? null
+    const lastLapColour: 'purple' | 'green' | null = lastT !== null && lead !== null && lastT <= lead + 0.0005 ? 'purple'
+      : lastT !== null && best !== null && lastT <= best + 0.0005 ? 'green' : null
+    rows.push({
+      pos: i + 1, num: d.r.num, code: d.r.code, name: d.r.name, team: d.r.team, colour: d.r.colour,
+      best, gap: best !== null && lead !== null ? best - lead : null, gapPrev: best !== null && prev !== null ? best - prev : null,
+      bestTyre, bestTyreAge, laps: done.length, lastLap: lastT, lastLapColour,
+      phaseTimes: d.times, group: g, eliminatedIn: eliminatedIn.get(d.r.num) ?? null, inDanger: inDanger.has(d.r.num),
+      tyre: d.r.tyre, tyreAge: d.r.tyreAge, inPit: d.r.inPit,
+    })
+  })
+  const currentLeader = phaseLeader(kind === 'quali' ? maxPhase : 1)
+  return { kind, phase: kind === 'quali' ? maxPhase : null, phaseEnded, finished, advance: kind === 'quali' && maxPhase <= 2 ? advanceN(maxPhase) : null, rows, sessionBest: currentLeader }
 }
 
 // ───────────────────────────── main ─────────────────────────────
@@ -501,9 +669,12 @@ export function buildState(raw: RawSession, tMs: number, totalLapsHint: number |
     championship = { drivers: drows, teams: trows, sprint }
   }
 
+  const kind = sessionKindOf(sessionName)
+  const results = kind === 'race' ? null : buildResults(raw, tMs, kind, tower, lapsBy, deleted, rc, ts.status)
+
   const resLaps = Math.max(0, ...raw.results.map(r => r.number_of_laps ?? 0))
   return {
-    map: mapCars, overtakes, lapChart, lapTimes, fastestSectors: sessionBest, championship,
+    kind, results, map: mapCars, overtakes, lapChart, lapTimes, fastestSectors: sessionBest, championship,
     t: new Date(tMs).toISOString(), started, status: ts.status, yellowSectors: ts.yellow, leaderLap,
     totalLaps: totalLapsHint ?? (resLaps > 0 ? resLaps : null), tower, fastestLap: fastest,
     pitLoss, rejoin, undercuts, events: { sc: ts.sc, vsc: ts.vsc, red: ts.red }, raceControl, penalties, deletedLaps, weather, firstRetirement,

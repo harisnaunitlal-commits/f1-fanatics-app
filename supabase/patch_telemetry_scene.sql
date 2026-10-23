@@ -35,3 +35,6 @@ ALTER TABLE telemetry_scene ADD COLUMN IF NOT EXISTS compare_mode text NOT NULL 
 
 -- 2026-10-22: alocação de pneus do fim-de-semana (inserida pelo admin) — já aplicado
 ALTER TABLE telemetry_scene ADD COLUMN IF NOT EXISTS tyre_allocation jsonb;
+
+-- 2026-10-23: seguir sessões do fim-de-semana automaticamente — já aplicado
+ALTER TABLE telemetry_scene ADD COLUMN IF NOT EXISTS auto_follow boolean NOT NULL DEFAULT false;

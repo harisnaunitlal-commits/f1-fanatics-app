@@ -25,6 +25,7 @@ export interface Scene {
   panels: Panels
   compare_mode: 'best' | 'last'
   tyre_allocation: TyreAllocation | null
+  auto_follow: boolean
   featured: string[]
   banner: string | null
   members_enabled: boolean
@@ -84,7 +85,7 @@ export interface StateResponse {
   disabled?: boolean
   message?: string
   isAdmin?: boolean
-  scene?: Pick<Scene, 'mode' | 'banner' | 'featured' | 'panels' | 'members_enabled' | 'total_laps' | 'replay_playing' | 'replay_speed' | 'compare_mode' | 'tyre_allocation'>
+  scene?: Pick<Scene, 'mode' | 'banner' | 'featured' | 'panels' | 'members_enabled' | 'total_laps' | 'replay_playing' | 'replay_speed' | 'compare_mode' | 'tyre_allocation' | 'auto_follow'>
   session?: { name: string; country: string; date_start: string; date_end: string }
   gp?: { nome: string; emoji: string | null; round: number } | null
   drivers?: { code: string; name: string; team: string; colour: string }[]

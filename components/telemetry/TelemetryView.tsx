@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { flagSrc, panelOn, type StateResponse } from '@/lib/telemetry/shared'
 import { Section, fmtLap, COMPOUND } from './ui'
 import { TyreHistory } from './TyreHistory'
+import { SessionResults } from './SessionResults'
 import { TrackMap } from './TrackMap'
 import { TelemetryCompare } from './TelemetryCompare'
 import { PositionChart, OvertakeFeed } from './PositionChart'
@@ -234,9 +235,15 @@ export default function TelemetryView({ endpoint = '/api/telemetria/state' }: { 
       <div className="grid gap-4 lg:grid-cols-3">
         {panelOn(scene.panels, 'tower') && (
           <div className={panelOn(scene.panels, 'ours') ? 'lg:col-span-2' : 'lg:col-span-3'}>
-            <Section title="Tabela de tempos" hint={s.fastestLap ? `Volta mais rápida: ${s.fastestLap.code} ${fmtLap(s.fastestLap.time)} (V${s.fastestLap.lap})` : undefined}>
-              <Tower s={s} favCode={favCode ?? null} featured={featured} />
-            </Section>
+            {s.results ? (
+              <Section title={s.kind === 'quali' ? 'Qualificação' : 'Classificação — melhor tempo'} hint={s.results.sessionBest !== null ? `Melhor: ${fmtLap(s.results.sessionBest)}` : undefined}>
+                <SessionResults data={s.results} favCode={favCode ?? null} featured={featured} />
+              </Section>
+            ) : (
+              <Section title="Tabela de tempos" hint={s.fastestLap ? `Volta mais rápida: ${s.fastestLap.code} ${fmtLap(s.fastestLap.time)} (V${s.fastestLap.lap})` : undefined}>
+                <Tower s={s} favCode={favCode ?? null} featured={featured} />
+              </Section>
+            )}
           </div>
         )}
 
