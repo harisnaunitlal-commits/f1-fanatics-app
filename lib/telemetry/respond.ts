@@ -2,7 +2,7 @@ import { createServiceClient } from '@/lib/supabase/service'
 import { loadRaw, of1, isoNoZ, type SessionMeta } from './openf1'
 import { buildState, provisionalAnswers, driverFromText, type PlayCfg, type RawSession, type OF1Lap, type OF1Location, type OF1Stint, type TelemetryState } from './engine'
 import { resampleLap, compareLaps, type CarSample, type CompareData, type LapTrace } from './compare'
-import { PLAY_FIELDS, QUANTUM_MS, sceneTime, type Scene, type StateResponse, type PlayLine, type LeaderRow, type TyreHistory } from './shared'
+import { PLAY_FIELDS, QUANTUM_MS, sceneTime, type Scene, type StateResponse, type PlayLine, type LeaderRow, type TyreHistory, type Panels, type PanelKey } from './shared'
 import { getEffectiveGpConfig } from '@/lib/gp-config'
 import { P8_MARGENS } from '@/lib/gp-questions'
 import { calculatePlayScore } from '@/lib/scoring'
@@ -74,6 +74,24 @@ async function buildTyreHistory(meta: SessionMeta, raw: RawSession, state: Telem
     return { code: r.code, colour: r.colour, bySession, totals }
   })
   return { sessions: before.map(s => ({ key: s.session_key, short: shortName(s.session_name) })), drivers }
+}
+
+// The admin decides what members see: data of switched-off panels is not sent at all (not just hidden).
+function trimToPanels(s: TelemetryState, p: Panels): TelemetryState {
+  const on = (k: PanelKey) => p[k] !== false
+  return {
+    ...s,
+    map: on('map') ? s.map : [],
+    overtakes: on('positions') ? s.overtakes : [],
+    lapChart: on('positions') ? s.lapChart : [],
+    lapTimes: on('laps') ? s.lapTimes : [],
+    fastestSectors: on('laps') ? s.fastestSectors : [null, null, null],
+    championship: on('championship') ? s.championship : null,
+    undercuts: on('strategy') ? s.undercuts : [],
+    rejoin: on('strategy') || on('ours') ? s.rejoin : [],
+    raceControl: on('control') ? s.raceControl : [],
+    penalties: on('control') ? s.penalties : [],
+  }
 }
 
 // Auto-follow: during a live weekend, show the session in progress (or the latest finished one) of the same meeting.
@@ -178,7 +196,7 @@ export async function buildStateResponse(viewer: { email: string; isAdmin: boole
         ready: true, isAdmin,
         scene: { mode: sc.mode, banner: sc.banner, featured: sc.featured, panels: sc.panels, members_enabled: sc.members_enabled, total_laps: sc.total_laps, replay_playing: sc.replay_playing, replay_speed: Number(sc.replay_speed), compare_mode: sc.compare_mode ?? 'best', tyre_allocation: sc.tyre_allocation ?? null, auto_follow: !!sc.auto_follow },
         session: { name: meta.session_name, country: meta.country_name, date_start: meta.date_start, date_end: meta.date_end },
-        gp, drivers, state, outline, compare, tyreHistory, favCode, play,
+        gp, drivers, state: trimToPanels(state, panels), outline, compare, tyreHistory, favCode, play,
       },
     }
   } catch (e) {
