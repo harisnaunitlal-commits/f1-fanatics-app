@@ -248,6 +248,46 @@ function trackStatusAt(rc: OF1RaceControl[], t: number): { status: TrackStatus; 
   return { status, yellow: Array.from(yellow).sort((a, b) => a - b), sc, vsc, red, chequeredMs, redEndMs, startMs }
 }
 
+// Session clock: practice and qualifying are timed, not lapped. Practice counts down to the scheduled end;
+// qualifying counts down each phase (18/15/12 min, sprint qualifying 12/10/8), pausing on red flags.
+export interface SessionClock { label: string; remainingMs: number | null; running: boolean; text: string | null }
+
+export function computeClock(rcRaw: OF1RaceControl[], kind: SessionKind, name: string, win: { start: number; end: number }, tMs: number): SessionClock | null {
+  if (kind === 'race') return null
+  if (tMs < win.start) return { label: 'COMEÇA EM', remainingMs: win.start - tMs, running: true, text: null }
+  if (kind === 'practice') {
+    if (tMs >= win.end) return { label: '', remainingMs: null, running: false, text: 'TERMINADA' }
+    return { label: 'RESTANTE', remainingMs: win.end - tMs, running: true, text: null }
+  }
+  const sprint = /sprint/i.test(name)
+  const planned = sprint ? [12, 10, 8] : [18, 15, 12]
+  const pfx = sprint ? 'SQ' : 'Q'
+  const phases = new Map<number, { running: number; since: number | null; finished: boolean }>()
+  let cur = 0
+  for (const r of [...rcRaw].sort((a, b) => ms(a.date) - ms(b.date))) {
+    const at = ms(r.date)
+    if (at > tMs) break
+    const ph = r.qualifying_phase
+    if (!ph || r.category !== 'SessionStatus') continue
+    const st = phases.get(ph) ?? { running: 0, since: null, finished: false }
+    const m = r.message.toUpperCase()
+    if (m.includes('STARTED')) st.since = at
+    else if (m.includes('ABORTED') || m.includes('FINISHED')) {
+      if (st.since !== null) st.running += at - st.since
+      st.since = null
+      if (m.includes('FINISHED')) st.finished = true
+    }
+    phases.set(ph, st)
+    cur = Math.max(cur, ph)
+  }
+  if (cur === 0) return { label: '', remainingMs: null, running: false, text: 'A COMEÇAR' }
+  const st = phases.get(cur) as { running: number; since: number | null; finished: boolean }
+  if (st.finished) return { label: '', remainingMs: null, running: false, text: cur >= 3 ? 'TERMINADA' : `INTERVALO · ${pfx}${cur + 1} A SEGUIR` }
+  const used = st.running + (st.since !== null ? tMs - st.since : 0)
+  const remaining = Math.max(0, planned[cur - 1] * 60_000 - used)
+  return { label: st.since !== null ? `${pfx}${cur}` : `${pfx}${cur} · PARADO`, remainingMs: remaining, running: st.since !== null, text: null }
+}
+
 export function sessionKindOf(name: string): SessionKind {
   if (/qualif|shootout/i.test(name)) return 'quali'
   if (/practice/i.test(name)) return 'practice'
@@ -284,20 +324,32 @@ function buildResults(raw: RawSession, tMs: number, kind: SessionKind, tower: To
   const finished = status === 'FINISHED' || (kind === 'quali' && maxPhase === 3 && phaseEnded)
 
   const nPhases = kind === 'quali' ? 3 : 1
-  const perDriver: DriverLaps[] = tower.map(r => {
+  // candidate timed laps per driver and phase; aborted laps (e.g. a 4:23 "lap" that ended in the pits)
+  // are not times: anything 50% slower than the fastest lap of the phase is ignored
+  const cand = tower.map(r => {
     const dl = lapsBy.get(r.num) ?? []
-    const times: (number | null)[] = Array.from({ length: nPhases }, () => null)
     const ran = Array.from({ length: nPhases }, () => false)
+    const laps: { ph: number; t: number }[] = []
     for (const l of dl) {
       if (!l.date_start) continue
       const ph = kind === 'quali' ? phaseOf(ms(l.date_start)) : 1
       ran[ph - 1] = true
-      if (valid(r.num, l)) {
-        const t = l.lap_duration as number
-        if (times[ph - 1] === null || t < (times[ph - 1] as number)) times[ph - 1] = t
-      }
+      if (valid(r.num, l)) laps.push({ ph, t: l.lap_duration as number })
     }
-    return { r, dl, times, ran }
+    return { r, dl, ran, laps }
+  })
+  const phaseMin = Array.from({ length: nPhases }, (_, i) => {
+    const ts = cand.flatMap(c => c.laps.filter(x => x.ph === i + 1).map(x => x.t))
+    return ts.length ? Math.min(...ts) : null
+  })
+  const perDriver: DriverLaps[] = cand.map(c => {
+    const times: (number | null)[] = Array.from({ length: nPhases }, () => null)
+    for (const x of c.laps) {
+      const lim = phaseMin[x.ph - 1]
+      if (lim === null || x.t > lim * 1.5) continue
+      if (times[x.ph - 1] === null || x.t < (times[x.ph - 1] as number)) times[x.ph - 1] = x.t
+    }
+    return { r: c.r, dl: c.dl, times, ran: c.ran }
   })
 
   // who advanced: those who ran in the next phase; in the current phase the top N, provisionally

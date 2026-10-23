@@ -1,6 +1,6 @@
 import { createServiceClient } from '@/lib/supabase/service'
 import { loadRaw, of1, isoNoZ, type SessionMeta } from './openf1'
-import { buildState, provisionalAnswers, driverFromText, type PlayCfg, type RawSession, type OF1Lap, type OF1Location, type OF1Stint, type TelemetryState } from './engine'
+import { buildState, computeClock, sessionKindOf, provisionalAnswers, driverFromText, type PlayCfg, type RawSession, type OF1Lap, type OF1Location, type OF1Stint, type TelemetryState } from './engine'
 import { resampleLap, compareLaps, type CarSample, type CompareData, type LapTrace } from './compare'
 import { PLAY_FIELDS, QUANTUM_MS, sceneTime, type Scene, type StateResponse, type PlayLine, type LeaderRow, type TyreHistory, type Panels, type PanelKey } from './shared'
 import { getEffectiveGpConfig } from '@/lib/gp-config'
@@ -142,7 +142,8 @@ export async function buildStateResponse(viewer: { email: string; isAdmin: boole
     const [meta] = await of1<SessionMeta>('sessions', [['session_key', '', sessionKey]], 3600)
     if (!meta) return { status: 200, body: { ready: false, isAdmin, message: 'Sessão não encontrada no OpenF1.' } }
 
-    const t = Math.floor(sceneTime(sc, Date.now(), Date.parse(meta.date_end) + 20 * 60_000) / QUANTUM_MS) * QUANTUM_MS // everyone shares the same upstream calls
+    const rawT = sceneTime(sc, Date.now(), Date.parse(meta.date_end) + 20 * 60_000)
+    const t = Math.floor(rawT / QUANTUM_MS) * QUANTUM_MS // everyone shares the same upstream calls
     const raw = await loadRaw(sessionKey, t, sc.mode === 'live', meta.session_name)
     const state = buildState(raw, t, sc.total_laps, meta.session_name)
     const panels = sc.panels ?? {}
@@ -196,6 +197,8 @@ export async function buildStateResponse(viewer: { email: string; isAdmin: boole
         ready: true, isAdmin,
         scene: { mode: sc.mode, banner: sc.banner, featured: sc.featured, panels: sc.panels, members_enabled: sc.members_enabled, total_laps: sc.total_laps, replay_playing: sc.replay_playing, replay_speed: Number(sc.replay_speed), compare_mode: sc.compare_mode ?? 'best', tyre_allocation: sc.tyre_allocation ?? null, auto_follow: !!sc.auto_follow },
         session: { name: meta.session_name, country: meta.country_name, date_start: meta.date_start, date_end: meta.date_end },
+        clock: (() => { const c = computeClock(raw.raceControl, sessionKindOf(meta.session_name), meta.session_name, { start: Date.parse(meta.date_start), end: Date.parse(meta.date_end) }, rawT); return c ? { ...c, endsAtMs: c.remainingMs !== null ? rawT + c.remainingMs : null } : null })(),
+        serverNow: Date.now(), serverT: rawT, live: sc.mode === 'live',
         gp, drivers, state: trimToPanels(state, panels), outline, compare, tyreHistory, favCode, play,
       },
     }

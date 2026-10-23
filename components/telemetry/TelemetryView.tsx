@@ -150,8 +150,35 @@ function RcRow({ r }: { r: RcItem }) {
   )
 }
 
+function fmtClock(ms: number): string {
+  const total = Math.max(0, Math.ceil(ms / 1000))
+  const h = Math.floor(total / 3600), m = Math.floor((total % 3600) / 60), sec = total % 60
+  return h ? `${h}:${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}` : `${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`
+}
+
+// Counts down locally every second; in live mode it uses the server's clock to ignore the viewer's device time.
+function SessionClockChip({ data, receivedAt }: { data: StateResponse; receivedAt: number }) {
+  const [, force] = useState(0)
+  useEffect(() => { const id = setInterval(() => force(n => n + 1), 1000); return () => clearInterval(id) }, [])
+  const c = data.clock
+  if (!c) return null
+  if (c.text || c.endsAtMs === null) return <span className="text-sm font-black bg-black/40 rounded-lg px-3 py-1">{c.text ?? '—'}</span>
+  const nowSim = data.live
+    ? Date.now() + ((data.serverNow ?? receivedAt) - receivedAt)
+    : (data.serverT ?? 0) + (data.scene?.replay_playing ? (Date.now() - receivedAt) * (data.scene.replay_speed || 1) : 0)
+  const remaining = Math.max(0, c.endsAtMs - nowSim)
+  const low = c.running && remaining < 5 * 60_000 && c.label !== 'COMEÇA EM'
+  return (
+    <span className={`inline-flex items-baseline gap-2 text-sm font-black tabular-nums rounded-lg px-3 py-1 ${low ? 'bg-red-700/70 text-white' : 'bg-black/40'}`}>
+      <span className="text-[10px] tracking-widest text-gray-400">{c.label}</span>
+      <span className="text-lg">{fmtClock(remaining)}</span>
+    </span>
+  )
+}
+
 export default function TelemetryView({ endpoint = '/api/telemetria/state' }: { endpoint?: string }) {
   const [data, setData] = useState<StateResponse | null>(null)
+  const [receivedAt, setReceivedAt] = useState(0)
   const [err, setErr] = useState<string | null>(null)
 
   useEffect(() => {
@@ -164,7 +191,7 @@ export default function TelemetryView({ endpoint = '/api/telemetria/state' }: { 
         const res = await fetch(endpoint, { cache: 'no-store' })
         const j = await res.json() as StateResponse
         if (stop) return
-        setData(j); setErr(res.ok ? null : (j.message ?? `Erro ${res.status}`))
+        setData(j); setReceivedAt(Date.now()); setErr(res.ok ? null : (j.message ?? `Erro ${res.status}`))
       } catch { if (!stop) setErr('Sem ligação ao servidor.') }
       busy = false
     }
@@ -213,7 +240,9 @@ export default function TelemetryView({ endpoint = '/api/telemetria/state' }: { 
               {scene.mode === 'live' ? '● AO VIVO' : `↺ REPLAY${scene.replay_playing ? ` ${scene.replay_speed}×` : ' · PAUSA'}`}
             </span>
             <span className={`text-[11px] font-black px-2.5 py-1 rounded-full ${st.cls}`}>{st.label}</span>
-            <span className="text-sm font-black tabular-nums bg-black/40 rounded-lg px-3 py-1">VOLTA {s.leaderLap}{s.totalLaps ? `/${s.totalLaps}` : ''}</span>
+            {s.kind === 'race'
+              ? <span className="text-sm font-black tabular-nums bg-black/40 rounded-lg px-3 py-1">VOLTA {s.leaderLap}{s.totalLaps ? `/${s.totalLaps}` : ''}</span>
+              : <SessionClockChip data={data} receivedAt={receivedAt} />}
             <span className="text-xs text-gray-500 tabular-nums">{clock(s.t)}</span>
           </div>
         </div>

@@ -90,6 +90,10 @@ export interface StateResponse {
   gp?: { nome: string; emoji: string | null; round: number } | null
   drivers?: { code: string; name: string; team: string; colour: string }[]
   state?: import('./engine').TelemetryState
+  clock?: (import('./engine').SessionClock & { endsAtMs: number | null }) | null
+  serverNow?: number
+  serverT?: number
+  live?: boolean
   outline?: { x: number; y: number }[] | null
   compare?: import('./compare').CompareData | null
   tyreHistory?: TyreHistory | null
