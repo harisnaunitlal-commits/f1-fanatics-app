@@ -248,44 +248,63 @@ function trackStatusAt(rc: OF1RaceControl[], t: number): { status: TrackStatus; 
   return { status, yellow: Array.from(yellow).sort((a, b) => a - b), sc, vsc, red, chequeredMs, redEndMs, startMs }
 }
 
-// Session clock: practice and qualifying are timed, not lapped. Practice counts down to the scheduled end;
-// qualifying counts down each phase (18/15/12 min, sprint qualifying 12/10/8), pausing on red flags.
-export interface SessionClock { label: string; remainingMs: number | null; running: boolean; text: string | null }
+// Session clock (broadcast style): practice and qualifying are timed, not lapped. Practice counts down to the
+// scheduled end; qualifying counts down each phase (18/15/12 min, sprint qualifying 12/10/8), pausing on red flags,
+// and between phases counts down to the (approximate) start of the next one.
+export type ClockState = 'before' | 'running' | 'paused' | 'break' | 'finished'
+export interface SessionClockPhase { label: string; startMs: number; endMs: number | null }
+export interface SessionClock {
+  state: ClockState
+  label: string
+  remainingMs: number | null
+  running: boolean
+  text: string | null
+  startMs: number
+  endMs: number
+  phases: SessionClockPhase[]
+}
 
 export function computeClock(rcRaw: OF1RaceControl[], kind: SessionKind, name: string, win: { start: number; end: number }, tMs: number): SessionClock | null {
   if (kind === 'race') return null
-  if (tMs < win.start) return { label: 'COMEÇA EM', remainingMs: win.start - tMs, running: true, text: null }
+  const base = { startMs: win.start, endMs: win.end, phases: [] as SessionClockPhase[] }
+  if (tMs < win.start) return { ...base, state: 'before', label: 'COMEÇA EM', remainingMs: win.start - tMs, running: true, text: null }
   if (kind === 'practice') {
-    if (tMs >= win.end) return { label: '', remainingMs: null, running: false, text: 'TERMINADA' }
-    return { label: 'RESTANTE', remainingMs: win.end - tMs, running: true, text: null }
+    if (tMs >= win.end) return { ...base, state: 'finished', label: '', remainingMs: null, running: false, text: 'TERMINADA' }
+    return { ...base, state: 'running', label: 'TEMPO RESTANTE', remainingMs: win.end - tMs, running: true, text: null }
   }
   const sprint = /sprint/i.test(name)
   const planned = sprint ? [12, 10, 8] : [18, 15, 12]
   const pfx = sprint ? 'SQ' : 'Q'
-  const phases = new Map<number, { running: number; since: number | null; finished: boolean }>()
+  const phases = new Map<number, { running: number; since: number | null; finished: boolean; first: number; last: number | null }>()
   let cur = 0
   for (const r of [...rcRaw].sort((a, b) => ms(a.date) - ms(b.date))) {
     const at = ms(r.date)
     if (at > tMs) break
     const ph = r.qualifying_phase
     if (!ph || r.category !== 'SessionStatus') continue
-    const st = phases.get(ph) ?? { running: 0, since: null, finished: false }
+    const st = phases.get(ph) ?? { running: 0, since: null, finished: false, first: at, last: null }
     const m = r.message.toUpperCase()
     if (m.includes('STARTED')) st.since = at
     else if (m.includes('ABORTED') || m.includes('FINISHED')) {
       if (st.since !== null) st.running += at - st.since
       st.since = null
-      if (m.includes('FINISHED')) st.finished = true
+      if (m.includes('FINISHED')) { st.finished = true; st.last = at }
     }
     phases.set(ph, st)
     cur = Math.max(cur, ph)
   }
-  if (cur === 0) return { label: '', remainingMs: null, running: false, text: 'A COMEÇAR' }
-  const st = phases.get(cur) as { running: number; since: number | null; finished: boolean }
-  if (st.finished) return { label: '', remainingMs: null, running: false, text: cur >= 3 ? 'TERMINADA' : `INTERVALO · ${pfx}${cur + 1} A SEGUIR` }
+  const list: SessionClockPhase[] = Array.from(phases.entries()).sort((a, b) => a[0] - b[0]).map(([k, v]) => ({ label: `${pfx}${k}`, startMs: v.first, endMs: v.last }))
+  if (cur === 0) return { ...base, phases: list, state: 'before', label: 'A COMEÇAR', remainingMs: null, running: false, text: 'A COMEÇAR' }
+  const st = phases.get(cur) as { running: number; since: number | null; finished: boolean; first: number; last: number | null }
+  const sessStart = list[0]?.startMs ?? win.start
+  if (st.finished && cur >= 3) return { ...base, phases: list, startMs: sessStart, endMs: st.last ?? win.end, state: 'finished', label: '', remainingMs: null, running: false, text: 'TERMINADA' }
+  if (st.finished) {
+    const nextAt = (st.last as number) + 7 * 60_000
+    return { ...base, phases: list, startMs: sessStart, state: 'break', label: `${pfx}${cur + 1} COMEÇA EM ~`, remainingMs: Math.max(0, nextAt - tMs), running: true, text: null }
+  }
   const used = st.running + (st.since !== null ? tMs - st.since : 0)
   const remaining = Math.max(0, planned[cur - 1] * 60_000 - used)
-  return { label: st.since !== null ? `${pfx}${cur}` : `${pfx}${cur} · PARADO`, remainingMs: remaining, running: st.since !== null, text: null }
+  return { ...base, phases: list, startMs: sessStart, state: st.since !== null ? 'running' : 'paused', label: st.since !== null ? `${pfx}${cur}` : `${pfx}${cur} · PARADO`, remainingMs: remaining, running: st.since !== null, text: null }
 }
 
 export function sessionKindOf(name: string): SessionKind {

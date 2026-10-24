@@ -156,23 +156,59 @@ function fmtClock(ms: number): string {
   return h ? `${h}:${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}` : `${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`
 }
 
-// Counts down locally every second; in live mode it uses the server's clock to ignore the viewer's device time.
-function SessionClockChip({ data, receivedAt }: { data: StateResponse; receivedAt: number }) {
+const hhmm = (ms: number) => new Date(ms).toLocaleTimeString('pt', { hour: '2-digit', minute: '2-digit' })
+
+// Broadcast-style session clock. Counts down locally every second; in live mode it uses the server's clock
+// so the viewer's device time does not matter. Times of start/end are shown in the viewer's local time.
+function SessionClockBox({ data, receivedAt, sessionName }: { data: StateResponse; receivedAt: number; sessionName: string }) {
   const [, force] = useState(0)
   useEffect(() => { const id = setInterval(() => force(n => n + 1), 1000); return () => clearInterval(id) }, [])
   const c = data.clock
   if (!c) return null
-  if (c.text || c.endsAtMs === null) return <span className="text-sm font-black bg-black/40 rounded-lg px-3 py-1">{c.text ?? '—'}</span>
+
   const nowSim = data.live
     ? Date.now() + ((data.serverNow ?? receivedAt) - receivedAt)
     : (data.serverT ?? 0) + (data.scene?.replay_playing ? (Date.now() - receivedAt) * (data.scene.replay_speed || 1) : 0)
-  const remaining = Math.max(0, c.endsAtMs - nowSim)
-  const low = c.running && remaining < 5 * 60_000 && c.label !== 'COMEÇA EM'
+  const remaining = c.endsAtMs !== null && c.endsAtMs !== undefined ? Math.max(0, c.endsAtMs - nowSim) : null
+
+  const tone = c.state === 'running' ? (remaining !== null && remaining < 5 * 60_000 ? 'bg-red-700 animate-pulse' : 'bg-red-600')
+    : c.state === 'paused' ? 'bg-amber-600'
+    : c.state === 'before' ? 'bg-red-950 border border-red-600/60'
+    : c.state === 'break' ? 'bg-gray-700'
+    : 'bg-gray-700'
+  const finished = c.state === 'finished'
+
   return (
-    <span className={`inline-flex items-baseline gap-2 text-sm font-black tabular-nums rounded-lg px-3 py-1 ${low ? 'bg-red-700/70 text-white' : 'bg-black/40'}`}>
-      <span className="text-[10px] tracking-widest text-gray-400">{c.label}</span>
-      <span className="text-lg">{fmtClock(remaining)}</span>
-    </span>
+    <div className="w-full sm:w-auto">
+      <div className={`rounded-2xl px-5 py-3 text-white shadow-lg sm:min-w-[250px] ${tone}`}>
+        <div className="flex items-center justify-between gap-3 text-[11px] font-black uppercase tracking-[0.18em] opacity-90">
+          <span>{sessionName}</span>
+          {c.state === 'running' && <span className="inline-flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-white animate-pulse" />EM CURSO</span>}
+          {c.state === 'paused' && <span>⏸ BANDEIRA VERMELHA</span>}
+        </div>
+        {finished || remaining === null ? (
+          <div className="text-4xl font-black leading-tight py-1">{c.text ?? '—'}</div>
+        ) : (
+          <>
+            <div className="text-[11px] font-bold tracking-[0.2em] opacity-80 mt-1">{c.label}</div>
+            <div className="text-5xl font-black tabular-nums leading-none tracking-tight">{fmtClock(remaining)}</div>
+          </>
+        )}
+        <div className="mt-2 flex flex-wrap gap-x-4 gap-y-0.5 text-xs font-semibold opacity-90">
+          <span>INÍCIO <b className="tabular-nums">{hhmm(c.startMs)}</b></span>
+          <span>{finished ? 'FIM' : 'FIM PREVISTO'} <b className="tabular-nums">{hhmm(c.endMs)}</b></span>
+        </div>
+      </div>
+      {c.phases.length > 0 && (
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          {c.phases.map(p => (
+            <span key={p.label} className={`text-[11px] font-bold rounded-md px-2 py-1 tabular-nums ${p.endMs !== null ? 'bg-black/40 text-gray-300' : 'bg-red-600/80 text-white'}`}>
+              {p.label} {hhmm(p.startMs)}{p.endMs !== null ? `–${hhmm(p.endMs)} ✓` : ' ▶'}
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
   )
 }
 
@@ -235,15 +271,16 @@ export default function TelemetryView({ endpoint = '/api/telemetria/state' }: { 
               {gp ? `GP ${gp.nome} · ` : ''}{session.name}
             </h1>
           </div>
-          <div className="ml-auto flex flex-wrap items-center gap-2">
-            <span className={`text-[11px] font-black px-2.5 py-1 rounded-full ${scene.mode === 'live' ? 'bg-red-600 text-white animate-pulse' : 'bg-gray-700 text-gray-100'}`}>
-              {scene.mode === 'live' ? '● AO VIVO' : `↺ REPLAY${scene.replay_playing ? ` ${scene.replay_speed}×` : ' · PAUSA'}`}
-            </span>
-            <span className={`text-[11px] font-black px-2.5 py-1 rounded-full ${st.cls}`}>{st.label}</span>
-            {s.kind === 'race'
-              ? <span className="text-sm font-black tabular-nums bg-black/40 rounded-lg px-3 py-1">VOLTA {s.leaderLap}{s.totalLaps ? `/${s.totalLaps}` : ''}</span>
-              : <SessionClockChip data={data} receivedAt={receivedAt} />}
-            <span className="text-xs text-gray-500 tabular-nums">{clock(s.t)}</span>
+          <div className="ml-auto flex flex-col items-end gap-2 w-full sm:w-auto">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className={`text-[11px] font-black px-2.5 py-1 rounded-full ${scene.mode === 'live' ? 'bg-red-600 text-white animate-pulse' : 'bg-gray-700 text-gray-100'}`}>
+                {scene.mode === 'live' ? '● AO VIVO' : `↺ REPLAY${scene.replay_playing ? ` ${scene.replay_speed}×` : ' · PAUSA'}`}
+              </span>
+              <span className={`text-[11px] font-black px-2.5 py-1 rounded-full ${st.cls}`}>{st.label}</span>
+              {s.kind === 'race' && <span className="text-sm font-black tabular-nums bg-black/40 rounded-lg px-3 py-1">VOLTA {s.leaderLap}{s.totalLaps ? `/${s.totalLaps}` : ''}</span>}
+              <span className="text-xs text-gray-500 tabular-nums">{clock(s.t)}</span>
+            </div>
+            {s.kind !== 'race' && <SessionClockBox data={data} receivedAt={receivedAt} sessionName={session.name} />}
           </div>
         </div>
         {s.weather && (
