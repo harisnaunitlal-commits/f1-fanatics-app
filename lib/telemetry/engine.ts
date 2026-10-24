@@ -374,13 +374,15 @@ function buildResults(raw: RawSession, tMs: number, kind: SessionKind, tower: To
   // who advanced: those who ran in the next phase; in the current phase the top N, provisionally
   const n = tower.length
   const advanceN = (ph: number): number => (ph === 1 ? n - (n >= 22 ? 6 : 5) : 10)
-  const rank = (ph: number, pool: DriverLaps[]): DriverLaps[] => [...pool].sort((a, b) => {
+  // no time yet in the phase: keep the order of the previous phase (the grid order they came from), then the running order
+  const byTime = (ph: number) => (a: DriverLaps, b: DriverLaps): number => {
     const ta = a.times[ph - 1], tb = b.times[ph - 1]
-    if (ta === null && tb === null) return a.r.pos - b.r.pos
+    if (ta === null && tb === null) return ph > 1 ? byTime(ph - 1)(a, b) : a.r.pos - b.r.pos
     if (ta === null) return 1
     if (tb === null) return -1
     return ta - tb
-  })
+  }
+  const rank = (ph: number, pool: DriverLaps[]): DriverLaps[] => [...pool].sort(byTime(ph))
   const eliminatedIn = new Map<number, number>()
   const inDanger = new Set<number>()
   if (kind === 'quali') {
@@ -388,7 +390,8 @@ function buildResults(raw: RawSession, tMs: number, kind: SessionKind, tower: To
     for (let ph = 1; ph <= Math.min(maxPhase, 2); ph++) {
       const ranked = rank(ph, pool)
       let advancing: DriverLaps[]
-      if (ph < maxPhase) advancing = pool.filter(d => d.ran[ph])
+      // a finished phase is decided by the times (top N advance), not by who has already left the pits in the next one
+      if (ph < maxPhase) advancing = ranked.slice(0, advanceN(ph))
       else {
         advancing = ranked.slice(0, advanceN(ph))
         if (phaseEnded || finished) ranked.slice(advanceN(ph)).forEach(d => eliminatedIn.set(d.r.num, ph))
@@ -410,11 +413,7 @@ function buildResults(raw: RawSession, tMs: number, kind: SessionKind, tower: To
   const ordered = [...perDriver].sort((a, b) => {
     const ga = groupOf(a.r.num), gb = groupOf(b.r.num)
     if (ga !== gb) return gb - ga
-    const ta = a.times[ga - 1], tb = b.times[ga - 1]
-    if (ta === null && tb === null) return a.r.pos - b.r.pos
-    if (ta === null) return 1
-    if (tb === null) return -1
-    return ta - tb
+    return byTime(ga)(a, b)
   })
 
   const rows: ResultRow[] = []

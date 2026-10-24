@@ -43,6 +43,14 @@ export function SessionResults({ data, favCode, featured }: { data: Results; fav
   data.rows.forEach(r => {
     const mine = r.code === favCode
     const feat = featured.includes(r.code)
+    if (quali && lastGroup === null && !data.finished) {
+      const inGroup = data.rows.filter(x => x.group === r.group).length
+      body.push(
+        <tr key="head"><td colSpan={8} className="py-1.5 px-2 text-[10px] font-black uppercase tracking-widest text-green-300 bg-green-950/40 border-y border-green-800/50">
+          {r.group === 3 ? '🏁 Q3 — luta pela pole' : `Q${r.group}`} · {inGroup} pilotos {data.phaseEnded ? '' : 'em pista'}
+        </td></tr>
+      )
+    }
     if (quali && lastGroup !== null && r.group !== lastGroup) {
       body.push(
         <tr key={`sep${r.group}`}><td colSpan={8} className="py-1.5 px-2 text-[10px] font-black uppercase tracking-widest text-red-300 bg-red-950/40 border-y border-red-900/50">
@@ -84,7 +92,7 @@ export function SessionResults({ data, favCode, featured }: { data: Results; fav
           <td className="py-1.5 px-2 text-right">
             {elim ? <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-red-700 text-white">ELIM. Q{r.eliminatedIn}</span>
               : r.inDanger ? <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-orange-600 text-white">PERIGO</span>
-              : <span className="text-[10px] text-gray-600">Q{r.group}</span>}
+              : <span className="text-[10px] text-gray-500">{r.best === null && !data.phaseEnded ? 'sem tempo' : `Q${r.group}`}</span>}
           </td>
         )}
       </tr>
