@@ -62,9 +62,9 @@ export const PLAY_FIELDS: { field: string; pts: string; label: string; weight: n
   { field: 'p10_dotd', pts: 'pts_p10', label: 'Piloto do Dia', weight: 2 },
   { field: 'p11_fl', pts: 'pts_p11', label: 'Volta mais rápida', weight: 1 },
   { field: 'p12_classif', pts: 'pts_p12', label: 'Classificados', weight: 1 },
-  { field: 'p13_especial', pts: 'pts_p13', label: 'Pergunta especial', weight: 1 },
+  { field: 'p13_especial', pts: 'pts_p13', label: 'Melhor do pelotão do meio', weight: 1 },
   { field: 'p14_sc', pts: 'pts_p14', label: 'Safety Car', weight: 3 },
-  { field: 'p15_outsider', pts: 'pts_p15', label: 'Outsider', weight: 1 },
+  { field: 'p15_outsider', pts: 'pts_p15', label: 'Melhor do pelotão de trás', weight: 1 },
 ]
 
 export interface PlayLine { field: string; label: string; weight: number; mine: string | null; live: string | null; pts: number }

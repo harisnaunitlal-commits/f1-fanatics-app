@@ -94,7 +94,7 @@ function SpecialEditor({
 
   return (
     <div className="card space-y-3">
-      <h3 className="font-bold text-f1red">{code} · Pergunta Especial / Outsider</h3>
+      <h3 className="font-bold text-f1red">{code} · {code === 'P13' ? 'Melhor classificado do pelotão do meio (Midfield)' : 'Melhor classificado do pelotão de trás'}</h3>
       <div>
         <label className="text-xs text-gray-500 font-bold uppercase mb-1 block">Texto da Pergunta</label>
         <input className="input text-sm" value={label} onChange={e => onLabelChange(e.target.value)} />

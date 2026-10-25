@@ -57,9 +57,9 @@ export function buildPredictionConfirmHtml({
     p10_dotd:     'P10 · Driver of the Day',
     p11_fl:       'P11 · Volta Mais Rápida',
     p12_classif:  'P12 · Nº Classificados',
-    p13_especial: 'P13 · Pergunta Especial',
+    p13_especial: 'P13 · Melhor do pelotão do meio',
     p14_sc:       'P14 · Safety Car',
-    p15_outsider: 'P15 · Outsider',
+    p15_outsider: 'P15 · Melhor do pelotão de trás',
   }
 
   const fields = Object.entries(FIELD_LABELS)

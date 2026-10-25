@@ -459,9 +459,9 @@ export default function PredictForm({
     if (!form.p10_dotd)    missing.push('P10 — Driver of the Day')
     if (!form.p11_fl)      missing.push('P11 — Volta Mais Rápida')
     if (!form.p12_classif) missing.push('P12 — Nº Classificados')
-    if (!form.p13_especial) missing.push('P13 — Pergunta Especial')
+    if (!form.p13_especial) missing.push('P13 — Melhor do pelotão do meio')
     if (!form.p14_sc)      missing.push('P14 — Safety Car')
-    if (!form.p15_outsider) missing.push('P15 — Outsider')
+    if (!form.p15_outsider) missing.push('P15 — Melhor do pelotão de trás')
     if (missing.length > 0) {
       setError('Previsão incompleta. Falta responder: ' + missing.join(', '))
       return

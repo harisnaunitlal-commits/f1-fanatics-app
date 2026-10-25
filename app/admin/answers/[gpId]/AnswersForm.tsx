@@ -448,7 +448,7 @@ export default function AnswersForm({
 
         {/* P13 — Pergunta Especial */}
         <div className="card">
-          <QHeader code="P13" title="Pergunta Especial" pts="1 pt" />
+          <QHeader code="P13" title="Melhor do pelotão do meio" pts="1 pt" />
           <p className="text-xs text-yellow-400/80 mb-3">
             {config?.p13Label ?? "Qual piloto terminou na posição mais alta?"}
           </p>
@@ -496,7 +496,7 @@ export default function AnswersForm({
 
         {/* P15 — Outsider */}
         <div className="card">
-          <QHeader code="P15" title="Outsider" pts="1 pt" />
+          <QHeader code="P15" title="Melhor do pelotão de trás" pts="1 pt" />
           <p className="text-xs text-yellow-400/80 mb-3">
             {config?.p15Label ?? "Qual piloto terminou na posição mais alta?"}
           </p>

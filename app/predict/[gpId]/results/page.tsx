@@ -235,9 +235,9 @@ export default async function GpResultsPage({ params }: { params: { gpId: string
               <Row code="P10"     label="Driver of the Day"  playerVal={dn(p.p10_dotd)}     correctVal={dn(a.p10_dotd)}     pts={2} earned={s.pts_p10} anulada={anuladas.includes('p10_dotd')} />
               <Row code="P11"     label="Volta Mais Rápida"  playerVal={dn(p.p11_fl)}       correctVal={dn(a.p11_fl)}       pts={1} earned={s.pts_p11} anulada={anuladas.includes('p11_fl')} />
               <Row code="P12"     label="Nº Classificados"   playerVal={p.p12_classif ?? ''} correctVal={a.p12_classif ?? ''} pts={1} earned={s.pts_p12} anulada={anuladas.includes('p12_classif')} />
-              <Row code="P13"     label={config?.p13Label ?? 'Pergunta Especial'} playerVal={dn(p.p13_especial)} correctVal={dn(a.p13_especial)} pts={1} earned={s.pts_p13} anulada={anuladas.includes('p13_especial')} />
+              <Row code="P13"     label={config?.p13Label ?? 'Melhor classificado do pelotão do meio'} playerVal={dn(p.p13_especial)} correctVal={dn(a.p13_especial)} pts={1} earned={s.pts_p13} anulada={anuladas.includes('p13_especial')} />
               <Row code="P14"     label="Safety Car"         playerVal={p.p14_sc      ?? ''} correctVal={a.p14_sc      ?? ''} pts={1} earned={s.pts_p14} anulada={anuladas.includes('p14_sc')} />
-              <Row code="P15"     label={config?.p15Label ?? 'Outsider'} playerVal={dn(p.p15_outsider)} correctVal={dn(a.p15_outsider)} pts={1} earned={s.pts_p15} anulada={anuladas.includes('p15_outsider')} />
+              <Row code="P15"     label={config?.p15Label ?? 'Melhor classificado do pelotão de trás'} playerVal={dn(p.p15_outsider)} correctVal={dn(a.p15_outsider)} pts={1} earned={s.pts_p15} anulada={anuladas.includes('p15_outsider')} />
 
               <div className="flex items-center justify-between pt-4 mt-2 border-t border-gray-700">
                 <span className="font-bold text-white text-sm uppercase tracking-wide">Total</span>

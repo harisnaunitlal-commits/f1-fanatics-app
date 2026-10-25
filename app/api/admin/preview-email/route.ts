@@ -84,8 +84,8 @@ export async function GET(req: NextRequest) {
     pts_p5:  'P5 · Duelo 1',   pts_p6:  'P6 · Duelo 2',   pts_p7:  'P7 · Duelo 3',
     pts_p8:  'P8 · Margem',    pts_p9:  'P9 · First to Retire',
     pts_p10: 'P10 · DOTD',     pts_p11: 'P11 · Volta Rápida',
-    pts_p12: 'P12 · Classificados', pts_p13: 'P13 · Especial',
-    pts_p14: 'P14 · Safety Car', pts_p15: 'P15 · Outsider',
+    pts_p12: 'P12 · Classificados', pts_p13: 'P13 · Melhor do meio',
+    pts_p14: 'P14 · Safety Car', pts_p15: 'P15 · Melhor de trás',
   }
 
   // Build F1 Play GP ranking
