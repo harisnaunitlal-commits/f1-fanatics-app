@@ -36,7 +36,7 @@
   .topbrand { position: absolute; left: 60px; top: 70px; display:flex; align-items:center; gap:16px; z-index: 20; opacity:0; animation: up .6s both; animation-delay: 3.2s; }
   .topbrand img { width: 64px; height: 64px; border-radius: 50%; background:#fff; border: 3px solid var(--red); padding: 3px; }
   .topbrand span { font-family:'Barlow Condensed'; font-weight:800; font-size: 34px; }
-  .urlchip { position: absolute; left: 50%; bottom: 120px; transform: translateX(-50%); z-index: 20; opacity:0; animation: up .6s both; animation-delay: 3.4s; background:#15151b; border:2px solid rgba(255,255,255,.14); border-radius: 999px; padding: 14px 34px; font-size: 30px; font-weight: 700; white-space: nowrap; }
+  .urlchip { position: absolute; left: 0; right: 0; margin: 0 auto; width: max-content; bottom: 120px; z-index: 20; opacity:0; animation: up .6s both; animation-delay: 3.4s; background:#15151b; border:2px solid rgba(255,255,255,.14); border-radius: 999px; padding: 14px 34px; font-size: 30px; font-weight: 700; white-space: nowrap; }
   .urlchip b { color: var(--red); }
 
   /* A — hook */
@@ -149,7 +149,7 @@
 <div class="bg"></div>
 <div class="stripe"></div>
 <div class="topbrand"><img src="../../public/logos/beira-f1.png" alt=""><span>Beira F1 Fanatics</span></div>
-<div class="urlchip">🌐 <b>app.beiraf1fanatics.com</b></div>
+<div class="urlchip">🌐 <b>app.beiraf1fanatics.com/instalar</b></div>
 
 <!-- A · HOOK 0–3.3 -->
 <section class="scene" style="--s:0s; --len:3.4s">
@@ -286,7 +286,8 @@
   <div class="abs" style="top: 730px">
     <h1 class="title in" style="--d:28.9s; font-size: 170px">Entra na<br><span class="red">liga</span></h1>
   </div>
-  <div class="abs" style="top: 1130px"><div class="sub in" style="--d:29.1s; font-size: 44px">Beira F1 Fanatics · Beira, Moçambique</div></div>
+  <div class="abs" style="top: 1110px"><div class="sub in" style="--d:29.0s; font-size: 40px">Toca no link ou aponta a câmara</div></div>
+  <div class="abs" style="top: 1210px"><img class="pop" style="--d:29.1s; width: 330px; height: 330px; background:#fff; border-radius: 28px; padding: 14px" src="qr.svg" alt=""></div>
 </section>
 
 <script>
