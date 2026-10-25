@@ -741,7 +741,7 @@ export default function PredictForm({
         {/* P3 — Volta de Avanço */}
         <div className="card">
           <QBox code="P3" question={`Quantos pilotos levarão a volta de avanço (LAP) no ${gpNameFull}?`} pts="1 pt" />
-          <HistoryHint rows={history} circuit={gp.circuito} pick={r => r.leaders !== null ? `${r.leaders} ${r.leaders === 1 ? 'piloto' : 'pilotos'}` : null} note="Quantos pilotos passaram a liderar a corrida, nem que seja por uma volta (com as paragens nas boxes, o líder muda)." />
+          <HistoryHint rows={history} circuit={gp.circuito} pick={r => r.lapped !== null && r.lapped !== undefined ? (r.lapped === 0 ? 'Nenhum' : `${r.lapped} ${r.lapped === 1 ? 'piloto' : 'pilotos'}`) : null} note="Pilotos que acabaram a corrida apanhados pelo vencedor, ou seja, pelo menos uma volta atrás (dobrados)." />
           <div className="flex flex-wrap gap-2">
             {(config?.p3Options ?? P3_OPTIONS).map(o => {
               const isNum = /^\d$/.test(o)

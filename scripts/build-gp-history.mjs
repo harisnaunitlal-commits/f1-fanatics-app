@@ -37,6 +37,8 @@ for (const gp of cal) {
     const maxLaps = Math.max(...res.map(r => r.number_of_laps ?? 0))
     const classified = res.filter(r => !r.dns && !r.dsq && (r.number_of_laps ?? 0) >= 0.9 * maxLaps).length
     const dnf = res.filter(r => r.dnf).length
+    // P3 of the F1 Play form: cars still running at the flag that finished at least one lap behind the winner
+    const lapped = res.filter(r => !r.dnf && !r.dns && !r.dsq && (r.number_of_laps ?? 0) < maxLaps).length
     const p2 = res.find(r => r.position === 2)
     const margin = p2 && typeof p2.gap_to_leader === 'number' ? p2.gap_to_leader : null
     // who crossed the line first at the end of each lap = laps led
@@ -50,8 +52,8 @@ for (const gp of cal) {
       if (best) leaders.add(best.d)
     }
     const code = drv.find(d => d.driver_number === winnerRow?.driver_number)?.name_acronym ?? null
-    rows.push({ gp_id: gp.id, year, race_name: h.meeting_name ?? `${h.country_name} ${year}`, laps: maxLaps, cars: res.length, leaders: leaders.size, margin_s: margin, classified, dnf, winner: code })
-    console.log(gp.round, gp.nome, year, `lideres=${leaders.size} margem=${margin} classif=${classified}/${res.length} dnf=${dnf} vencedor=${code} voltas=${maxLaps}`)
+    rows.push({ gp_id: gp.id, year, race_name: h.meeting_name ?? `${h.country_name} ${year}`, laps: maxLaps, cars: res.length, leaders: leaders.size, margin_s: margin, classified, dnf, lapped, winner: code })
+    console.log(gp.round, gp.nome, year, `lideres=${leaders.size} margem=${margin} classif=${classified}/${res.length} dnf=${dnf} dobrados=${lapped} vencedor=${code} voltas=${maxLaps}`)
   }
 }
 fs.writeFileSync('gp_history_rows.json', JSON.stringify(rows))
