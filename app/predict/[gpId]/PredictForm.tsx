@@ -12,6 +12,7 @@ import {
 import type { GpCalendar, Prediction } from '@/lib/supabase/types'
 import { getDeadlineCountdown, isDeadlinePassed } from '@/lib/scoring'
 import P14Badge from '@/components/P14Badge'
+import type { GpHistoryRow } from '@/lib/gp-history'
 import { invalidAnswers, CONFIG_FIELD_LABEL, type ConfigField } from '@/lib/gp-answer-check'
 
 type FormData = Omit<
@@ -322,6 +323,26 @@ function QBox({ code, question, pts }: { code: string; question: string; pts: st
   )
 }
 
+// Last seasons at this circuit: helps people who do not follow F1 every weekend to bet with some reference.
+function HistoryHint({ rows, circuit, pick, note }: { rows: GpHistoryRow[]; circuit: string; pick: (r: GpHistoryRow) => string | null; note?: string }) {
+  const items = rows.map(r => ({ year: r.year, v: pick(r) })).filter((x): x is { year: number; v: string } => x.v !== null)
+  if (items.length === 0) return null
+  return (
+    <div className="mb-3 rounded-xl border border-white/10 bg-black/25 px-3 py-2.5">
+      <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1.5">📈 Nos últimos anos em {circuit}</p>
+      <div className="flex flex-wrap gap-2">
+        {items.map(i => (
+          <span key={i.year} className="inline-flex items-baseline gap-1.5 rounded-lg bg-white/[0.06] px-2.5 py-1">
+            <span className="text-[11px] font-black text-gray-400">{i.year}</span>
+            <span className="text-sm font-bold text-white">{i.v}</span>
+          </span>
+        ))}
+      </div>
+      {note && <p className="text-[11px] text-gray-500 mt-1.5 leading-snug">{note}</p>}
+    </div>
+  )
+}
+
 function flagToCC(emoji: string): string {
   if (!emoji) return ''
   const pts = Array.from(emoji).map(c => (c.codePointAt(0) ?? 0) - 0x1F1E6)
@@ -335,12 +356,14 @@ export default function PredictForm({
   userEmail,
   existing,
   config: configProp,
+  history = [],
   readOnly = false,
 }: {
   gp: GpCalendar
   userEmail: string
   existing: Prediction | null
   config?: GpQuestions
+  history?: GpHistoryRow[]
   readOnly?: boolean
 }) {
   const router = useRouter()
@@ -718,6 +741,7 @@ export default function PredictForm({
         {/* P3 — Volta de Avanço */}
         <div className="card">
           <QBox code="P3" question={`Quantos pilotos levarão a volta de avanço (LAP) no ${gpNameFull}?`} pts="1 pt" />
+          <HistoryHint rows={history} circuit={gp.circuito} pick={r => r.leaders !== null ? `${r.leaders} ${r.leaders === 1 ? 'piloto' : 'pilotos'}` : null} note="Quantos pilotos passaram a liderar a corrida, nem que seja por uma volta (com as paragens nas boxes, o líder muda)." />
           <div className="flex flex-wrap gap-2">
             {(config?.p3Options ?? P3_OPTIONS).map(o => {
               const isNum = /^\d$/.test(o)
@@ -774,6 +798,7 @@ export default function PredictForm({
         {/* P8 — Margem de vitória */}
         <div className="card">
           <QBox code="P8" question="Qual será a margem de victória, do prímeiro a cruzar a linha de chegada? (em segundos)" pts="1 pt" />
+          <HistoryHint rows={history} circuit={gp.circuito} pick={r => r.margin_s !== null ? `${r.margin_s.toFixed(1)} s` : null} note="Diferença de tempo entre o 1.º e o 2.º classificado ao cruzar a meta." />
           <div className="flex flex-wrap gap-2">
             {P8_MARGENS.map(m => {
               const isSelected = form.p8_margem === m
@@ -826,6 +851,7 @@ export default function PredictForm({
         {/* P12 — Nº classificados */}
         <div className="card">
           <QBox code="P12" question={`Quantos pilotos classificados, terminaram a corrida no ${gpNameFull}?`} pts="1 pt" />
+          <HistoryHint rows={history} circuit={gp.circuito} pick={r => r.classified !== null ? `${r.classified} de ${r.cars ?? 20}` : null} note="Classificados nas últimas edições (havia 20 carros; este ano são 22)." />
           <div className="flex flex-wrap gap-2">
             {P12_OPTIONS.map(o => {
               const isNum = /^\d+$/.test(o)
@@ -850,6 +876,9 @@ export default function PredictForm({
               )
             })}
           </div>
+          <p className="mt-3 text-[11px] text-gray-500 leading-snug">
+            ℹ️ <b className="text-gray-400">O que são "classificados"?</b> Um piloto pode abandonar (DNF) e mesmo assim ser classificado: basta ter completado pelo menos 90% das voltas do vencedor. Contam os classificados, não só os que viram a bandeira de xadrez.
+          </p>
         </div>
 
         {/* P13 — Pergunta Especial */}

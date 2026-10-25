@@ -6,6 +6,7 @@ import { isDeadlinePassed, isBeforeFP1 } from '@/lib/scoring'
 import PredictForm from './PredictForm'
 import { getEffectiveGpConfig } from '@/lib/gp-config'
 import QualifyingLocked from '@/components/QualifyingLocked'
+import { getGpHistory } from '@/lib/gp-history'
 
 export default async function PredictGpPage({ params }: { params: { gpId: string } }) {
   const supabase = await createClient()
@@ -53,10 +54,11 @@ export default async function PredictGpPage({ params }: { params: { gpId: string
     return <QualifyingLocked gpEmoji={gp.emoji_bandeira} gpNome={gp.nome} qualifyingStart={qualStart} />
   }
 
-  const [{ data: existing }, config] = await Promise.all([
+  const [{ data: existing }, config, history] = await Promise.all([
     (supabase as any).from('predictions').select('*').eq('member_email', user.email).eq('gp_id', gpId).single(),
     getEffectiveGpConfig(supabase, gpId, gp.round),
+    getGpHistory(gpId),
   ])
 
-  return <PredictForm gp={gp} userEmail={user.email} existing={existing} config={config} />
+  return <PredictForm gp={gp} userEmail={user.email} existing={existing} config={config} history={history} />
 }
