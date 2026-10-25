@@ -68,6 +68,8 @@ export const PLAY_FIELDS: { field: string; pts: string; label: string; weight: n
 ]
 
 export interface PlayLine { field: string; label: string; weight: number; mine: string | null; live: string | null; pts: number }
+// Season ranking if this GP's provisional points were added to the official points of the previous GPs.
+export interface AggRow { nickname: string; foto_url: string | null; total: number; base: number; gpPts: number; rank: number; prevRank: number; isMe: boolean }
 export interface LeaderRow { nickname: string; foto_url: string | null; total: number; rank: number; isMe: boolean }
 
 // Flag emoji (🇦🇺) or ISO code (AU) → local flag image (emoji flags render as letters on Windows).
@@ -98,5 +100,5 @@ export interface StateResponse {
   compare?: import('./compare').CompareData | null
   tyreHistory?: TyreHistory | null
   favCode?: string | null
-  play?: { closed: boolean; answers: Record<string, string | null>; leaderboard: LeaderRow[]; participants: number; me: { total: number; rank: number | null; lines: PlayLine[] } | null }
+  play?: { closed: boolean; answers: Record<string, string | null>; leaderboard: LeaderRow[]; aggregate: AggRow[]; participants: number; me: { total: number; rank: number | null; lines: PlayLine[] } | null }
 }

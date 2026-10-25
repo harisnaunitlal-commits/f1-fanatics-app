@@ -113,6 +113,7 @@ interface PlayData {
   cfg: PlayCfg | undefined
   preds: Prediction[]
   members: { email: string; nickname: string; foto_url: string | null }[]
+  base: Map<string, number>                  // official F1 Play points of the other GPs already scored, per member
   official: Record<string, string | null>   // answers the admin already entered (e.g. Driver of the Day): they win over the live guess
 }
 const playCache = new Map<number, PlayData>()
@@ -122,13 +123,16 @@ async function loadPlayData(gpId: number): Promise<PlayData> {
   if (hit && Date.now() - hit.at < 30_000) return hit
   const db = createServiceClient()
   const { data: gpRow } = await db.from('gp_calendar').select('nome, emoji_bandeira, round, deadline_play').eq('id', gpId).single()
-  const [cfg, { data: preds }, { data: members }, { data: official }] = await Promise.all([
+  const [cfg, { data: preds }, { data: members }, { data: official }, { data: prev }] = await Promise.all([
     gpRow ? getEffectiveGpConfig(null, gpId, gpRow.round) as Promise<PlayCfg | undefined> : Promise.resolve(undefined),
     db.from('predictions').select('*').eq('gp_id', gpId),
     db.from('members').select('email, nickname, foto_url'),
     db.from('gp_answers').select('*').eq('gp_id', gpId).maybeSingle(),
+    db.from('scores_play').select('member_email, total').neq('gp_id', gpId),
   ])
-  const pd: PlayData = { at: Date.now(), gpRow: gpRow ?? null, cfg, preds: (preds ?? []) as Prediction[], members: members ?? [], official: (official ?? {}) as Record<string, string | null> }
+  const base = new Map<string, number>()
+  for (const r of (prev ?? []) as { member_email: string; total: number | null }[]) base.set(r.member_email, (base.get(r.member_email) ?? 0) + (r.total ?? 0))
+  const pd: PlayData = { at: Date.now(), gpRow: gpRow ?? null, cfg, preds: (preds ?? []) as Prediction[], members: members ?? [], base, official: (official ?? {}) as Record<string, string | null> }
   playCache.set(gpId, pd)
   return pd
 }
@@ -160,7 +164,7 @@ export async function buildStateResponse(viewer: { email: string; isAdmin: boole
     let gp: StateResponse['gp'] = null
     let play: StateResponse['play']
     if (sc.gp_id) {
-      const { gpRow, cfg, preds, members, official } = await loadPlayData(sc.gp_id)
+      const { gpRow, cfg, preds, members, official, base } = await loadPlayData(sc.gp_id)
       if (gpRow) {
         gp = { nome: gpRow.nome, emoji: gpRow.emoji_bandeira, round: gpRow.round }
         const answers = provisionalAnswers(state, cfg, P8_MARGENS)
@@ -180,6 +184,20 @@ export async function buildStateResponse(viewer: { email: string; isAdmin: boole
         const leaderboard: LeaderRow[] = closed ? rows.slice(0, 10) : []
         if (closed && !leaderboard.some(r => r.isMe)) { const m = rows.find(r => r.isMe); if (m) leaderboard.push(m) }
 
+        // season aggregate: official points of the GPs already scored + this GP's provisional points (ties share a rank)
+        const gpPts = new Map(scored.map(x => [x.p.member_email, x.s.total]))
+        const emails = Array.from(new Set([...Array.from(base.keys()), ...Array.from(gpPts.keys())]))
+        const agg = emails.map(e => ({ e, base: base.get(e) ?? 0, gp: gpPts.get(e) ?? 0 }))
+          .map(a => ({ ...a, total: a.base + a.gp }))
+          .filter(a => a.total > 0 || gpPts.has(a.e))
+          .sort((a, b) => b.total - a.total || nick(a.e).localeCompare(nick(b.e)))
+        const aggRows = agg.map(a => ({
+          nickname: nick(a.e), foto_url: mBy.get(a.e)?.foto_url ?? null, total: a.total, base: a.base, gpPts: a.gp,
+          rank: 1 + agg.filter(x => x.total > a.total).length, prevRank: 1 + agg.filter(x => x.base > a.base).length, isMe: a.e === viewer.email,
+        }))
+        const aggregate = closed ? aggRows.slice(0, 10) : []
+        if (closed && !aggregate.some(r => r.isMe)) { const m = aggRows.find(r => r.isMe); if (m) aggregate.push(m) }
+
         const mine = scored.find(x => x.p.member_email === viewer.email)
         let me: NonNullable<StateResponse['play']>['me'] = null
         if (mine) {
@@ -191,7 +209,7 @@ export async function buildStateResponse(viewer: { email: string; isAdmin: boole
           }))
           me = { total: mine.s.total, rank: closed ? 1 + scored.filter(x => x.s.total > mine.s.total).length : null, lines }
         }
-        play = { closed, answers, leaderboard, participants: scored.length, me }
+        play = { closed, answers, leaderboard, aggregate, participants: scored.length, me }
       }
     }
 

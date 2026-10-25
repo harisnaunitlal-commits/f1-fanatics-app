@@ -1,5 +1,6 @@
 'use client'
 
+import { PlayBoards } from './PlayBoards'
 import { useEffect, useState } from 'react'
 import { flagSrc, panelOn, type StateResponse } from '@/lib/telemetry/shared'
 import { Section, fmtLap, COMPOUND } from './ui'
@@ -340,20 +341,7 @@ export default function TelemetryView({ endpoint = '/api/telemetria/state' }: { 
               )}
             </Section>
 
-            {play && play.closed && play.leaderboard.length > 0 && (
-              <Section title="Classificação F1 Play em directo" hint="top 10 · ao vivo">
-                <ol className="space-y-1">
-                  {play.leaderboard.map((l, i) => (
-                    <li key={i} className={`flex items-center gap-2 text-sm rounded-lg px-2 py-1 ${l.isMe ? 'bg-yellow-400/10 border border-yellow-400/40' : ''} ${i === 10 ? 'mt-2' : ''}`}>
-                      <span className="w-6 text-center font-bold text-gray-400 tabular-nums">{l.rank}</span>
-                      {l.foto_url ? <img src={l.foto_url} alt="" className="w-6 h-6 rounded-full object-cover" /> : <span className="w-6 h-6 rounded-full bg-f1gray text-[10px] font-bold flex items-center justify-center">{l.nickname.charAt(0).toUpperCase()}</span>}
-                      <span className="font-semibold truncate">{l.nickname}</span>
-                      <span className="ml-auto font-black tabular-nums text-yellow-300">{l.total}</span>
-                    </li>
-                  ))}
-                </ol>
-              </Section>
-            )}
+            {play && play.closed && play.leaderboard.length > 0 && <PlayBoards play={play} gpName={gp?.nome ?? null} />}
 
             <Section title="Os teus pontos F1 Play" hint="provisórios — se a corrida acabasse agora">
               {!play ? (
