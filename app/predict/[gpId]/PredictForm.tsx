@@ -569,6 +569,24 @@ export default function PredictForm({
           )
         })()}
 
+        {/* Grid de largada: imagem fixa, sempre visível, para escolher a ordem sem abrir nada */}
+        {(() => {
+          const gridUrl = (gp.session_images ?? []).find((i: { label: string; url: string }) => i.label === 'Starting Grid')?.url ?? (gp as any).starting_grid_image ?? null
+          if (!gridUrl) return null
+          return (
+            <div className="card">
+              <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">🏁 Grid de largada</h3>
+              <p className="text-xs text-gray-500 mb-3">Usa este grid para escolher a ordem de chegada. Não precisas de abrir nada.</p>
+              <img
+                src={gridUrl}
+                alt="Grid de largada"
+                draggable={false}
+                className="w-full max-w-sm mx-auto rounded-xl border border-white/10 select-none pointer-events-none"
+              />
+            </div>
+          )
+        })()}
+
         {/* P1 — Top 6 Classificados */}
         {(() => {
           const slots: { label: string; pos: number; value: string | null; field: keyof FormData }[] = [
