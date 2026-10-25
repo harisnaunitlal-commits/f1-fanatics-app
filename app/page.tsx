@@ -23,6 +23,10 @@ export default async function HomePage() {
     .limit(1)
     .single()
 
+  // the race is on (or just finished) in the 3.5 h after the start: used to flag the live championship
+  const raceStartMs = nextGp ? new Date((nextGp as any).data_corrida).getTime() : 0
+  const raceLiveNow = !!nextGp && Date.now() >= raceStartMs && Date.now() < raceStartMs + 3.5 * 3600_000
+
   // Last scored GP + top 3
   const { data: lastGp } = await (supabase as any)
     .from('gp_calendar')
@@ -195,6 +199,18 @@ export default async function HomePage() {
           </div>
         </div>
       )}
+
+      <Link href="/campeonato" className="group flex items-center gap-4 rounded-2xl border border-f1red/40 bg-gradient-to-r from-f1red/20 via-gray-900 to-gray-900 px-5 py-4 hover:border-f1red transition-colors">
+        <span className="text-3xl">📈</span>
+        <span className="flex-1 min-w-0">
+          <span className="flex items-center gap-2">
+            <span className="font-black text-lg">Campeonato F1 ao vivo</span>
+            {raceLiveNow && <span className="text-[10px] font-black bg-red-600 text-white rounded-full px-2 py-0.5 animate-pulse">● AO VIVO</span>}
+          </span>
+          <span className="block text-sm text-gray-400">Pilotos e construtores em tempo real — e quem pode ser campeão hoje</span>
+        </span>
+        <span className="text-f1red font-bold group-hover:translate-x-1 transition-transform">→</span>
+      </Link>
 
       {top3 && top3.length > 0 && lastGp && (
         <div className="relative overflow-hidden rounded-2xl bg-gradient-to-b from-gray-900 to-f1dark border border-gray-800 p-6 pb-0">

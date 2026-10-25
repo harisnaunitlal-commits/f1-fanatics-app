@@ -125,3 +125,22 @@ export async function loadRaw(sessionKey: number, tMs: number, live: boolean, se
   ])
   return { drivers, positions, intervals, stints, pits, raceControl, weather, laps, results, overtakes, locations, champDrivers, champTeams }
 }
+
+// Lighter load for the public championship page: only what the running order, retirements and the
+// championship projection need (no intervals, locations, weather, stints, overtakes). The URLs match the
+// ones loadRaw uses, so when the control room follows the same session these calls are shared.
+export async function loadRawChamp(sessionKey: number, live: boolean): Promise<RawSession> {
+  const sk: Filter = ['session_key', '', sessionKey]
+  const ttl = (liveSec: number) => (live ? liveSec : 3600)
+  const [drivers, positions, pits, raceControl, laps, results, champDrivers, champTeams] = await Promise.all([
+    of1<OF1Driver>('drivers', [sk], live ? 300 : 3600),
+    of1<OF1Position>('position', [sk], ttl(8)),
+    of1<OF1Pit>('pit', [sk], ttl(20)),
+    of1<OF1RaceControl>('race_control', [sk], ttl(12)),
+    of1<OF1Lap>('laps', [sk], ttl(25)),
+    of1<OF1Result>('session_result', [sk], live ? 180 : 3600),
+    of1<OF1ChampDriver>('championship_drivers', [sk], live ? 900 : 3600),
+    of1<OF1ChampTeam>('championship_teams', [sk], live ? 900 : 3600),
+  ])
+  return { drivers, positions, intervals: [], stints: [], pits, raceControl, weather: [], laps, results, overtakes: [], locations: [], champDrivers, champTeams }
+}
