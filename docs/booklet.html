@@ -522,7 +522,7 @@
         <div class="feature-icon">📝</div>
         <div>
           <div class="feature-name">Formulário de Previsões (F1 Play)</div>
-          <div class="feature-desc">15 perguntas configuráveis por GP. Selectores visuais tipo pill/círculo com borda verde ao seleccionar. Badges de sticker nas perguntas P9, P10, P11. Fechado automaticamente pela hora do Qualifying.</div>
+          <div class="feature-desc">15 perguntas configuráveis por GP. Selectores visuais tipo pill/círculo com borda verde ao seleccionar. Badges de sticker nas perguntas P9, P10, P11. Fechado automaticamente pela hora do Qualifying. <strong>Grid de largada</strong> como imagem fixa acima da P1 (sem abrir nada). <strong>Historial dos últimos 3 anos do circuito</strong> nas perguntas P3 (pilotos que lideram), P8 (margem de vitória) e P12 (classificados), com nota a explicar que um piloto com DNF pode ser classificado (≥ 90% das voltas do vencedor). Ao gravar novas perguntas do GP, as respostas das perguntas que mudaram são apagadas e a submissão recusa respostas que já não existem.</div>
         </div>
       </div>
       <div class="feature-row">
@@ -596,10 +596,17 @@
         </div>
       </div>
       <div class="feature-row">
+        <div class="feature-icon">📈</div>
+        <div>
+          <div class="feature-name">Campeonato F1 ao vivo</div>
+          <div class="feature-desc"><code>/campeonato</code> (botão grande na homepage, antes do Ranking Global): classificação de pilotos e construtores projectada pela ordem da corrida (OpenF1) e actualizada a cada 15 s. Caixa grande como o contador da sessão: <strong>vermelha</strong> com os pontos que faltam ao líder para ser campeão, <strong>verde</strong> quando já o seria com a ordem actual. Foto do líder com gráfico ascendente e taça, rivais ainda na luta e o que cada um tem de fazer (se o líder ganhar, o rival X tem de acabar em P10 ou pior). Antes da corrida mostra o que o líder precisa nesse GP. Pontos 25-18-15-12-10-8-6-4-2-1, sem ponto pela volta mais rápida; só para membros com login.</div>
+        </div>
+      </div>
+      <div class="feature-row">
         <div class="feature-icon">📱</div>
         <div>
           <div class="feature-name">Instalação PWA</div>
-          <div class="feature-desc">Página /instalar com instruções para Android e iOS. Ícone próprio no ecrã inicial do telemóvel.</div>
+          <div class="feature-desc">Página pública <code>app.beiraf1fanatics.com/instalar</code> que detecta o telemóvel: botão <strong>Instalar agora</strong> no Android (Chrome), passos do iPhone com aviso de que tem de ser o Safari e botão <strong>Copiar link</strong> para quem abre pelo WhatsApp, QR code no computador, e passos de Android e iPhone sempre visíveis (o do telemóvel detectado aparece primeiro). Ícone próprio no ecrã inicial.</div>
         </div>
       </div>
     </div>
@@ -763,7 +770,7 @@
       <div class="divider"></div>
     </div>
 
-    <p>Acessível apenas a membros com <code>is_admin = true</code> na tabela <code>members</code>. Além do workflow abaixo, o admin tem <code>/admin/telemetria</code> (mesa de controlo da Telemetria ao vivo), <code>/admin/birthday</code> (aniversários) e <code>/admin/members</code>.</p>
+    <p>Acessível apenas a membros com <code>is_admin = true</code> na tabela <code>members</code>. Além do workflow abaixo, o admin tem <code>/admin/telemetria</code> (mesa de controlo da Telemetria ao vivo), <code>/admin/gp-questions/[id]</code> (perguntas do GP: o texto da P2 é escrito à mão e tem de ser mudado de propósito), <code>/admin/birthday</code> (aniversários) e <code>/admin/members</code>.</p>
 
     <div class="card mt-4">
       <div style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:16px;font-weight:600;">Workflow por GP — Pós-Corrida</div>
@@ -845,6 +852,21 @@
     </div>
 
     <div class="changelog">
+      <div class="log-entry">
+        <div class="log-dot"></div>
+        <div class="log-body">
+          <div class="log-date">25 Outubro 2026 · R18 GP EUA (Austin)</div>
+          <div class="log-title">Campeonato ao vivo, instalação fácil, perguntas mais claras e divulgação</div>
+          <ul class="log-items">
+            <li><strong>Campeonato F1 ao vivo</strong> (<code>/campeonato</code>): pilotos e construtores em tempo real, caixa vermelha/verde com os pontos que faltam para o líder (Kimi Antonelli) ser campeão, cenários por rival e foto com gráfico e taça. Botão na homepage antes do ranking. Código em <code>lib/telemetry/champ.ts</code> e <code>title.ts</code></li>
+            <li><strong>Mudar as perguntas de um GP já não deixa respostas antigas:</strong> ao gravar, apaga as respostas das perguntas que mudaram (duelos, P13, P15) e avisa quantas; a submissão recusa respostas inválidas e o formulário mostra "Algumas perguntas mudaram". Corrigido o texto da P2 que dizia "Brasil" no GP dos EUA</li>
+            <li><strong>Formulário de previsões:</strong> grid de largada fixo e sempre visível acima da P1; <strong>historial de 3 anos do circuito</strong> nas P3, P8 e P12 (tabela <code>gp_history</code>, criada com <code>scripts/build-gp-history.mjs</code> a partir do OpenF1) e nota sobre o que são "classificados"</li>
+            <li><strong>Instalar a app:</strong> <code>/instalar</code> inteligente (Android/iPhone, "Instalar agora", "Copiar link" para o Safari, QR) e correcção do endereço, que apontava para um domínio errado</li>
+            <li><strong>Divulgação</strong> (<code>docs/entregas</code>): vídeo de 30 s (GP EUA, Triatlo = F1 Play + F1 Fantasy + F1 Predict, telemetria, instalar e registar) com banda sonora original e versão sem música, flyer para o status com QR, guia de instalação e anúncio das apostas do GP dos EUA. Não se usa música nem trailer oficial da F1 por direitos de autor</li>
+            <li><strong>Telemetria:</strong> relógio de sessão estilo transmissão (caixa vermelha, início/fim, fases Q1/Q2/Q3) e Q3 sempre com 10 pilotos, já na v1.6</li>
+          </ul>
+        </div>
+      </div>
       <div class="log-entry">
         <div class="log-dot"></div>
         <div class="log-body">
@@ -1006,12 +1028,16 @@
 
     <div class="grid-2">
       <div class="card">
-        <div style="font-size:13px;font-weight:600;margin-bottom:8px;">🇺🇸 Perguntas GP EUA (R18)</div>
-        <div style="font-size:13px;color:var(--muted);">Configurar perguntas (duelos P5/P6/P7, P13 especial, P15 outsider) em <code>/admin/gp-questions/</code> antes do Qualifying de Sábado 24 Out, 23:00.</div>
+        <div style="font-size:13px;font-weight:600;margin-bottom:8px;">❓ Perguntas dos próximos GPs</div>
+        <div style="font-size:13px;color:var(--muted);">Para cada GP, em <code>/admin/gp-questions/</code>: mudar o nome, <strong>o texto da P2</strong> (vem com o GP antigo), duelos P5/P6/P7, P13 e P15. Ao gravar, avisar os membros para voltarem a submeter — as respostas das perguntas que mudaram são apagadas. O historial P3/P8/P12 já existe para os circuitos com dados.</div>
       </div>
       <div class="card">
         <div style="font-size:13px;font-weight:600;margin-bottom:8px;">📡 Telemetria: feedback do fim-de-semana EUA</div>
-        <div style="font-size:13px;color:var(--muted);">Fase de teste (FP1 → corrida 25 Out). Validar ao vivo: relógio da sessão e das fases face à TV (a pausa entre fases é uma estimativa), Q3 com 10 pilotos, eliminados, atraso face à TV. Antes da corrida pôr o <strong>total de voltas = 56</strong>. Possíveis próximos passos: serviço sempre ligado (MQTT) se muitos membros, IA a explicar a estratégia.</div>
+        <div style="font-size:13px;color:var(--muted);">Fase de teste (FP1 → corrida 25 Out). Validar ao vivo: relógio da sessão e das fases face à TV (a pausa entre fases é uma estimativa), Q3 com 10 pilotos, eliminados, atraso face à TV, e a caixa do <strong>Campeonato ao vivo</strong> (muda de cor e de número com as posições; o título só é oficial depois da FIA confirmar penalizações). Antes da corrida pôr o <strong>total de voltas = 56</strong>. Possíveis próximos passos: serviço sempre ligado (MQTT) se muitos membros, IA a explicar a estratégia.</div>
+      </div>
+      <div class="card">
+        <div style="font-size:13px;font-weight:600;margin-bottom:8px;">📲 Lojas de aplicações (opcional)</div>
+        <div style="font-size:13px;color:var(--muted);">A app instala-se pelo browser (PWA). Publicar na Google Play (cerca de 25 $) e na App Store (99 $/ano) é possível mas dá trabalho; no iPhone a Apple não permite instalar com um só toque.</div>
       </div>
       <div class="card">
         <div style="font-size:13px;font-weight:600;margin-bottom:8px;">✉️ Licença do OpenF1</div>
@@ -1038,7 +1064,7 @@
 
   <!-- ══ FOOTER ══════════════════════════════════════════════════════════════ -->
   <footer class="footer">
-    <span>Beira F1 Fanatics 2026 · Booklet v1.6 · Outubro 2026</span>
+    <span>Beira F1 Fanatics 2026 · Booklet v1.7 · Outubro 2026</span>
     <span>Actualizado após cada GP</span>
   </footer>
 
