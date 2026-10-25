@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import type { ChampResponse } from '@/lib/telemetry/champ'
+import type { ChampResponse, TitleInfo } from '@/lib/telemetry/champ'
 import type { ChampRow } from '@/lib/telemetry/engine'
 import { getDriverPhoto } from '@/lib/gp-questions'
 
@@ -32,6 +32,61 @@ function Table({ title, rows }: { title: string; rows: { key: string; pos: numbe
           ))}
         </tbody>
       </table>
+    </div>
+  )
+}
+
+// Big status box in the style of the session countdown: red while the leader still lacks points to be champion,
+// green when he would be champion with the order as it stands. It flips by itself as the race changes.
+function TitleBox({ title, name }: { title: TitleInfo; name: string }) {
+  const first = nice(name).split(' ')[0]
+  const shortfalls = title.rivals.map(r => ({ r, miss: title.needed - r.margin }))
+  const worst = shortfalls.reduce<{ r: TitleInfo['rivals'][number]; miss: number } | null>((w, s) => (!w || s.miss > w.miss ? s : w), null)
+  const miss = worst ? Math.max(0, worst.miss) : 0
+  const champion = title.clinchedIfEndsNow
+  // before the race a net swing above 25 points is not possible in a single race
+  const impossible = !champion && title.mode === 'prerace' && miss > 25
+
+  const tone = champion ? 'bg-green-600 shadow-[0_20px_80px_rgba(22,163,74,.45)]'
+    : impossible ? 'bg-gray-700'
+    : 'bg-red-600 shadow-[0_20px_80px_rgba(225,6,0,.45)]'
+  const live = title.mode === 'live'
+  const label = champion ? (title.mode === 'live' ? 'SE ACABASSE AGORA' : 'TÍTULO GARANTIDO') : live ? 'PARA SER CAMPEÃO HOJE' : `PARA FECHAR O TÍTULO NO GP ${(title.raceName ?? '').toUpperCase()}`
+  const lead = worst ? title.needed - worst.miss : 0 // current margin over the critical rival
+
+  return (
+    <div className={`rounded-3xl px-6 py-5 text-white transition-colors duration-700 ${tone} ${live && !champion ? '' : ''}`}>
+      <div className="flex items-center justify-between gap-3 text-[11px] sm:text-xs font-black uppercase tracking-[0.18em] opacity-95">
+        <span>{label}</span>
+        {live && <span className="inline-flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-white animate-pulse" />AO VIVO</span>}
+      </div>
+      {champion ? (
+        <>
+          <div className="text-5xl sm:text-7xl font-black leading-none mt-3" style={{ fontFamily: "'Barlow Condensed', system-ui, sans-serif" }}>🏆 {first.toUpperCase()} É CAMPEÃO!</div>
+          <p className="mt-3 text-sm sm:text-base opacity-95">Avanço de <b>{worst ? lead : '—'} pts</b> sobre o rival mais próximo ({worst?.r.code}) — precisava de mais de {title.remainingMax}.</p>
+        </>
+      ) : impossible ? (
+        <>
+          <div className="text-4xl sm:text-6xl font-black leading-none mt-3" style={{ fontFamily: "'Barlow Condensed', system-ui, sans-serif" }}>AINDA NÃO DÁ NESTE GP</div>
+          <p className="mt-3 text-sm sm:text-base opacity-95">{first} precisava de ganhar {miss} pontos a {worst?.r.code} e uma corrida só dá no máximo 25.</p>
+        </>
+      ) : (
+        <>
+          <div className="flex items-end gap-3 mt-3">
+            <span className="text-xs font-bold tracking-[0.2em] opacity-90 mb-2 sm:mb-4">FALTAM</span>
+            <span className="text-7xl sm:text-9xl font-black leading-[0.85] tabular-nums" style={{ fontFamily: "'Barlow Condensed', system-ui, sans-serif" }}>{miss}</span>
+            <span className="text-xl sm:text-3xl font-black mb-1 sm:mb-3">PONTOS</span>
+          </div>
+          <p className="mt-3 text-sm sm:text-base opacity-95">
+            {live
+              ? <>de avanço sobre o <b>{worst?.r.code}</b> (agora a {lead} pts; precisa de mais de {title.remainingMax}).</>
+              : <>a ganhar ao <b>{worst?.r.code}</b> nesta corrida (hoje a {lead} pts; precisa de mais de {title.remainingMax} no fim).</>}
+          </p>
+        </>
+      )}
+      <div className="mt-4 h-2.5 rounded-full bg-black/30 overflow-hidden">
+        <div className="h-full bg-white/90 rounded-full transition-all duration-700" style={{ width: `${Math.max(4, Math.min(100, ((title.needed - miss) / title.needed) * 100))}%` }} />
+      </div>
     </div>
   )
 }
@@ -125,6 +180,7 @@ export default function ChampionshipLive() {
 
       {title && lead && (
         <div className={`rounded-2xl border p-5 space-y-4 ${title.clinchedIfEndsNow ? 'border-green-500/60 bg-green-900/15' : 'border-yellow-500/40 bg-yellow-900/10'}`}>
+          <TitleBox title={title} name={lead.name} />
           <TitleHero code={lead.code} name={lead.name} colour={lead.colour} points={lead.pointsNow} champion={title.clinchedIfEndsNow} />
           <div className="flex items-center gap-3 flex-wrap">
             <span className="w-1.5 h-10 rounded-sm" style={{ background: lead.colour }} />
