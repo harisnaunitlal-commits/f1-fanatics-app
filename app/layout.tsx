@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import Navbar from '@/components/Navbar'
+import WhatsAppIcon from '@/components/WhatsAppIcon'
 
 export const viewport: Viewport = {
   themeColor: '#E10600',
@@ -53,9 +54,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               href="https://wa.me/258825029170"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-gray-400 hover:text-green-400 transition-colors"
+              className="inline-flex items-center gap-1.5 text-gray-400 hover:text-green-400 transition-colors"
             >
-              💬 +258 82 502 9170
+              <WhatsAppIcon className="w-5 h-5" /> +258 82 502 9170
             </a>
           </p>
         </footer>

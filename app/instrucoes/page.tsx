@@ -1,3 +1,5 @@
+import WhatsAppIcon from '@/components/WhatsAppIcon'
+
 export const metadata = { title: 'Como Jogar · Beira F1 Fanatics' }
 
 export default function InstrucoesPage() {
@@ -176,7 +178,7 @@ export default function InstrucoesPage() {
             rel="noopener noreferrer"
             className="flex items-center gap-2 bg-green-700 hover:bg-green-600 transition-colors text-white rounded-xl px-5 py-3 text-sm font-medium"
           >
-            <span className="text-lg">💬</span>
+            <WhatsAppIcon className="w-6 h-6" />
             WhatsApp · +258 82 502 9170
           </a>
         </div>
