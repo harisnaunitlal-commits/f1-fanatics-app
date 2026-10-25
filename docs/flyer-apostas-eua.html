@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<title>Flyer Apostas GP EUA</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=DM+Sans:wght@400;500;600;700&display=swap">
+<style>
+  * { box-sizing: border-box; margin: 0; }
+  html, body { width: 1080px; height: 1740px; background: #08080b; }
+  body {
+    color: #f0f0f2;
+    font-family: 'DM Sans', system-ui, sans-serif;
+    position: relative;
+    overflow: hidden;
+    background:
+      radial-gradient(900px 520px at 50% -10%, rgba(225,6,0,0.38), transparent 70%),
+      #08080b;
+  }
+  .stripe { position: absolute; left: 0; right: 0; top: 0; height: 14px; background: #e10600; }
+  .wrap { padding: 66px 72px 52px; display: flex; flex-direction: column; gap: 30px; height: 100%; }
+
+  .head { display: flex; align-items: center; gap: 22px; }
+  .logo { width: 96px; height: 96px; border-radius: 50%; background: #fff; display: flex; align-items: center; justify-content: center; border: 4px solid #e10600; overflow: hidden; }
+  .logo img { width: 86px; height: 86px; object-fit: contain; }
+  .brand { font-family: 'Barlow Condensed'; font-weight: 800; font-size: 40px; line-height: 1; }
+  .brand small { display: block; font-family: 'DM Sans'; font-weight: 500; font-size: 18px; color: #9a9aa8; margin-top: 6px; letter-spacing: .08em; text-transform: uppercase; }
+
+  .badge { display: inline-block; font-size: 18px; letter-spacing: .2em; color: #e10600; border: 2px solid rgba(225,6,0,.5); border-radius: 999px; padding: 8px 20px; text-transform: uppercase; font-weight: 700; }
+  h1 { font-family: 'Barlow Condensed'; font-weight: 900; font-size: 118px; line-height: .9; letter-spacing: -.01em; margin-top: 18px; }
+  h1 span { color: #e10600; }
+  .lead { font-size: 26px; line-height: 1.45; color: #c9c9d2; }
+  .lead b { color: #fff; }
+
+  .deadline { display: flex; align-items: center; gap: 26px; background: linear-gradient(135deg, #e10600, #a00400); border-radius: 22px; padding: 26px 34px; }
+  .deadline .ico { font-size: 62px; }
+  .deadline .t { font-family: 'Barlow Condensed'; font-weight: 900; font-size: 54px; line-height: 1; }
+  .deadline .d { font-size: 22px; opacity: .92; margin-top: 6px; }
+
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .box { background: #15151b; border: 1px solid rgba(255,255,255,.08); border-top: 6px solid var(--c); border-radius: 18px; padding: 26px 28px; }
+  .box .who { font-family: 'Barlow Condensed'; font-weight: 900; font-size: 40px; line-height: 1; color: var(--c); }
+  .box .what { font-size: 23px; line-height: 1.4; color: #cfcfd8; margin-top: 12px; }
+  .box .what b { color: #fff; }
+  .tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+  .tag { font-family: 'Barlow Condensed'; font-weight: 800; font-size: 26px; background: #2a2a33; border-radius: 10px; padding: 3px 12px; color: #fff; }
+
+  .steps { background: linear-gradient(135deg, rgba(225,6,0,.16), rgba(225,6,0,.04)); border: 1px solid rgba(225,6,0,.35); border-radius: 22px; padding: 28px 34px; }
+  .steps h2 { font-family: 'Barlow Condensed'; font-weight: 900; font-size: 44px; margin-bottom: 16px; }
+  .step { display: flex; gap: 18px; align-items: flex-start; font-size: 24px; line-height: 1.35; margin-bottom: 12px; }
+  .step:last-child { margin-bottom: 0; }
+  .step .n { flex: none; width: 42px; height: 42px; border-radius: 50%; background: #e10600; color: #fff; font-family: 'Barlow Condensed'; font-weight: 900; font-size: 26px; display: flex; align-items: center; justify-content: center; }
+  .step b { color: #fff; }
+
+  .live { display: flex; gap: 20px; align-items: center; background: #111116; border: 1px solid rgba(74,222,128,.35); border-radius: 18px; padding: 20px 26px; }
+  .live .ico { font-size: 44px; }
+  .live .t { font-family: 'Barlow Condensed'; font-weight: 800; font-size: 32px; color: #4ade80; line-height: 1; }
+  .live .d { font-size: 21px; color: #b4b4c0; margin-top: 6px; line-height: 1.35; }
+  .live .d b { color: #fff; }
+
+  .foot { margin-top: auto; display: flex; justify-content: space-between; align-items: center; font-size: 20px; color: #8a8a98; border-top: 1px solid rgba(255,255,255,.08); padding-top: 20px; }
+  .foot b { color: #fff; font-family: 'Barlow Condensed'; font-size: 28px; letter-spacing: .04em; }
+</style>
+</head>
+<body>
+<div class="stripe"></div>
+<div class="wrap">
+
+  <div class="head">
+    <div class="logo"><img src="../public/logos/beira-f1.png" alt=""></div>
+    <div class="brand">Beira F1 Fanatics<small>Temporada 2026 · Beira, Moçambique</small></div>
+  </div>
+
+  <div>
+    <span class="badge">GP dos EUA · Austin · F1 Play</span>
+    <h1>Faz a tua<br><span>aposta</span> hoje!</h1>
+  </div>
+
+  <p class="lead">As perguntas do <b>F1 Play</b> foram <b>actualizadas depois da Qualificação</b>. Ainda não apostaste? Submete agora. Já apostaste? Confirma as tuas respostas — alguns duelos mudaram.</p>
+
+  <div class="deadline">
+    <div class="ico">⏰</div>
+    <div>
+      <div class="t">Hoje, domingo 25 Out · 22:00</div>
+      <div class="d">Hora de Moçambique · fecha quando a corrida começa</div>
+    </div>
+  </div>
+
+  <div class="two">
+    <div class="box" style="--c:#4ade80">
+      <div class="who">Ainda não apostaste?</div>
+      <div class="what">Responde às <b>15 perguntas</b> e submete. Quanto mais cedo, menos stress!</div>
+    </div>
+    <div class="box" style="--c:#f5c518">
+      <div class="who">Já apostaste?</div>
+      <div class="what">Volta a <b>responder às perguntas que mudaram</b>. As restantes ficam como estão.</div>
+      <div class="tags"><span class="tag">P5</span><span class="tag">P6</span><span class="tag">P7</span><span class="tag">P13</span><span class="tag">P15</span></div>
+    </div>
+  </div>
+
+  <div class="steps">
+    <h2>Como fazer (1 minuto)</h2>
+    <div class="step"><div class="n">1</div><div>Abre a app <b>Beira F1</b> e faz o login</div></div>
+    <div class="step"><div class="n">2</div><div>Vai a <b>Previsões</b> → <b>GP EUA</b></div></div>
+    <div class="step"><div class="n">3</div><div>Vê o aviso amarelo <b>"Algumas perguntas mudaram"</b> e responde de novo aos duelos e às perguntas especiais</div></div>
+    <div class="step"><div class="n">4</div><div>Carrega em <b>Submeter</b> — receberás a confirmação por email</div></div>
+  </div>
+
+  <div class="live">
+    <div class="ico">📡</div>
+    <div>
+      <div class="t">Estreia hoje: F1 Play ao vivo!</div>
+      <div class="d">Durante a corrida, abre a <b>Telemetria</b> e vê os <b>teus pontos em tempo real</b>, a classificação dos membros e o teu piloto favorito.</div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <div>Boa sorte, <b>Fanatics!</b> 🏁</div>
+    <div>app.beiraf1fanatics.com</div>
+  </div>
+
+</div>
+</body>
+</html>
