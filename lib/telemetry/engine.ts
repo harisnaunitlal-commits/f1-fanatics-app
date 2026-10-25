@@ -12,7 +12,7 @@ export interface OF1Lap {
   driver_number: number; lap_number: number; date_start: string | null; lap_duration: number | null; is_pit_out_lap: boolean | null
   duration_sector_1?: number | null; duration_sector_2?: number | null; duration_sector_3?: number | null; st_speed?: number | null
 }
-export interface OF1Result { driver_number: number; position: number | null; number_of_laps: number | null; dnf: boolean; dns: boolean; dsq: boolean }
+export interface OF1Result { driver_number: number; position: number | null; number_of_laps: number | null; dnf: boolean; dns: boolean; dsq: boolean; gap_to_leader?: number | string | null }
 export interface OF1Overtake { date: string; overtaking_driver_number: number; overtaken_driver_number: number; position: number }
 export interface OF1Location { date: string; driver_number: number; x: number; y: number }
 export interface OF1ChampDriver { driver_number: number; position_start: number | null; points_start: number | null }
@@ -529,6 +529,8 @@ export function buildState(raw: RawSession, tMs: number, totalLapsHint: number |
     const inPitNow = lastPit ? effT - ms(lastPit.date) < ((lastPit.lane_duration ?? 25) + 10) * 1000 : false
     if (effT - ls > threshold && !inPitNow) outSet.add(num)
   }
+  const winLaps = Math.max(0, ...raw.results.map(r => r.number_of_laps ?? 0))
+  const finishedNow = ts.chequeredMs !== null && tMs >= ts.chequeredMs
   const outOrder = Array.from(outSet).filter(n => lastStart.has(n)).sort((a, b) => (lastStart.get(a) ?? 0) - (lastStart.get(b) ?? 0))
   const firstRetirement = outOrder.length ? drivers.get(outOrder[0])?.name_acronym ?? null : null
 
@@ -570,7 +572,16 @@ export function buildState(raw: RawSession, tMs: number, totalLapsHint: number |
     const inPit = lastPit ? tMs - ms(lastPit.date) >= 0 && tMs - ms(lastPit.date) < (lastPit.lane_duration ?? 25) * 1000 : false
 
     const iv = ivBy.get(num)
-    const g = parseGap(iv?.gap_to_leader); const itv = parseGap(iv?.interval)
+    let g = parseGap(iv?.gap_to_leader); const itv = parseGap(iv?.interval)
+    // after the flag the live intervals stop: use the classification (gap to the winner, laps behind) so the winning margin and the lapped cars survive the finish
+    if (!iv && finishedNow && num !== undefined) {
+      const res = resultBy.get(num)
+      if (res) {
+        const fromRes = parseGap(res.gap_to_leader)
+        const behind = res.number_of_laps != null && winLaps > 0 ? Math.max(0, winLaps - res.number_of_laps) : 0
+        g = { sec: fromRes.sec, lapsDown: fromRes.lapsDown || (!res.dnf ? behind : 0) }
+      }
+    }
     const gapLabel = position === 1 ? 'LÍDER' : g.lapsDown ? `+${g.lapsDown}V` : g.sec != null ? `+${g.sec.toFixed(1)}` : '—'
     const intervalLabel = position === 1 ? '—' : itv.lapsDown ? `+${itv.lapsDown}V` : itv.sec != null ? `+${itv.sec.toFixed(1)}` : '—'
 

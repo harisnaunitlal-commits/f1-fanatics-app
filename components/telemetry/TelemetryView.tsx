@@ -371,7 +371,7 @@ export default function TelemetryView({ endpoint = '/api/telemetria/state' }: { 
                       <li key={l.field} className="flex items-center gap-2 py-1 text-xs">
                         <span className="w-36 text-gray-400 leading-tight">{l.label}</span>
                         <span className="w-20 font-bold text-gray-200 truncate">{l.mine ?? '—'}</span>
-                        <span className="w-20 text-gray-500 truncate">{l.field === 'p10_dotd' ? 'voto oficial' : (l.live ?? '—')}</span>
+                        <span className="w-20 text-gray-500 truncate">{l.live ?? (l.field === 'p10_dotd' ? 'voto oficial' : '—')}</span>
                         <span className={`ml-auto font-black ${l.pts > 0 ? 'text-green-400' : 'text-gray-600'}`}>{l.pts > 0 ? `+${l.pts}` : '·'}</span>
                       </li>
                     ))}

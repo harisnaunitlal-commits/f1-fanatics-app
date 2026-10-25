@@ -113,6 +113,7 @@ interface PlayData {
   cfg: PlayCfg | undefined
   preds: Prediction[]
   members: { email: string; nickname: string; foto_url: string | null }[]
+  official: Record<string, string | null>   // answers the admin already entered (e.g. Driver of the Day): they win over the live guess
 }
 const playCache = new Map<number, PlayData>()
 
@@ -121,12 +122,13 @@ async function loadPlayData(gpId: number): Promise<PlayData> {
   if (hit && Date.now() - hit.at < 30_000) return hit
   const db = createServiceClient()
   const { data: gpRow } = await db.from('gp_calendar').select('nome, emoji_bandeira, round, deadline_play').eq('id', gpId).single()
-  const [cfg, { data: preds }, { data: members }] = await Promise.all([
+  const [cfg, { data: preds }, { data: members }, { data: official }] = await Promise.all([
     gpRow ? getEffectiveGpConfig(null, gpId, gpRow.round) as Promise<PlayCfg | undefined> : Promise.resolve(undefined),
     db.from('predictions').select('*').eq('gp_id', gpId),
     db.from('members').select('email, nickname, foto_url'),
+    db.from('gp_answers').select('*').eq('gp_id', gpId).maybeSingle(),
   ])
-  const pd: PlayData = { at: Date.now(), gpRow: gpRow ?? null, cfg, preds: (preds ?? []) as Prediction[], members: members ?? [] }
+  const pd: PlayData = { at: Date.now(), gpRow: gpRow ?? null, cfg, preds: (preds ?? []) as Prediction[], members: members ?? [], official: (official ?? {}) as Record<string, string | null> }
   playCache.set(gpId, pd)
   return pd
 }
@@ -158,10 +160,11 @@ export async function buildStateResponse(viewer: { email: string; isAdmin: boole
     let gp: StateResponse['gp'] = null
     let play: StateResponse['play']
     if (sc.gp_id) {
-      const { gpRow, cfg, preds, members } = await loadPlayData(sc.gp_id)
+      const { gpRow, cfg, preds, members, official } = await loadPlayData(sc.gp_id)
       if (gpRow) {
         gp = { nome: gpRow.nome, emoji: gpRow.emoji_bandeira, round: gpRow.round }
         const answers = provisionalAnswers(state, cfg, P8_MARGENS)
+        for (const f of PLAY_FIELDS) { const v = official[f.field]; if (typeof v === 'string' && v) answers[f.field] = v }
         const closed = Date.now() >= Date.parse(gpRow.deadline_play)
         const liveAnswers = { gp_id: sc.gp_id, ...answers, perguntas_anuladas: [] } as unknown as GpAnswers
         const mBy = new Map(members.map(m => [m.email, m]))
@@ -180,8 +183,9 @@ export async function buildStateResponse(viewer: { email: string; isAdmin: boole
         const mine = scored.find(x => x.p.member_email === viewer.email)
         let me: NonNullable<StateResponse['play']>['me'] = null
         if (mine) {
+          const p2Rank = /PRIMEIRA/i.test(cfg?.p2Label ?? '') ? '1.ª' : /TERCEIRA/i.test(cfg?.p2Label ?? '') ? '3.ª' : '2.ª'
           const lines: PlayLine[] = PLAY_FIELDS.map(f => ({
-            field: f.field, label: f.label, weight: f.weight,
+            field: f.field, label: f.field === 'p2_equipa' ? `Equipa (${p2Rank} a pontuar)` : f.label, weight: f.weight,
             mine: (mine.p as unknown as Record<string, string | null>)[f.field] ?? null, live: answers[f.field] ?? null,
             pts: (mine.s as unknown as Record<string, number>)[f.pts] ?? 0,
           }))
