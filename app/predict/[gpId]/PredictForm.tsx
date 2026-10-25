@@ -12,6 +12,7 @@ import {
 import type { GpCalendar, Prediction } from '@/lib/supabase/types'
 import { getDeadlineCountdown, isDeadlinePassed } from '@/lib/scoring'
 import P14Badge from '@/components/P14Badge'
+import { invalidAnswers, CONFIG_FIELD_LABEL, type ConfigField } from '@/lib/gp-answer-check'
 
 type FormData = Omit<
   Prediction,
@@ -372,6 +373,8 @@ export default function PredictForm({
     p14_sc: null, p15_outsider: null,
   }
 
+  // saved answers that no longer belong to the current questions (the admin changed them) are dropped, not kept
+  const staleFields: ConfigField[] = existing && config ? invalidAnswers(config, existing) : []
   const [form, setForm] = useState<FormData>(existing ? {
     p1_primeiro: existing.p1_primeiro,
     p1_segundo:  existing.p1_segundo,
@@ -381,17 +384,17 @@ export default function PredictForm({
     p4_quarto:   existing.p4_quarto,
     p4_quinto:   existing.p4_quinto,
     p4_sexto:    existing.p4_sexto,
-    p5_duelo:    existing.p5_duelo,
-    p6_duelo:    existing.p6_duelo,
-    p7_duelo:    existing.p7_duelo,
+    p5_duelo:    staleFields.includes('p5_duelo') ? null : existing.p5_duelo,
+    p6_duelo:    staleFields.includes('p6_duelo') ? null : existing.p6_duelo,
+    p7_duelo:    staleFields.includes('p7_duelo') ? null : existing.p7_duelo,
     p8_margem:   existing.p8_margem,
     p9_retire:   existing.p9_retire,
     p10_dotd:    existing.p10_dotd,
     p11_fl:      existing.p11_fl,
     p12_classif: existing.p12_classif,
-    p13_especial:existing.p13_especial,
+    p13_especial:staleFields.includes('p13_especial') ? null : existing.p13_especial,
     p14_sc:      existing.p14_sc,
-    p15_outsider:existing.p15_outsider,
+    p15_outsider:staleFields.includes('p15_outsider') ? null : existing.p15_outsider,
   } : blank)
 
   useEffect(() => {
@@ -514,6 +517,15 @@ export default function PredictForm({
 
       <form onSubmit={handleSubmit} className={`space-y-5 ${readOnly ? 'pointer-events-none opacity-80' : ''}`}>
         {error && <p className="text-red-400 bg-red-900/20 rounded-lg px-4 py-3">{error}</p>}
+
+        {!readOnly && existing && (staleFields.length > 0 || !existing.p5_duelo || !existing.p6_duelo || !existing.p7_duelo || !existing.p13_especial || !existing.p15_outsider) && (
+          <div className="bg-yellow-900/30 border border-yellow-500/40 rounded-lg px-4 py-3 text-sm">
+            <p className="text-yellow-400 font-bold">⚠️ Algumas perguntas mudaram</p>
+            <p className="text-yellow-200/80 text-xs mt-1">
+              As tuas outras respostas estão guardadas. Responde de novo a {(['p5_duelo', 'p6_duelo', 'p7_duelo', 'p13_especial', 'p15_outsider'] as ConfigField[]).filter(f => !form[f]).map(f => CONFIG_FIELD_LABEL[f]).join(', ') || 'estas perguntas'} e submete outra vez.
+            </p>
+          </div>
+        )}
 
         {/* Galeria de resultados das sessões */}
         {(() => {

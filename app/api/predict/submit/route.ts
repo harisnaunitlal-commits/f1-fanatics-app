@@ -4,6 +4,7 @@ import { createClient } from '@supabase/supabase-js'
 import { sendPredictionConfirmation } from '@/lib/email'
 import { isDeadlinePassed, isBeforeFP1 } from '@/lib/scoring'
 import { getEffectiveGpConfig } from '@/lib/gp-config'
+import { invalidAnswers, CONFIG_FIELD_LABEL } from '@/lib/gp-answer-check'
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -31,6 +32,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Prazo encerrado.' }, { status: 400 })
     if (isBeforeFP1(gp.fp1_start))
       return NextResponse.json({ error: 'Submissões ainda não abertas.' }, { status: 400 })
+
+    // Answers must belong to the current questions (a form opened before the admin changed them is stale)
+    const gpConfig = await getEffectiveGpConfig(null, gp_id, gp.round)
+    if (gpConfig) {
+      const stale = invalidAnswers(gpConfig, formData)
+      if (stale.length > 0)
+        return NextResponse.json({
+          error: 'As perguntas foram actualizadas. Recarrega a página e responde de novo a: ' + stale.map(f => CONFIG_FIELD_LABEL[f]).join(', '),
+        }, { status: 400 })
+    }
 
     // Check if editing
     const { data: existing } = await supabaseAdmin

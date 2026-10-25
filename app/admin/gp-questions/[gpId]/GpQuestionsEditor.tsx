@@ -136,6 +136,7 @@ export default function GpQuestionsEditor({
   const [config, setConfig] = useState<GpQuestions>(initialConfig)
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
+  const [cleared, setCleared] = useState<Record<string, number>>({})
   const [error, setError] = useState('')
 
   // Detect drivers that appear in both P13 and P15
@@ -157,6 +158,7 @@ export default function GpQuestionsEditor({
     })
     const result = await res.json()
     if (!res.ok || result.error) { setError(result.error ?? 'Erro ao guardar.'); setLoading(false); return }
+    setCleared(result.cleared ?? {})
     setSuccess(true)
     setLoading(false)
   }
@@ -234,6 +236,11 @@ export default function GpQuestionsEditor({
       {success && (
         <div className="bg-green-900/20 border border-green-700/30 rounded-lg px-4 py-3 text-green-400 text-sm font-bold">
           ✅ Perguntas guardadas com sucesso! Os membros já verão as novas perguntas.
+          {Object.keys(cleared).length > 0 && (
+            <p className="text-yellow-300 font-normal mt-2">
+              ⚠️ Respostas antigas apagadas (os membros têm de responder de novo): {Object.entries(cleared).map(([f, n]) => `${f.split('_')[0].toUpperCase()}: ${n}`).join(' · ')}. Avisa-os para voltarem a submeter.
+            </p>
+          )}
         </div>
       )}
 
