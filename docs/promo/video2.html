@@ -1,0 +1,386 @@
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<title>Beira F1 Fanatics — vídeo promocional</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=DM+Sans:wght@400;500;600;700&display=swap">
+<style>
+  /* Vertical 1080x1920 promo, 30 s. Every animation is a CSS animation with an absolute start time (--d),
+     so render(t) can seek by setting currentTime on all of them and the video is frame-exact. */
+  :root { --red:#e10600; --green:#4ade80; --yellow:#f5c518; --bg:#08080b; --card:#15151b; --muted:#a9a9b6; }
+  * { box-sizing: border-box; margin: 0; }
+  html, body { width: 1080px; height: 1920px; background: var(--bg); overflow: hidden; }
+  body { position: relative; color: #f0f0f2; font-family: 'DM Sans', system-ui, sans-serif; }
+  .bg { position: absolute; inset: 0; background: radial-gradient(1000px 700px at 50% -5%, rgba(225,6,0,.40), transparent 70%), radial-gradient(900px 600px at 50% 110%, rgba(225,6,0,.18), transparent 70%), var(--bg); }
+  .scene { position: absolute; inset: 0; opacity: 0; animation: sceneShow var(--len) linear both; animation-delay: var(--s); }
+  .scene.last { animation-name: sceneShowLast; }
+  @keyframes sceneShow { 0% {opacity:0} 4% {opacity:1} 95% {opacity:1} 100% {opacity:0} }
+  @keyframes sceneShowLast { 0% {opacity:0} 8% {opacity:1} 100% {opacity:1} }
+
+  .in { opacity: 0; animation: up .65s cubic-bezier(.2,.8,.2,1) both; animation-delay: var(--d); }
+  .pop { opacity: 0; animation: pop .55s cubic-bezier(.2,1.4,.4,1) both; animation-delay: var(--d); }
+  .slide { opacity: 0; animation: slide .7s cubic-bezier(.2,.8,.2,1) both; animation-delay: var(--d); }
+  .out { animation: outFade .35s ease-in both; animation-delay: var(--o); }
+  .in.out { animation: up .65s cubic-bezier(.2,.8,.2,1) both, outFade .35s ease-in both; animation-delay: var(--d), var(--o); }
+  @keyframes up { from {opacity:0; transform: translateY(46px)} to {opacity:1; transform:none} }
+  @keyframes pop { from {opacity:0; transform: scale(.4)} to {opacity:1; transform:none} }
+  @keyframes slide { from {opacity:0; transform: translateX(-120px)} to {opacity:1; transform:none} }
+  @keyframes outFade { to { opacity: 0; transform: translateY(-30px) } }
+
+  h1, h2, .big { font-family: 'Barlow Condensed'; font-weight: 900; line-height: .9; letter-spacing: -.01em; }
+  .red { color: var(--red); } .green { color: var(--green); } .yellow { color: var(--yellow); }
+  .abs { position: absolute; left: 0; right: 0; text-align: center; padding: 0 70px; }
+
+  /* persistent chrome */
+  .stripe { position: absolute; left:0; right:0; top:0; height:14px; background: var(--red); z-index: 20; }
+  .topbrand { position: absolute; left: 60px; top: 70px; display:flex; align-items:center; gap:16px; z-index: 20; opacity:0; animation: up .6s both; animation-delay: 3.2s; }
+  .topbrand img { width: 64px; height: 64px; border-radius: 50%; background:#fff; border: 3px solid var(--red); padding: 3px; }
+  .topbrand span { font-family:'Barlow Condensed'; font-weight:800; font-size: 34px; }
+  .urlchip { position: absolute; left: 0; right: 0; margin: 0 auto; width: max-content; bottom: 120px; z-index: 20; opacity:0; animation: up .6s both; animation-delay: 3.4s; background:#15151b; border:2px solid rgba(255,255,255,.14); border-radius: 999px; padding: 14px 34px; font-size: 30px; font-weight: 700; white-space: nowrap; }
+  .urlchip b { color: var(--red); }
+
+  /* A — hook */
+  .hookline { font-size: 230px; text-transform: uppercase; }
+  .checker { position:absolute; left:0; right:0; height: 56px; background: repeating-conic-gradient(#fff 0 25%, #111 0 50%) 0 0 / 56px 56px; opacity:.9; }
+
+  /* generic tag pill */
+  .pill { display:inline-block; font-weight:700; font-size:30px; border-radius:999px; padding: 12px 28px; border:2px solid rgba(225,6,0,.55); color:#fff; background: rgba(225,6,0,.16); letter-spacing:.06em; text-transform:uppercase; }
+  .title { font-size: 150px; text-transform: uppercase; }
+  .sub { font-size: 38px; color: var(--muted); line-height: 1.3; }
+  .sub b { color:#fff; }
+
+  /* B — duel card */
+  .qcard { position:absolute; left:60px; right:60px; top: 640px; background: var(--card); border:1px solid rgba(255,255,255,.1); border-radius: 36px; padding: 40px 36px 44px; }
+  .qhead { display:flex; align-items:center; gap:16px; font-size: 28px; font-weight:700; letter-spacing:.12em; color: var(--red); text-transform:uppercase; }
+  .qtitle { font-family:'Barlow Condensed'; font-weight:800; font-size: 56px; margin: 14px 0 30px; }
+  .duel { display:grid; grid-template-columns: 1fr 70px 1fr; gap: 12px; align-items:center; }
+  .drv { position:relative; border-radius: 28px; overflow:hidden; background:#101015; border: 4px solid rgba(255,255,255,.08); }
+  .drv img { width:100%; height: 430px; object-fit: cover; object-position: top center; display:block; }
+  .drv .nm { position:absolute; left:0; right:0; bottom:0; padding: 56px 18px 18px; background: linear-gradient(transparent, rgba(0,0,0,.92)); font-family:'Barlow Condensed'; font-weight:900; font-size: 52px; text-align:center; line-height:1; }
+  .drv .nm small { display:block; font-family:'DM Sans'; font-weight:600; font-size: 22px; color: var(--muted); margin-top:6px; letter-spacing:.06em; }
+  .drv.sel { animation: selectIt .5s ease both; animation-delay: 5.5s; }
+  @keyframes selectIt { to { border-color: var(--red); box-shadow: 0 0 0 6px rgba(225,6,0,.35), 0 0 60px rgba(225,6,0,.5); transform: scale(1.03) } }
+  .vs { font-family:'Barlow Condensed'; font-weight:900; font-size: 52px; color:#6b6b78; text-align:center; }
+  .ring { position:absolute; width: 120px; height: 120px; border-radius:50%; border: 6px solid #fff; background: rgba(255,255,255,.22); opacity:0; }
+  .ptsfloat { position:absolute; font-family:'Barlow Condensed'; font-weight:900; font-size: 110px; color: var(--green); opacity:0; animation: floatUp 1.3s ease-out both; animation-delay: 5.9s; text-shadow: 0 6px 30px rgba(74,222,128,.5); }
+  @keyframes floatUp { 0% {opacity:0; transform: translateY(40px) scale(.6)} 25% {opacity:1; transform: translateY(0) scale(1.1)} 100% {opacity:0; transform: translateY(-140px) scale(1)} }
+  @keyframes tap { 0% {opacity:0; transform: translate(60px, 90px) scale(1.3)} 30% {opacity:1; transform: translate(0,0) scale(1)} 55% {transform: scale(.78)} 70% {opacity:1; transform: scale(1)} 100% {opacity:0; transform: scale(1.4)} }
+
+  .chips { display:flex; flex-wrap:wrap; gap: 14px; justify-content:center; }
+  .chip { font-size: 34px; font-weight:700; background:#1d1d25; border:2px solid rgba(255,255,255,.12); border-radius: 18px; padding: 14px 26px; }
+
+  /* C — ranking */
+  .board { position:absolute; left:60px; right:60px; top: 600px; height: 700px; }
+  .slot { position:absolute; left:0; width: 70px; height: 120px; display:flex; align-items:center; justify-content:center; font-family:'Barlow Condensed'; font-weight:900; font-size: 64px; color:#6b6b78; }
+  .row { position:absolute; left: 86px; right: 0; height: 120px; background: var(--card); border:1px solid rgba(255,255,255,.1); border-radius: 22px; display:flex; align-items:center; gap: 22px; padding: 0 30px; font-size: 44px; font-weight:700; }
+  .row .pts { margin-left:auto; font-family:'Barlow Condensed'; font-weight:900; font-size: 56px; color:#fff; }
+  .row .av { width: 64px; height:64px; border-radius:50%; background: var(--c); display:flex; align-items:center; justify-content:center; font-family:'Barlow Condensed'; font-weight:900; font-size: 34px; color:#fff; }
+  .row.me { border-color: var(--yellow); background: linear-gradient(90deg, rgba(245,197,24,.18), var(--card)); }
+  .row.me .pts { color: var(--yellow); }
+  @keyframes rise { to { transform: translateY(-240px) } }
+  @keyframes fall { to { transform: translateY(120px) } }
+  @keyframes fall2 { to { transform: translateY(120px) } }
+
+  /* D — telemetry */
+  .stage { position:absolute; left:60px; right:60px; top: 640px; height: 780px; }
+  .panel { position:absolute; inset:0; opacity:0; animation: sceneShow var(--len) linear both; animation-delay: var(--s); }
+  .cap { position:absolute; left:0; right:0; top: 1450px; text-align:center; padding: 0 60px; }
+  .cap .big { font-size: 78px; }
+  .cap .sub { font-size: 34px; margin-top: 10px; }
+  .clockbox { background: var(--red); border-radius: 36px; padding: 40px 48px; box-shadow: 0 20px 80px rgba(225,6,0,.45); }
+  .clockbox .l1 { display:flex; justify-content:space-between; font-weight:800; font-size: 30px; letter-spacing:.2em; text-transform:uppercase; opacity:.95; }
+  .clockbox .l2 { font-weight:700; font-size: 34px; letter-spacing:.2em; margin-top: 22px; opacity:.85; }
+  .clockbox .time { font-family:'Barlow Condensed'; font-weight:900; font-size: 300px; line-height: .95; font-variant-numeric: tabular-nums; }
+  .clockbox .l3 { display:flex; gap: 40px; font-size: 34px; font-weight:600; margin-top: 18px; }
+  .phases { display:flex; gap: 14px; margin-top: 26px; }
+  .ph { font-weight:800; font-size: 32px; background:#1d1d25; border-radius: 14px; padding: 12px 22px; color:#cfcfd8; }
+  .ph.on { background: var(--red); color:#fff; }
+  .dot { display:inline-block; width: 22px; height:22px; border-radius:50%; background:#fff; margin-right: 12px; animation: blink 1s infinite; }
+  @keyframes blink { 50% { opacity:.25 } }
+
+  .tower { position:absolute; left:0; right:0; top:0; }
+  .trow { position:absolute; left:0; right:0; height: 112px; background: var(--card); border:1px solid rgba(255,255,255,.1); border-radius: 20px; display:flex; align-items:center; gap: 20px; padding: 0 26px; font-weight:800; font-size: 44px; }
+  .trow .p { font-family:'Barlow Condensed'; font-weight:900; font-size: 52px; width: 54px; text-align:center; color:#9a9aa8; }
+  .trow .bar { width: 10px; height: 60px; border-radius: 5px; background: var(--c); }
+  .trow .t { margin-left:auto; font-weight:700; font-size: 38px; color:#cfcfd8; font-variant-numeric: tabular-nums; }
+  .tyre { width: 46px; height:46px; border-radius:50%; border: 6px solid var(--tc); display:flex; align-items:center; justify-content:center; font-size: 24px; font-weight:900; color: var(--tc); }
+  @keyframes toUp { to { transform: translateY(var(--dy)) } }
+
+  .chartcard { position:absolute; left:0; right:0; top: 0; background: var(--card); border:1px solid rgba(255,255,255,.1); border-radius: 30px; padding: 28px 30px; }
+  .legend { display:flex; gap: 30px; font-weight:800; font-size: 34px; }
+  .legend i { display:inline-block; width: 26px; height: 8px; border-radius:4px; margin-right: 10px; vertical-align: middle; }
+  .draw { stroke-dasharray: 1; stroke-dashoffset: 1; animation: draw 2.2s ease-out both; animation-delay: var(--d); }
+  @keyframes draw { to { stroke-dashoffset: 0 } }
+  .carDot { position:absolute; width: 26px; height: 26px; border-radius:50%; offset-rotate: 0deg; animation: lap 5s linear infinite; }
+  @keyframes lap { from { offset-distance: 0% } to { offset-distance: 100% } }
+  .ours { background: linear-gradient(90deg, rgba(245,197,24,.2), var(--card)); border:2px solid var(--yellow); border-radius: 24px; padding: 22px 30px; display:flex; align-items:center; gap: 22px; font-size: 40px; font-weight:800; }
+  .ours .big { font-size: 90px; color: var(--green); margin-left:auto; }
+
+  /* E — install */
+  .phone { position:absolute; left: 50%; top: 600px; width: 430px; height: 820px; margin-left: -215px; border-radius: 64px; background:#000; border: 10px solid #2a2a33; overflow: hidden; box-shadow: 0 30px 90px rgba(0,0,0,.7); }
+  .safari { position:absolute; inset:0; background:#101015; }
+  .safari .addr { position:absolute; top: 46px; left: 24px; right: 24px; height: 54px; border-radius: 16px; background:#24242c; display:flex; align-items:center; justify-content:center; font-size: 22px; color:#cfcfd8; font-weight:600; }
+  .safari .site { position:absolute; top: 140px; left:0; right:0; text-align:center; }
+  .safari .site img { width: 130px; height:130px; border-radius: 30px; background:#fff; padding:8px; }
+  .safari .site .n { font-family:'Barlow Condensed'; font-weight:900; font-size: 56px; margin-top: 18px; }
+  .safari .site .m { font-size: 22px; color: var(--muted); margin-top: 6px; }
+  .safari .site .mini { margin: 38px 30px 0; background: var(--card); border-radius: 18px; padding: 16px; font-size: 22px; font-weight:700; text-align:left; border:1px solid rgba(255,255,255,.08); }
+  .toolbar { position:absolute; left:0; right:0; bottom:0; height: 110px; background:#1a1a20; border-top:1px solid rgba(255,255,255,.08); display:flex; align-items:center; justify-content:space-around; font-size: 44px; color:#4ea1ff; }
+  .toolbar .share { position:relative; }
+  .sheet { position:absolute; left:0; right:0; bottom:0; height: 520px; background:#26262e; border-radius: 34px 34px 0 0; padding: 26px 22px; transform: translateY(560px); animation: sheetUp .6s cubic-bezier(.2,.8,.2,1) both; animation-delay: var(--d); }
+  @keyframes sheetUp { to { transform: none } }
+  .sheet .it { background:#33333c; border-radius: 16px; padding: 22px 22px; font-size: 25px; font-weight:600; margin-bottom: 12px; display:flex; justify-content:space-between; align-items:center; }
+  .sheet .it.hi { animation: hi .4s both; animation-delay: var(--d2); }
+  @keyframes hi { to { background: var(--red); transform: scale(1.03) } }
+  .home { position:absolute; inset:0; background: linear-gradient(160deg,#1c3b6e,#0b1428 70%); opacity:0; animation: sceneShowLast 1s both; animation-delay: var(--d); }
+  .home .ic { position:absolute; left: 50%; top: 330px; margin-left: -70px; width:140px; text-align:center; animation: bounce .8s ease both; animation-delay: calc(var(--d) + .4s); opacity:0; }
+  .home .ic img { width:140px; height:140px; border-radius: 32px; background:#fff; padding:8px; box-shadow: 0 16px 50px rgba(0,0,0,.5); }
+  .home .ic span { display:block; margin-top: 14px; font-size: 26px; font-weight:700; }
+  @keyframes bounce { 0% {opacity:0; transform: scale(.3)} 55% {opacity:1; transform: scale(1.18)} 100% {opacity:1; transform: none} }
+  .step { position:absolute; left: 60px; right: 60px; top: 1470px; text-align:center; }
+  .step .n { display:inline-flex; width: 70px; height:70px; border-radius:50%; background: var(--red); font-family:'Barlow Condensed'; font-weight:900; font-size: 48px; align-items:center; justify-content:center; margin-right: 20px; vertical-align: middle; }
+  .step .t { font-family:'Barlow Condensed'; font-weight:900; font-size: 70px; vertical-align: middle; }
+
+  /* F — CTA */
+  .ctalogo { width: 330px; height: 330px; border-radius:50%; background:#fff; border: 10px solid var(--red); padding: 18px; box-shadow: 0 0 120px rgba(225,6,0,.55); }
+
+  /* ───── v2 additions ───── */
+  .appcard { background: var(--card); border:1px solid rgba(255,255,255,.1); border-radius: 36px; padding: 36px; }
+  .btnred { display:flex; align-items:center; justify-content:center; gap:14px; background: var(--red); color:#fff; border-radius: 22px; font-family:'Barlow Condensed'; font-weight:900; font-size: 62px; padding: 26px 20px; box-shadow: 0 14px 50px rgba(225,6,0,.45); }
+  .gpflag { width: 250px; height: 140px; object-fit: cover; border-radius: 18px; border: 3px solid rgba(255,255,255,.18); }
+  .gptitle { font-family:'Barlow Condensed'; font-weight:900; font-size: 74px; line-height: .95; }
+  .gpmeta { font-size: 32px; color: var(--muted); margin-top: 8px; }
+  .closing { display:inline-block; background: rgba(225,6,0,.18); border:2px solid rgba(225,6,0,.6); border-radius: 14px; padding: 8px 20px; font-size: 32px; font-weight:800; margin-top: 18px; }
+  .prog { height: 14px; border-radius: 7px; background:#25252e; overflow:hidden; margin-top: 8px; }
+  .prog i { display:block; height:100%; width: 33%; background: var(--green); border-radius: 7px; animation: progGrow 1.2s ease both; animation-delay: 6.0s; }
+  @keyframes progGrow { to { width: 100% } }
+  .okOverlay { position:absolute; inset:0; border-radius: 36px; background: rgba(8,8,11,.94); display:flex; flex-direction:column; align-items:center; justify-content:center; gap: 18px; opacity:0; animation: pop .55s cubic-bezier(.2,1.4,.4,1) both; animation-delay: var(--d); }
+  .okOverlay .check { width: 170px; height:170px; border-radius:50%; background: var(--green); color:#08080b; font-size: 120px; font-weight:900; display:flex; align-items:center; justify-content:center; line-height:1; }
+  .okOverlay .tt { font-family:'Barlow Condensed'; font-weight:900; font-size: 84px; text-align:center; }
+  .okOverlay .ss { font-size: 32px; color: var(--muted); text-align:center; }
+
+  .logocard { overflow:hidden; position:absolute; left:0; right:0; height: 215px; border-radius: 30px; display:flex; align-items:center; justify-content:center; box-shadow: 0 12px 50px rgba(0,0,0,.5); border: 2px solid rgba(255,255,255,.12); }
+  .logocard img { height: 135px; width:auto; max-width: 70%; object-fit: contain; }
+  .logocard .no { position:absolute; left: 26px; top: 20px; font-weight:800; font-size: 26px; letter-spacing:.16em; text-transform:uppercase; color: rgba(255,255,255,.85); background: rgba(0,0,0,.35); border-radius: 10px; padding: 4px 14px; }
+  .plus { position:absolute; left:50%; width: 66px; height:66px; margin-left:-33px; border-radius:50%; background: var(--yellow); color:#08080b; font-family:'Barlow Condensed'; font-weight:900; font-size: 58px; display:flex; align-items:center; justify-content:center; z-index: 5; }
+
+  .chart2 { position:absolute; left:0; right:0; height: 176px; background: var(--card); border:1px solid rgba(255,255,255,.1); border-radius: 22px; padding: 12px 22px 8px; }
+  .chart2 .lb { font-size: 22px; font-weight:800; letter-spacing:.16em; color:#8a8a98; text-transform:uppercase; }
+  .chart2 svg { display:block; width:100%; height: 128px; }
+
+  .field { background:#1d1d25; border:2px solid rgba(255,255,255,.12); border-radius: 12px; padding: 10px 14px; font-size: 22px; font-weight:600; margin-top: 10px; }
+  .field small { display:block; font-size: 13px; letter-spacing:.14em; color:#8a8a98; text-transform:uppercase; margin-bottom: 2px; }
+  .reg { position:absolute; inset:0; background:#101015; padding: 62px 26px 0; opacity:0; animation: sceneShowLast .5s both; animation-delay: var(--d); }
+  .reg h3 { font-family:'Barlow Condensed'; font-weight:900; font-size: 52px; line-height:1; }
+  .reg .go { margin-top: 18px; background: var(--red); border-radius: 16px; text-align:center; font-family:'Barlow Condensed'; font-weight:900; font-size: 40px; padding: 14px; position:relative; }
+  .welcome { position:absolute; inset:0; background: linear-gradient(160deg,#0f3d1f,#08080b 75%); opacity:0; animation: pop .5s cubic-bezier(.2,1.4,.4,1) both; animation-delay: var(--d); display:flex; flex-direction:column; align-items:center; justify-content:center; gap: 14px; text-align:center; padding: 0 30px; }
+  .welcome .tt { font-family:'Barlow Condensed'; font-weight:900; font-size: 64px; line-height: .95; }
+  .banner { position:absolute; left: 60px; right: 60px; top: 1545px; background:#2a2208; border:2px solid rgba(245,197,24,.6); border-radius: 20px; padding: 18px 26px; font-size: 32px; color:#f5e7a8; text-align:center; line-height:1.3; }
+  .banner b { color: var(--yellow); }
+  .ctitle { font-family:'Barlow Condensed'; font-weight:900; text-transform:uppercase; line-height:.9; }
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<div class="stripe"></div>
+<div class="topbrand" style="animation-delay:2.6s"><img src="../../public/logos/beira-f1.png" alt=""><span>Beira F1 Fanatics</span></div>
+<div class="urlchip" style="animation-delay:2.8s">🌐 <b>app.beiraf1fanatics.com/instalar</b></div>
+
+<!-- A · HOOK 0–2.6 -->
+<section class="scene" style="--s:0s; --len:2.7s">
+  <div class="checker" style="top: 150px"></div>
+  <div class="checker" style="bottom: 150px"></div>
+  <div class="abs" style="top: 430px">
+    <div class="big hookline in out" style="--d:.1s; --o:1.45s">Achas que</div>
+    <div class="big hookline in out" style="--d:.3s; --o:1.45s">percebes</div>
+    <div class="big hookline in out red" style="--d:.5s; --o:1.45s">de F1?</div>
+  </div>
+  <div class="abs" style="top: 800px">
+    <div class="big pop red" style="--d:1.55s; font-size: 270px; white-space: nowrap">PROVA-O.</div>
+  </div>
+</section>
+
+<!-- B · SUBMETER PREVISÕES 2.6–9.3 -->
+<section class="scene" style="--s:2.6s; --len:6.7s">
+  <div class="abs" style="top: 200px">
+    <span class="pill in" style="--d:2.8s">🏎️ F1 Play · esta semana</span>
+    <h1 class="title in" style="--d:3.0s; margin-top: 22px; font-size: 128px">Prevê o<br><span class="red">GP dos EUA</span></h1>
+  </div>
+  <div class="stage" style="top: 640px; height: 760px">
+    <!-- B1 GP card -->
+    <div class="panel" style="--s:3.6s; --len:2.0s">
+      <div class="appcard pop" style="--d:3.7s; position:relative">
+        <div style="display:flex; gap:28px; align-items:center">
+          <img class="gpflag" src="../../public/Pilotos/US.png" alt="">
+          <div><div class="gptitle">GP dos Estados Unidos</div><div class="gpmeta">Austin · Domingo 25 Out</div></div>
+        </div>
+        <div class="closing">⏱ Previsões fecham às 22:00</div>
+        <div class="btnred" style="margin-top: 34px; position:relative">Fazer previsões →
+          <div class="ring" style="left: 420px; top: 40px; animation: tap 1s ease both; animation-delay: 4.6s"></div>
+        </div>
+      </div>
+    </div>
+    <!-- B2 question -->
+    <div class="panel" style="--s:5.4s; --len:2.0s">
+      <div class="qcard pop" style="--d:5.5s; left:0; right:0; top:0">
+        <div class="qhead">P5 · Duelo <span style="margin-left:auto; color:#9a9aa8">5 / 15</span></div>
+        <div class="prog"><i></i></div>
+        <div class="qtitle" style="margin-top: 22px">Quem termina à frente?</div>
+        <div class="duel">
+          <div class="drv"><img src="../../public/Pilotos/Norris.jpeg" alt=""><div class="nm">NORRIS<small>McLaren</small></div></div>
+          <div class="vs">VS</div>
+          <div class="drv" style="animation: selectIt .5s ease both 6.3s"><img src="../../public/Pilotos/Verstappen.jpeg" alt=""><div class="nm">VERSTAPPEN<small>Red Bull Racing</small></div></div>
+        </div>
+        <div class="ring" style="left: 740px; top: 470px; animation: tap 1s ease both; animation-delay: 5.8s"></div>
+        <div class="ptsfloat" style="left: 690px; top: 330px; animation-delay: 6.5s">+1 PT</div>
+      </div>
+    </div>
+    <!-- B3 submit -->
+    <div class="panel" style="--s:7.3s; --len:2.0s">
+      <div class="appcard pop" style="--d:7.4s; position:relative; height: 560px">
+        <div class="gptitle" style="font-size: 64px">As tuas previsões</div>
+        <div class="chips" style="justify-content:flex-start; margin-top: 22px; gap: 12px">
+          <span class="chip">🥇 Pódio ✓</span><span class="chip">⚔️ Duelos ✓</span><span class="chip">🚨 Safety Car ✓</span><span class="chip">⏱️ Volta mais rápida ✓</span><span class="chip">⭐ Piloto do Dia ✓</span>
+        </div>
+        <div class="btnred" style="margin-top: 40px; position:relative; font-size: 60px">Submeter previsões
+          <div class="ring" style="left: 430px; top: 40px; animation: tap 1s ease both; animation-delay: 8.1s"></div>
+        </div>
+        <div class="okOverlay" style="--d:8.35s"><div class="check">✓</div><div class="tt">Previsão guardada!</div><div class="ss">Podes alterar até ao fim do prazo</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="cap" style="top: 1470px">
+    <div class="big in out" style="--d:3.7s; --o:5.4s; position:absolute; left:0; right:0; font-size: 70px"><span class="red">1</span> · Escolhe o GP</div>
+    <div class="big in out" style="--d:5.5s; --o:7.3s; position:absolute; left:0; right:0; font-size: 70px"><span class="red">2</span> · Responde às 15 perguntas</div>
+    <div class="big in" style="--d:7.4s; position:absolute; left:0; right:0; font-size: 70px"><span class="red">3</span> · Submete!</div>
+  </div>
+</section>
+
+<!-- C · TRIATLO 9.3–13.6 -->
+<section class="scene" style="--s:9.3s; --len:4.4s">
+  <div class="abs" style="top: 220px">
+    <span class="pill in" style="--d:9.5s">🏆 Triatlo Score</span>
+    <h1 class="title in" style="--d:9.7s; margin-top: 22px; font-size: 128px">3 ligas.<br><span class="red">1 campeão.</span></h1>
+  </div>
+  <div class="stage" style="top: 620px; height: 780px">
+    <div class="logocard slide" style="top:0; background:#e10600; --d:10.0s"><span class="no">Liga 1</span><img src="../../public/logos/f1-fantasy.jpg" alt="" style="height: 330px; max-width:none"></div>
+    <div class="plus pop" style="top: 192px; --d:10.5s">+</div>
+    <div class="logocard slide" style="top:250px; background:#72cc98; --d:10.3s"><span class="no" style="color:#08080b; background: rgba(255,255,255,.4)">Liga 2</span><img src="../../public/logos/f1-predict.jpg" alt="" style="height: 160px"></div>
+    <div class="plus pop" style="top: 442px; --d:10.8s">+</div>
+    <div class="logocard slide" style="top:500px; background:#111119; --d:10.6s"><span class="no">Liga 3</span><img src="../../public/logos/f1-play.png" alt="" style="height: 330px; max-width:none"></div>
+  </div>
+  <div class="abs" style="top: 1430px"><div class="big pop yellow" style="--d:11.6s; font-size: 150px">= TRIATLO 🏆</div></div>
+  <div class="abs" style="top: 1610px"><div class="sub in" style="--d:12.2s; font-size: 34px">Os pontos das 3 ligas somam num único ranking</div></div>
+</section>
+
+<!-- D · TELEMETRIA 13.6–21.6 -->
+<section class="scene" style="--s:13.6s; --len:8.1s">
+  <div class="abs" style="top: 200px">
+    <span class="pill in" style="--d:13.8s; background: var(--red); border-color: var(--red)">● Novo · ao vivo</span>
+    <h1 class="title in" style="--d:14.0s; margin-top: 22px; font-size: 120px">📡 Telemetria<br><span class="red">em directo</span></h1>
+  </div>
+  <div class="stage" style="top: 600px; height: 800px">
+    <!-- D1 clock -->
+    <div class="panel" style="--s:14.5s; --len:1.9s">
+      <div class="clockbox pop" style="--d:14.6s">
+        <div class="l1"><span>Qualifying</span><span><i class="dot"></i>Em curso</span></div>
+        <div class="l2">TEMPO RESTANTE</div>
+        <div class="time" id="clk" style="font-size: 240px">08:42</div>
+        <div class="l3"><span>INÍCIO <b>19:00</b></span><span>FIM <b>20:00</b></span></div>
+      </div>
+      <div class="phases in" style="--d:15.1s"><span class="ph">Q1 ✓</span><span class="ph">Q2 ✓</span><span class="ph on">Q3 ▶</span></div>
+    </div>
+    <!-- D2 charts -->
+    <div class="panel" style="--s:16.3s; --len:5.4s">
+      <div class="legend in" style="--d:16.4s; position:absolute; left:0; right:0; top:-4px"><span><i style="background:#3671c6"></i>VER 1:34.471</span><span><i style="background:#27f4d2"></i>ANT 1:34.756</span><span class="green in" style="--d:19.2s; margin-left:auto; font-size:30px">VER mais rápido 0.285 s</span></div>
+      <div class="chart2 in" style="top: 50px; --d:16.5s"><div class="lb">Velocidade (km/h)</div><svg id="c1" viewBox="0 0 960 128" preserveAspectRatio="none"></svg></div>
+      <div class="chart2 in" style="top: 238px; --d:17.0s"><div class="lb">Acelerador (%) e travão</div><svg id="c2" viewBox="0 0 960 128" preserveAspectRatio="none"></svg></div>
+      <div class="chart2 in" style="top: 426px; --d:17.5s"><div class="lb">Mudança</div><svg id="c3" viewBox="0 0 960 128" preserveAspectRatio="none"></svg></div>
+      <div class="chart2 in" style="top: 614px; --d:18.0s"><div class="lb">Diferença de tempo (s)</div><svg id="c4" viewBox="0 0 960 128" preserveAspectRatio="none"></svg></div>
+    </div>
+  </div>
+  <div class="cap" style="top: 1440px">
+    <div class="big in out" style="--d:14.7s; --o:16.2s; position:absolute; left:0; right:0; font-size: 70px">Relógio da sessão <span class="red">como na TV</span></div>
+    <div class="big in out" style="--d:16.5s; --o:19.7s; position:absolute; left:0; right:0; font-size: 70px">Compara pilotos <span class="red">volta a volta</span></div>
+    <div class="ours pop" style="--d:19.9s; position:absolute; left:60px; right:60px; top:0"><span>⭐ Os nossos · os teus pontos ao vivo</span><span class="big" style="font-size: 80px">+3</span></div>
+  </div>
+  <div class="abs" style="top: 1640px; font-size: 24px; color:#6b6b78">Dados ilustrativos</div>
+</section>
+
+<!-- E · INSTALAR + REGISTAR 21.6–27.1 -->
+<section class="scene" style="--s:21.6s; --len:5.5s">
+  <div class="abs" style="top: 190px">
+    <span class="pill in" style="--d:21.8s">📲 Sem App Store</span>
+    <h1 class="title in" style="--d:22.0s; margin-top: 22px; font-size: 128px">Instala e<br><span class="red">regista-te</span></h1>
+  </div>
+  <div class="phone in" style="--d:22.1s; top: 560px; height: 830px">
+    <div class="safari">
+      <div class="addr">🔒 app.beiraf1fanatics.com</div>
+      <div class="site"><img src="../../public/logos/beira-f1.png" alt=""><div class="n">Beira F1 Fanatics</div><div class="m">Temporada 2026</div><div class="mini">🏎️ F1 Play · 🏆 Ranking · 📡 Telemetria</div></div>
+      <div class="toolbar"><span>‹</span><span>›</span><span class="share">⬆️<div class="ring" style="left:-38px; top:-34px; animation: tap 1s ease both; animation-delay: 22.8s"></div></span><span>📖</span><span>⧉</span></div>
+      <div class="sheet" style="--d:23.3s">
+        <div class="it">Copiar <span>⧉</span></div>
+        <div class="it">Adicionar aos Favoritos <span>★</span></div>
+        <div class="it hi" style="--d2:23.9s">Adicionar ao Ecrã de Início <span>⊞</span></div>
+        <div class="it">Procurar na página <span>🔍</span></div>
+      </div>
+    </div>
+    <div class="home" style="--d:24.4s"><div class="ic" style="--d:24.4s"><img src="../../public/logos/beira-f1.png" alt=""><span>Beira F1</span></div></div>
+    <div class="reg" style="--d:25.1s">
+      <h3>Registo de Membro</h3>
+      <div class="field"><small>Nome</small>O teu nome</div>
+      <div class="field"><small>Email</small>nome@email.com</div>
+      <div class="field"><small>Piloto favorito</small>Max Verstappen</div>
+      <div class="go">Criar conta
+        <div class="ring" style="left: 160px; top: 8px; animation: tap 1s ease both; animation-delay: 26.0s"></div>
+      </div>
+    </div>
+    <div class="welcome" style="--d:26.4s"><div style="font-size:90px">🏁</div><div class="tt">Bem-vindo à Beira F1 Fanatics!</div></div>
+  </div>
+  <div class="step" style="top: 1420px">
+    <span class="in out" style="--d:22.3s; --o:24.9s; position:absolute; left:0; right:0"><span class="n">1</span><span class="t">Instala a app</span></span>
+    <span class="in" style="--d:25.1s; position:absolute; left:0; right:0"><span class="n">2</span><span class="t">Regista-te para jogar</span></span>
+  </div>
+  <div class="banner pop" style="--d:25.4s">⚠️ Só <b>depois de te registares</b> podes participar nas ligas</div>
+</section>
+
+<!-- F · CTA 27.1–30 -->
+<section class="scene last" style="--s:27.1s; --len:2.9s">
+  <div class="abs" style="top: 190px"><img class="ctalogo pop" style="--d:27.2s; width: 280px; height: 280px" src="../../public/logos/beira-f1.png" alt=""></div>
+  <div class="abs" style="top: 530px">
+    <h1 class="ctitle in" style="--d:27.4s; font-size: 140px">Instala.<br><span class="red">Regista-te.</span><br>Joga.</h1>
+  </div>
+  <div class="abs" style="top: 1000px"><div class="sub in" style="--d:27.9s; font-size: 38px">Toca no link ou aponta a câmara</div></div>
+  <div class="abs" style="top: 1085px"><img class="pop" style="--d:28.0s; width: 340px; height: 340px; background:#fff; border-radius: 28px; padding: 14px" src="qr.svg" alt=""></div>
+</section>
+
+<script>
+  const W = 960, H = 128
+  const pathOf = f => { const p = []; for (let i = 0; i <= 160; i++) { const x = i / 160; p.push((x * W).toFixed(1) + ',' + f(x).toFixed(1)) } return 'M' + p.join(' L') }
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v))
+  const speed = sh => x => H - 8 - clamp(0.52 + 0.30 * Math.sin(x * 14 + 1.2) * Math.cos(x * 5) + 0.12 * Math.sin(x * 33 + sh), 0.1, 0.95) * (H - 16)
+  const thr = sh => x => H - 8 - clamp(0.5 + 1.1 * Math.sin(x * 17 + 0.6 + sh), 0, 1) * (H - 16)
+  const gear = sh => x => { const g = Math.round(2 + 6 * clamp(0.5 + 0.5 * Math.sin(x * 14 + 1.2 + sh) * Math.cos(x * 5), 0, 1)); return H - 8 - (g / 8) * (H - 16) }
+  const delta = x => 36 + (Math.sin(x * 9) * 5) + x * 70
+  const svg = (id, paths, extra = '') => {
+    const el = document.getElementById(id)
+    el.innerHTML = '<g stroke="rgba(255,255,255,.08)" stroke-width="2"><line x1="0" y1="' + (H / 2) + '" x2="' + W + '" y2="' + (H / 2) + '"/></g>' + extra +
+      paths.map(([d, c, delay]) => '<path class="draw" pathLength="1" style="--d:' + delay + 's" d="' + d + '" fill="none" stroke="' + c + '" stroke-width="5" stroke-linejoin="round"/>').join('')
+  }
+  svg('c1', [[pathOf(speed(0)), '#3671c6', 16.7], [pathOf(speed(0.15)), '#27f4d2', 16.8]])
+  const brakes = []; for (let i = 0; i < 160; i++) { const x = i / 160; if (Math.sin(x * 17 + 0.6) < -0.86) brakes.push('<rect x="' + (x * W).toFixed(1) + '" y="2" width="9" height="7" rx="2" fill="#ff3b30"/>') }
+  svg('c2', [[pathOf(thr(0)), '#3671c6', 17.2], [pathOf(thr(0.1)), '#27f4d2', 17.3]], brakes.join(''))
+  svg('c3', [[pathOf(gear(0)), '#3671c6', 17.7], [pathOf(gear(0.12)), '#27f4d2', 17.8]])
+  svg('c4', [[pathOf(delta), '#f5c518', 18.2]], '<line x1="0" y1="36" x2="' + W + '" y2="36" stroke="rgba(255,255,255,.25)" stroke-width="2" stroke-dasharray="8 8"/>')
+
+  function render(t) {
+    document.getAnimations().forEach(a => { a.pause(); a.currentTime = t * 1000 })
+    const left = Math.max(0, 522 - Math.max(0, t - 14.6))
+    document.getElementById('clk').textContent = String(Math.floor(left / 60)).padStart(2, '0') + ':' + String(Math.floor(left % 60)).padStart(2, '0')
+  }
+  window.render = render
+  window.ready = document.fonts.ready.then(() => new Promise(r => setTimeout(r, 500)))
+  render(0)
+</script>
+</body>
+</html>
