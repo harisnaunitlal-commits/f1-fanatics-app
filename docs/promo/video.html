@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<title>Beira F1 Fanatics — vídeo promocional</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=DM+Sans:wght@400;500;600;700&display=swap">
+<style>
+  /* Vertical 1080x1920 promo, 30 s. Every animation is a CSS animation with an absolute start time (--d),
+     so render(t) can seek by setting currentTime on all of them and the video is frame-exact. */
+  :root { --red:#e10600; --green:#4ade80; --yellow:#f5c518; --bg:#08080b; --card:#15151b; --muted:#a9a9b6; }
+  * { box-sizing: border-box; margin: 0; }
+  html, body { width: 1080px; height: 1920px; background: var(--bg); overflow: hidden; }
+  body { position: relative; color: #f0f0f2; font-family: 'DM Sans', system-ui, sans-serif; }
+  .bg { position: absolute; inset: 0; background: radial-gradient(1000px 700px at 50% -5%, rgba(225,6,0,.40), transparent 70%), radial-gradient(900px 600px at 50% 110%, rgba(225,6,0,.18), transparent 70%), var(--bg); }
+  .scene { position: absolute; inset: 0; opacity: 0; animation: sceneShow var(--len) linear both; animation-delay: var(--s); }
+  .scene.last { animation-name: sceneShowLast; }
+  @keyframes sceneShow { 0% {opacity:0} 4% {opacity:1} 95% {opacity:1} 100% {opacity:0} }
+  @keyframes sceneShowLast { 0% {opacity:0} 8% {opacity:1} 100% {opacity:1} }
+
+  .in { opacity: 0; animation: up .65s cubic-bezier(.2,.8,.2,1) both; animation-delay: var(--d); }
+  .pop { opacity: 0; animation: pop .55s cubic-bezier(.2,1.4,.4,1) both; animation-delay: var(--d); }
+  .slide { opacity: 0; animation: slide .7s cubic-bezier(.2,.8,.2,1) both; animation-delay: var(--d); }
+  .out { animation: outFade .35s ease-in both; animation-delay: var(--o); }
+  .in.out { animation: up .65s cubic-bezier(.2,.8,.2,1) both, outFade .35s ease-in both; animation-delay: var(--d), var(--o); }
+  @keyframes up { from {opacity:0; transform: translateY(46px)} to {opacity:1; transform:none} }
+  @keyframes pop { from {opacity:0; transform: scale(.4)} to {opacity:1; transform:none} }
+  @keyframes slide { from {opacity:0; transform: translateX(-120px)} to {opacity:1; transform:none} }
+  @keyframes outFade { to { opacity: 0; transform: translateY(-30px) } }
+
+  h1, h2, .big { font-family: 'Barlow Condensed'; font-weight: 900; line-height: .9; letter-spacing: -.01em; }
+  .red { color: var(--red); } .green { color: var(--green); } .yellow { color: var(--yellow); }
+  .abs { position: absolute; left: 0; right: 0; text-align: center; padding: 0 70px; }
+
+  /* persistent chrome */
+  .stripe { position: absolute; left:0; right:0; top:0; height:14px; background: var(--red); z-index: 20; }
+  .topbrand { position: absolute; left: 60px; top: 70px; display:flex; align-items:center; gap:16px; z-index: 20; opacity:0; animation: up .6s both; animation-delay: 3.2s; }
+  .topbrand img { width: 64px; height: 64px; border-radius: 50%; background:#fff; border: 3px solid var(--red); padding: 3px; }
+  .topbrand span { font-family:'Barlow Condensed'; font-weight:800; font-size: 34px; }
+  .urlchip { position: absolute; left: 50%; bottom: 120px; transform: translateX(-50%); z-index: 20; opacity:0; animation: up .6s both; animation-delay: 3.4s; background:#15151b; border:2px solid rgba(255,255,255,.14); border-radius: 999px; padding: 14px 34px; font-size: 30px; font-weight: 700; white-space: nowrap; }
+  .urlchip b { color: var(--red); }
+
+  /* A — hook */
+  .hookline { font-size: 230px; text-transform: uppercase; }
+  .checker { position:absolute; left:0; right:0; height: 56px; background: repeating-conic-gradient(#fff 0 25%, #111 0 50%) 0 0 / 56px 56px; opacity:.9; }
+
+  /* generic tag pill */
+  .pill { display:inline-block; font-weight:700; font-size:30px; border-radius:999px; padding: 12px 28px; border:2px solid rgba(225,6,0,.55); color:#fff; background: rgba(225,6,0,.16); letter-spacing:.06em; text-transform:uppercase; }
+  .title { font-size: 150px; text-transform: uppercase; }
+  .sub { font-size: 38px; color: var(--muted); line-height: 1.3; }
+  .sub b { color:#fff; }
+
+  /* B — duel card */
+  .qcard { position:absolute; left:60px; right:60px; top: 640px; background: var(--card); border:1px solid rgba(255,255,255,.1); border-radius: 36px; padding: 40px 36px 44px; }
+  .qhead { display:flex; align-items:center; gap:16px; font-size: 28px; font-weight:700; letter-spacing:.12em; color: var(--red); text-transform:uppercase; }
+  .qtitle { font-family:'Barlow Condensed'; font-weight:800; font-size: 56px; margin: 14px 0 30px; }
+  .duel { display:grid; grid-template-columns: 1fr 70px 1fr; gap: 12px; align-items:center; }
+  .drv { position:relative; border-radius: 28px; overflow:hidden; background:#101015; border: 4px solid rgba(255,255,255,.08); }
+  .drv img { width:100%; height: 430px; object-fit: cover; object-position: top center; display:block; }
+  .drv .nm { position:absolute; left:0; right:0; bottom:0; padding: 56px 18px 18px; background: linear-gradient(transparent, rgba(0,0,0,.92)); font-family:'Barlow Condensed'; font-weight:900; font-size: 52px; text-align:center; line-height:1; }
+  .drv .nm small { display:block; font-family:'DM Sans'; font-weight:600; font-size: 22px; color: var(--muted); margin-top:6px; letter-spacing:.06em; }
+  .drv.sel { animation: selectIt .5s ease both; animation-delay: 5.5s; }
+  @keyframes selectIt { to { border-color: var(--red); box-shadow: 0 0 0 6px rgba(225,6,0,.35), 0 0 60px rgba(225,6,0,.5); transform: scale(1.03) } }
+  .vs { font-family:'Barlow Condensed'; font-weight:900; font-size: 52px; color:#6b6b78; text-align:center; }
+  .ring { position:absolute; width: 120px; height: 120px; border-radius:50%; border: 6px solid #fff; background: rgba(255,255,255,.22); opacity:0; }
+  .ptsfloat { position:absolute; font-family:'Barlow Condensed'; font-weight:900; font-size: 110px; color: var(--green); opacity:0; animation: floatUp 1.3s ease-out both; animation-delay: 5.9s; text-shadow: 0 6px 30px rgba(74,222,128,.5); }
+  @keyframes floatUp { 0% {opacity:0; transform: translateY(40px) scale(.6)} 25% {opacity:1; transform: translateY(0) scale(1.1)} 100% {opacity:0; transform: translateY(-140px) scale(1)} }
+  @keyframes tap { 0% {opacity:0; transform: translate(60px, 90px) scale(1.3)} 30% {opacity:1; transform: translate(0,0) scale(1)} 55% {transform: scale(.78)} 70% {opacity:1; transform: scale(1)} 100% {opacity:0; transform: scale(1.4)} }
+
+  .chips { display:flex; flex-wrap:wrap; gap: 14px; justify-content:center; }
+  .chip { font-size: 34px; font-weight:700; background:#1d1d25; border:2px solid rgba(255,255,255,.12); border-radius: 18px; padding: 14px 26px; }
+
+  /* C — ranking */
+  .board { position:absolute; left:60px; right:60px; top: 600px; height: 700px; }
+  .slot { position:absolute; left:0; width: 70px; height: 120px; display:flex; align-items:center; justify-content:center; font-family:'Barlow Condensed'; font-weight:900; font-size: 64px; color:#6b6b78; }
+  .row { position:absolute; left: 86px; right: 0; height: 120px; background: var(--card); border:1px solid rgba(255,255,255,.1); border-radius: 22px; display:flex; align-items:center; gap: 22px; padding: 0 30px; font-size: 44px; font-weight:700; }
+  .row .pts { margin-left:auto; font-family:'Barlow Condensed'; font-weight:900; font-size: 56px; color:#fff; }
+  .row .av { width: 64px; height:64px; border-radius:50%; background: var(--c); display:flex; align-items:center; justify-content:center; font-family:'Barlow Condensed'; font-weight:900; font-size: 34px; color:#fff; }
+  .row.me { border-color: var(--yellow); background: linear-gradient(90deg, rgba(245,197,24,.18), var(--card)); }
+  .row.me .pts { color: var(--yellow); }
+  @keyframes rise { to { transform: translateY(-240px) } }
+  @keyframes fall { to { transform: translateY(120px) } }
+  @keyframes fall2 { to { transform: translateY(120px) } }
+
+  /* D — telemetry */
+  .stage { position:absolute; left:60px; right:60px; top: 640px; height: 780px; }
+  .panel { position:absolute; inset:0; opacity:0; animation: sceneShow var(--len) linear both; animation-delay: var(--s); }
+  .cap { position:absolute; left:0; right:0; top: 1450px; text-align:center; padding: 0 60px; }
+  .cap .big { font-size: 78px; }
+  .cap .sub { font-size: 34px; margin-top: 10px; }
+  .clockbox { background: var(--red); border-radius: 36px; padding: 40px 48px; box-shadow: 0 20px 80px rgba(225,6,0,.45); }
+  .clockbox .l1 { display:flex; justify-content:space-between; font-weight:800; font-size: 30px; letter-spacing:.2em; text-transform:uppercase; opacity:.95; }
+  .clockbox .l2 { font-weight:700; font-size: 34px; letter-spacing:.2em; margin-top: 22px; opacity:.85; }
+  .clockbox .time { font-family:'Barlow Condensed'; font-weight:900; font-size: 300px; line-height: .95; font-variant-numeric: tabular-nums; }
+  .clockbox .l3 { display:flex; gap: 40px; font-size: 34px; font-weight:600; margin-top: 18px; }
+  .phases { display:flex; gap: 14px; margin-top: 26px; }
+  .ph { font-weight:800; font-size: 32px; background:#1d1d25; border-radius: 14px; padding: 12px 22px; color:#cfcfd8; }
+  .ph.on { background: var(--red); color:#fff; }
+  .dot { display:inline-block; width: 22px; height:22px; border-radius:50%; background:#fff; margin-right: 12px; animation: blink 1s infinite; }
+  @keyframes blink { 50% { opacity:.25 } }
+
+  .tower { position:absolute; left:0; right:0; top:0; }
+  .trow { position:absolute; left:0; right:0; height: 112px; background: var(--card); border:1px solid rgba(255,255,255,.1); border-radius: 20px; display:flex; align-items:center; gap: 20px; padding: 0 26px; font-weight:800; font-size: 44px; }
+  .trow .p { font-family:'Barlow Condensed'; font-weight:900; font-size: 52px; width: 54px; text-align:center; color:#9a9aa8; }
+  .trow .bar { width: 10px; height: 60px; border-radius: 5px; background: var(--c); }
+  .trow .t { margin-left:auto; font-weight:700; font-size: 38px; color:#cfcfd8; font-variant-numeric: tabular-nums; }
+  .tyre { width: 46px; height:46px; border-radius:50%; border: 6px solid var(--tc); display:flex; align-items:center; justify-content:center; font-size: 24px; font-weight:900; color: var(--tc); }
+  @keyframes toUp { to { transform: translateY(var(--dy)) } }
+
+  .chartcard { position:absolute; left:0; right:0; top: 0; background: var(--card); border:1px solid rgba(255,255,255,.1); border-radius: 30px; padding: 28px 30px; }
+  .legend { display:flex; gap: 30px; font-weight:800; font-size: 34px; }
+  .legend i { display:inline-block; width: 26px; height: 8px; border-radius:4px; margin-right: 10px; vertical-align: middle; }
+  .draw { stroke-dasharray: 1; stroke-dashoffset: 1; animation: draw 2.2s ease-out both; animation-delay: var(--d); }
+  @keyframes draw { to { stroke-dashoffset: 0 } }
+  .carDot { position:absolute; width: 26px; height: 26px; border-radius:50%; offset-rotate: 0deg; animation: lap 5s linear infinite; }
+  @keyframes lap { from { offset-distance: 0% } to { offset-distance: 100% } }
+  .ours { background: linear-gradient(90deg, rgba(245,197,24,.2), var(--card)); border:2px solid var(--yellow); border-radius: 24px; padding: 22px 30px; display:flex; align-items:center; gap: 22px; font-size: 40px; font-weight:800; }
+  .ours .big { font-size: 90px; color: var(--green); margin-left:auto; }
+
+  /* E — install */
+  .phone { position:absolute; left: 50%; top: 600px; width: 430px; height: 820px; margin-left: -215px; border-radius: 64px; background:#000; border: 10px solid #2a2a33; overflow: hidden; box-shadow: 0 30px 90px rgba(0,0,0,.7); }
+  .safari { position:absolute; inset:0; background:#101015; }
+  .safari .addr { position:absolute; top: 46px; left: 24px; right: 24px; height: 54px; border-radius: 16px; background:#24242c; display:flex; align-items:center; justify-content:center; font-size: 22px; color:#cfcfd8; font-weight:600; }
+  .safari .site { position:absolute; top: 140px; left:0; right:0; text-align:center; }
+  .safari .site img { width: 130px; height:130px; border-radius: 30px; background:#fff; padding:8px; }
+  .safari .site .n { font-family:'Barlow Condensed'; font-weight:900; font-size: 56px; margin-top: 18px; }
+  .safari .site .m { font-size: 22px; color: var(--muted); margin-top: 6px; }
+  .safari .site .mini { margin: 38px 30px 0; background: var(--card); border-radius: 18px; padding: 16px; font-size: 22px; font-weight:700; text-align:left; border:1px solid rgba(255,255,255,.08); }
+  .toolbar { position:absolute; left:0; right:0; bottom:0; height: 110px; background:#1a1a20; border-top:1px solid rgba(255,255,255,.08); display:flex; align-items:center; justify-content:space-around; font-size: 44px; color:#4ea1ff; }
+  .toolbar .share { position:relative; }
+  .sheet { position:absolute; left:0; right:0; bottom:0; height: 520px; background:#26262e; border-radius: 34px 34px 0 0; padding: 26px 22px; transform: translateY(560px); animation: sheetUp .6s cubic-bezier(.2,.8,.2,1) both; animation-delay: var(--d); }
+  @keyframes sheetUp { to { transform: none } }
+  .sheet .it { background:#33333c; border-radius: 16px; padding: 22px 22px; font-size: 25px; font-weight:600; margin-bottom: 12px; display:flex; justify-content:space-between; align-items:center; }
+  .sheet .it.hi { animation: hi .4s both; animation-delay: var(--d2); }
+  @keyframes hi { to { background: var(--red); transform: scale(1.03) } }
+  .home { position:absolute; inset:0; background: linear-gradient(160deg,#1c3b6e,#0b1428 70%); opacity:0; animation: sceneShowLast 1s both; animation-delay: var(--d); }
+  .home .ic { position:absolute; left: 50%; top: 330px; margin-left: -70px; width:140px; text-align:center; animation: bounce .8s ease both; animation-delay: calc(var(--d) + .4s); opacity:0; }
+  .home .ic img { width:140px; height:140px; border-radius: 32px; background:#fff; padding:8px; box-shadow: 0 16px 50px rgba(0,0,0,.5); }
+  .home .ic span { display:block; margin-top: 14px; font-size: 26px; font-weight:700; }
+  @keyframes bounce { 0% {opacity:0; transform: scale(.3)} 55% {opacity:1; transform: scale(1.18)} 100% {opacity:1; transform: none} }
+  .step { position:absolute; left: 60px; right: 60px; top: 1470px; text-align:center; }
+  .step .n { display:inline-flex; width: 70px; height:70px; border-radius:50%; background: var(--red); font-family:'Barlow Condensed'; font-weight:900; font-size: 48px; align-items:center; justify-content:center; margin-right: 20px; vertical-align: middle; }
+  .step .t { font-family:'Barlow Condensed'; font-weight:900; font-size: 70px; vertical-align: middle; }
+
+  /* F — CTA */
+  .ctalogo { width: 330px; height: 330px; border-radius:50%; background:#fff; border: 10px solid var(--red); padding: 18px; box-shadow: 0 0 120px rgba(225,6,0,.55); }
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<div class="stripe"></div>
+<div class="topbrand"><img src="../../public/logos/beira-f1.png" alt=""><span>Beira F1 Fanatics</span></div>
+<div class="urlchip">🌐 <b>app.beiraf1fanatics.com</b></div>
+
+<!-- A · HOOK 0–3.3 -->
+<section class="scene" style="--s:0s; --len:3.4s">
+  <div class="checker" style="top: 150px"></div>
+  <div class="checker" style="bottom: 150px"></div>
+  <div class="abs" style="top: 430px">
+    <div class="big hookline in out" style="--d:.15s; --o:2.0s">Achas que</div>
+    <div class="big hookline in out" style="--d:.45s; --o:2.0s">percebes</div>
+    <div class="big hookline in out red" style="--d:.75s; --o:2.0s">de F1?</div>
+  </div>
+  <div class="abs" style="top: 760px">
+    <div class="big pop red" style="--d:2.1s; font-size: 270px; white-space: nowrap">PROVA-O.</div>
+    <div class="sub in" style="--d:2.6s; margin-top: 40px">Palpites · Ranking · Telemetria ao vivo</div>
+  </div>
+</section>
+
+<!-- B · F1 PLAY 3.3–8.7 -->
+<section class="scene" style="--s:3.3s; --len:5.5s">
+  <div class="abs" style="top: 250px">
+    <span class="pill in" style="--d:3.5s">🏎️ F1 Play</span>
+    <h1 class="title in" style="--d:3.7s; margin-top: 24px">Prevê o<br><span class="red">resultado</span></h1>
+  </div>
+  <div class="qcard in" style="--d:4.3s">
+    <div class="qhead">P5 · Duelo</div>
+    <div class="qtitle">Quem termina à frente?</div>
+    <div class="duel">
+      <div class="drv"><img src="../../public/Pilotos/Norris.jpeg" alt=""><div class="nm">NORRIS<small>McLaren</small></div></div>
+      <div class="vs">VS</div>
+      <div class="drv sel"><img src="../../public/Pilotos/Verstappen.jpeg" alt=""><div class="nm">VERSTAPPEN<small>Red Bull Racing</small></div></div>
+    </div>
+    <div class="ring" style="left: 760px; top: 480px; animation: tap 1s ease both; animation-delay: 5.0s"></div>
+    <div class="ptsfloat" style="left: 700px; top: 330px">+1 PT</div>
+  </div>
+  <div class="abs chips" style="top: 1330px">
+    <span class="chip pop" style="--d:6.3s">🥇 Pódio</span><span class="chip pop" style="--d:6.5s">⚔️ Duelos</span><span class="chip pop" style="--d:6.7s">🚨 Safety Car</span><span class="chip pop" style="--d:6.9s">⏱️ Volta mais rápida</span><span class="chip pop" style="--d:7.1s">⭐ Piloto do Dia</span>
+  </div>
+  <div class="abs" style="top: 1560px"><div class="big in" style="--d:7.5s; font-size: 92px">15 perguntas <span class="green">por GP</span></div></div>
+</section>
+
+<!-- C · RANKING 8.7–13.4 -->
+<section class="scene" style="--s:8.7s; --len:4.8s">
+  <div class="abs" style="top: 250px">
+    <span class="pill in" style="--d:8.9s">🏆 Ranking &amp; Triatlo</span>
+    <h1 class="title in" style="--d:9.1s; margin-top: 24px">Sobe na<br><span class="red">tabela</span></h1>
+  </div>
+  <div class="board">
+    <div class="slot" style="top:0">1</div><div class="slot" style="top:130px">2</div><div class="slot" style="top:260px">3</div><div class="slot" style="top:390px">4</div><div class="slot" style="top:520px">5</div>
+    <div class="row slide" style="top:0; --d:9.5s; --c:#3671c6; animation: slide .7s both 9.5s, fall .5s ease both 10.9s"><div class="av">A</div>Fanatic 1<div class="pts">91.8</div></div>
+    <div class="row slide" style="top:130px; --d:9.65s; --c:#27f4d2; animation: slide .7s both 9.65s, fall .5s ease both 10.9s"><div class="av">B</div>Fanatic 2<div class="pts">90.4</div></div>
+    <div class="row slide me" style="top:260px; --d:9.8s; --c:#e10600; animation: slide .7s both 9.8s, rise .6s cubic-bezier(.3,1.3,.5,1) both 10.9s"><div class="av">T</div>Tu 🔥<div class="pts">92.3</div></div>
+    <div class="row slide" style="top:390px; --d:9.95s; --c:#ff8000; animation: slide .7s both 9.95s"><div class="av">C</div>Fanatic 3<div class="pts">88.1</div></div>
+    <div class="row slide" style="top:520px; --d:10.1s; --c:#229971; animation: slide .7s both 10.1s"><div class="av">D</div>Fanatic 4<div class="pts">87.6</div></div>
+  </div>
+  <div class="abs chips" style="top: 1330px">
+    <span class="chip pop" style="--d:11.4s">F1 Play</span><span class="big pop" style="--d:11.5s; font-size:60px; align-self:center">+</span><span class="chip pop" style="--d:11.6s">Fantasy</span><span class="big pop" style="--d:11.7s; font-size:60px; align-self:center">+</span><span class="chip pop" style="--d:11.8s">Predict</span>
+  </div>
+  <div class="abs" style="top: 1500px"><div class="big pop yellow" style="--d:12.2s; font-size: 120px">= TRIATLO 🏆</div></div>
+</section>
+
+<!-- D · TELEMETRIA 13.4–23.6 -->
+<section class="scene" style="--s:13.4s; --len:10.2s">
+  <div class="abs" style="top: 230px">
+    <span class="pill in" style="--d:13.6s; background: var(--red); border-color: var(--red)">● Novo · ao vivo</span>
+    <h1 class="title in" style="--d:13.8s; margin-top: 22px; font-size: 138px">📡 Telemetria<br><span class="red">em directo</span></h1>
+  </div>
+
+  <div class="stage">
+    <!-- D1 clock -->
+    <div class="panel" style="--s:14.4s; --len:3.2s">
+      <div class="clockbox pop" style="--d:14.5s">
+        <div class="l1"><span>Qualifying</span><span><i class="dot"></i>Em curso</span></div>
+        <div class="l2">TEMPO RESTANTE</div>
+        <div class="time" id="clk">12:00</div>
+        <div class="l3"><span>INÍCIO <b>19:00</b></span><span>FIM <b>20:00</b></span></div>
+      </div>
+      <div class="phases in" style="--d:15.2s"><span class="ph">Q1 ✓</span><span class="ph">Q2 ✓</span><span class="ph on">Q3 ▶</span></div>
+    </div>
+    <!-- D2 tower -->
+    <div class="panel" style="--s:17.5s; --len:3.3s">
+      <div class="tower" id="tower"></div>
+    </div>
+    <!-- D3 chart -->
+    <div class="panel" style="--s:20.7s; --len:2.9s">
+      <div class="chartcard pop" style="--d:20.8s">
+        <div class="legend"><span><i style="background:#3671c6"></i>VER 1:34.471</span><span><i style="background:#27f4d2"></i>ANT 1:34.756</span></div>
+        <svg viewBox="0 0 960 330" width="100%" style="margin-top:14px; display:block">
+          <g stroke="rgba(255,255,255,.1)" stroke-width="2"><line x1="0" y1="55" x2="960" y2="55"/><line x1="0" y1="165" x2="960" y2="165"/><line x1="0" y1="275" x2="960" y2="275"/></g>
+          <path id="spA" class="draw" pathLength="1" style="--d:21.0s" fill="none" stroke="#3671c6" stroke-width="7" stroke-linejoin="round"/>
+          <path id="spB" class="draw" pathLength="1" style="--d:21.1s" fill="none" stroke="#27f4d2" stroke-width="7" stroke-linejoin="round"/>
+        </svg>
+        <div class="sub" style="margin-top:8px; font-size: 30px">VER mais rápido <b class="green">0.285 s</b></div>
+      </div>
+      <div class="ours pop" style="--d:22.3s; position:absolute; left:0; right:0; top: 520px"><span>⭐ Os nossos · tu</span><span class="big">+3</span></div>
+    </div>
+  </div>
+  <div class="cap">
+    <div class="big in out" style="--d:14.6s; --o:17.2s">Relógio da sessão <span class="red">como na TV</span></div>
+    <div class="big in out" style="--d:17.7s; --o:20.4s; position:absolute; left:0; right:0; top:0">Tabela de tempos <span class="red">ao vivo</span></div>
+    <div class="big in" style="--d:20.9s; position:absolute; left:0; right:0; top:0">Compara pilotos <span class="red">volta a volta</span></div>
+    <div class="sub in" style="--d:22.2s; position:absolute; left:0; right:0; top: 100px">E vê os teus pontos do F1 Play em tempo real</div>
+  </div>
+  <div class="abs" style="top: 1625px; font-size: 24px; color:#6b6b78">Dados ilustrativos</div>
+</section>
+
+<!-- E · INSTALAR 23.6–28.6 -->
+<section class="scene" style="--s:23.6s; --len:5.1s">
+  <div class="abs" style="top: 230px">
+    <span class="pill in" style="--d:23.8s">📲 Sem App Store</span>
+    <h1 class="title in" style="--d:24.0s; margin-top: 22px; font-size: 138px">Instala em<br><span class="red">10 segundos</span></h1>
+  </div>
+  <div class="phone in" style="--d:24.2s">
+    <div class="safari">
+      <div class="addr">🔒 app.beiraf1fanatics.com</div>
+      <div class="site"><img src="../../public/logos/beira-f1.png" alt=""><div class="n">Beira F1 Fanatics</div><div class="m">Temporada 2026</div><div class="mini">🏎️ F1 Play · 🏆 Ranking · 📡 Telemetria</div></div>
+      <div class="toolbar"><span>‹</span><span>›</span><span class="share">⬆️<div class="ring" style="left:-38px; top:-34px; animation: tap 1s ease both; animation-delay: 25.2s"></div></span><span>📖</span><span>⧉</span></div>
+      <div class="sheet" style="--d:25.8s">
+        <div class="it">Copiar <span>⧉</span></div>
+        <div class="it">Adicionar aos Favoritos <span>★</span></div>
+        <div class="it hi" style="--d2:26.5s">Adicionar ao Ecrã de Início <span>⊞</span></div>
+        <div class="it">Procurar na página <span>🔍</span></div>
+      </div>
+    </div>
+    <div class="home" style="--d:27.2s"><div class="ic" style="--d:27.2s"><img src="../../public/logos/beira-f1.png" alt=""><span>Beira F1</span></div></div>
+  </div>
+  <div class="step"><span class="in out" style="--d:24.4s; --o:25.1s; position:absolute; left:0; right:0"><span class="n">1</span><span class="t">Abre no Safari</span></span>
+    <span class="in out" style="--d:25.3s; --o:26.0s; position:absolute; left:0; right:0"><span class="n">2</span><span class="t">Toca em Partilhar</span></span>
+    <span class="in" style="--d:26.2s; position:absolute; left:0; right:0"><span class="n">3</span><span class="t">Adicionar ao Ecrã de Início</span></span></div>
+  <div class="abs" style="top: 1590px"><div class="sub in" style="--d:27.4s">🤖 Android: Chrome <b>⋮</b> → <b>Instalar app</b></div></div>
+</section>
+
+<!-- F · CTA 28.6–30 -->
+<section class="scene last" style="--s:28.6s; --len:1.4s">
+  <div class="abs" style="top: 300px"><img class="ctalogo pop" style="--d:28.7s" src="../../public/logos/beira-f1.png" alt=""></div>
+  <div class="abs" style="top: 730px">
+    <h1 class="title in" style="--d:28.9s; font-size: 170px">Entra na<br><span class="red">liga</span></h1>
+  </div>
+  <div class="abs" style="top: 1130px"><div class="sub in" style="--d:29.1s; font-size: 44px">Beira F1 Fanatics · Beira, Moçambique</div></div>
+</section>
+
+<script>
+  // speed trace for the chart panel (two laps that differ slightly)
+  function trace(shift) {
+    const pts = []
+    for (let i = 0; i <= 120; i++) {
+      const x = i / 120
+      const v = 0.52 + 0.30 * Math.sin(x * 14 + 1.2) * Math.cos(x * 5) + 0.12 * Math.sin(x * 33 + shift)
+      pts.push((x * 960).toFixed(1) + ',' + (300 - Math.max(0.1, Math.min(0.95, v)) * 280).toFixed(1))
+    }
+    return 'M' + pts.join(' L')
+  }
+  document.getElementById('spA').setAttribute('d', trace(0))
+  document.getElementById('spB').setAttribute('d', trace(0.15))
+
+  // timing tower: 6 rows, the last two overtake at ~18.9 s
+  const drivers = [
+    ['VER', '#3671c6', 'S', '1:34.471', '#ff3b30'],
+    ['NOR', '#ff8000', 'S', '+0.068', '#ff3b30'],
+    ['LEC', '#e8002d', 'M', '+0.127', '#f5c518'],
+    ['ANT', '#27f4d2', 'S', '+0.285', '#ff3b30'],
+    ['HAM', '#e8002d', 'M', '+0.362', '#f5c518'],
+    ['RUS', '#27f4d2', 'M', '+0.401', '#f5c518'],
+  ]
+  const tw = document.getElementById('tower')
+  drivers.forEach((d, i) => {
+    const el = document.createElement('div')
+    el.className = 'trow in'
+    el.style.top = (i * 124) + 'px'
+    el.style.setProperty('--c', d[1]); el.style.setProperty('--tc', d[4])
+    el.style.setProperty('--d', (17.6 + i * 0.12) + 's')
+    // ANT (index 3) moves up one, LEC (index 2) down one, at 19.0 s
+    if (i === 3) { el.style.setProperty('--dy', '-124px'); el.style.animation = `up .65s cubic-bezier(.2,.8,.2,1) both ${17.6 + i * 0.12}s, toUp .5s ease both 19.0s` }
+    if (i === 2) { el.style.setProperty('--dy', '124px'); el.style.animation = `up .65s cubic-bezier(.2,.8,.2,1) both ${17.6 + i * 0.12}s, toUp .5s ease both 19.0s` }
+    el.innerHTML = `<span class="p">${i + 1}</span><span class="bar"></span><span>${d[0]}</span><span class="tyre">${d[2]}</span><span class="t">${d[3]}</span>`
+    tw.appendChild(el)
+  })
+
+  // map dots are not used; keep frame-exact seek for everything else
+  function render(t) {
+    document.getAnimations().forEach(a => { a.pause(); a.currentTime = t * 1000 })
+    // session clock: counts down in real time from 08:42 while visible
+    const left = Math.max(0, 522 - Math.max(0, t - 14.5))
+    const mm = String(Math.floor(left / 60)).padStart(2, '0'), ss = String(Math.floor(left % 60)).padStart(2, '0')
+    document.getElementById('clk').textContent = mm + ':' + ss
+  }
+  window.render = render
+  window.ready = document.fonts.ready.then(() => new Promise(r => setTimeout(r, 400)))
+  render(0)
+</script>
+</body>
+</html>

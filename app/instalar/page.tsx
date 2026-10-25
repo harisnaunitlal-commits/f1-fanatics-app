@@ -11,7 +11,7 @@ const steps = {
     {
       step: 1,
       title: 'Abre o Chrome',
-      desc: 'Abre o site af1fanatics.com no browser Google Chrome do teu Android.',
+      desc: 'Abre o site app.beiraf1fanatics.com no browser Google Chrome do teu Android.',
       icon: '🌐',
     },
     {
@@ -43,7 +43,7 @@ const steps = {
     {
       step: 1,
       title: 'Abre o Safari',
-      desc: 'Abre o site af1fanatics.com no Safari. Tem que ser o Safari — outros browsers no iOS não suportam instalação.',
+      desc: 'Abre o site app.beiraf1fanatics.com no Safari. Tem que ser o Safari — outros browsers no iOS não suportam instalação.',
       icon: '🧭',
     },
     {
