@@ -49,12 +49,34 @@ function Steps({ steps, tone }: { steps: { t: string; d: string }[]; tone: 'gree
   )
 }
 
+function IosInAppTip({ copied, onCopy }: { copied: boolean; onCopy: () => void }) {
+  return (
+    <div className="bg-yellow-900/20 border border-yellow-600/40 rounded-xl p-4 space-y-3">
+      <p className="text-sm text-yellow-300 font-bold">💡 Abriste este link pelo WhatsApp ou Instagram?</p>
+      <p className="text-xs text-gray-300 leading-relaxed">
+        Se não vês "Adicionar ao Ecrã de Início", estás fora do Safari. Copia o link, abre o <strong className="text-white">Safari</strong> e cola na barra de endereços.
+      </p>
+      <button onClick={onCopy} className="btn-primary w-full py-2.5">{copied ? '✅ Link copiado — cola no Safari' : '📋 Copiar link'}</button>
+    </div>
+  )
+}
+
+function SamsungTip() {
+  return (
+    <div className="bg-yellow-900/20 border border-yellow-700/30 rounded-xl p-3">
+      <p className="text-xs text-yellow-400 font-bold mb-1">⚠️ Samsung — Ecrã inicial bloqueado</p>
+      <p className="text-xs text-gray-400 leading-relaxed">
+        Se aparecer "Home screen layout locked", mantém o dedo num espaço vazio do ecrã inicial → <strong className="text-white">Settings</strong> → desactiva <strong className="text-white">"Lock Home screen layout"</strong>.
+      </p>
+    </div>
+  )
+}
+
 export default function InstallGuide() {
   const [platform, setPlatform] = useState<Platform | null>(null)
   const [installed, setInstalled] = useState(false)
   const [prompt, setPrompt] = useState<BeforeInstallPromptEvent | null>(null)
   const [copied, setCopied] = useState(false)
-  const [showOther, setShowOther] = useState(false)
 
   useEffect(() => {
     const ua = navigator.userAgent
@@ -118,45 +140,21 @@ export default function InstallGuide() {
             </div>
           )}
 
-          {(ios || android || desktop) && (
-            <section className="space-y-3">
-              <h2 className="text-xl font-black">{ios ? '🍎 iPhone / iPad' : android ? '🤖 Android' : '🍎 iPhone / iPad'}</h2>
-              <Steps steps={ios || desktop ? IOS_STEPS : ANDROID_STEPS} tone={ios || desktop ? 'blue' : 'green'} />
+          {/* both systems always visible; the detected one comes first */}
+          {(ios ? ['ios', 'android'] : ['android', 'ios']).map(os => (
+            <section key={os} className="space-y-3">
+              <h2 className="text-xl font-black flex items-center gap-2">
+                {os === 'ios' ? '🍎 iPhone / iPad' : '🤖 Android'}
+                {((os === 'ios' && ios) || (os === 'android' && android)) && (
+                  <span className="text-[10px] font-black bg-f1red text-white rounded-full px-2 py-0.5 tracking-wider">O TEU TELEMÓVEL</span>
+                )}
+              </h2>
+              <Steps steps={os === 'ios' ? IOS_STEPS : ANDROID_STEPS} tone={os === 'ios' ? 'blue' : 'green'} />
+              {os === 'ios' && ios && <IosInAppTip copied={copied} onCopy={copyLink} />}
+              {os === 'android' && <SamsungTip />}
             </section>
-          )}
-
-          {ios && (
-            <div className="bg-yellow-900/20 border border-yellow-600/40 rounded-xl p-4 space-y-3">
-              <p className="text-sm text-yellow-300 font-bold">💡 Abriste este link pelo WhatsApp ou Instagram?</p>
-              <p className="text-xs text-gray-300 leading-relaxed">
-                Se não vês "Adicionar ao Ecrã de Início", estás fora do Safari. Copia o link, abre o <strong className="text-white">Safari</strong> e cola na barra de endereços.
-              </p>
-              <button onClick={copyLink} className="btn-primary w-full py-2.5">{copied ? '✅ Link copiado — cola no Safari' : '📋 Copiar link'}</button>
-            </div>
-          )}
-
-          {android && !prompt && (
-            <div className="bg-yellow-900/20 border border-yellow-700/30 rounded-xl p-3">
-              <p className="text-xs text-yellow-400 font-bold mb-1">⚠️ Samsung — Ecrã inicial bloqueado</p>
-              <p className="text-xs text-gray-400 leading-relaxed">
-                Se aparecer "Home screen layout locked", mantém o dedo num espaço vazio do ecrã inicial → <strong className="text-white">Settings</strong> → desactiva <strong className="text-white">"Lock Home screen layout"</strong>.
-              </p>
-            </div>
-          )}
-
-          {!desktop && (
-            <div>
-              <button onClick={() => setShowOther(v => !v)} className="text-sm text-gray-400 underline">
-                {showOther ? 'Esconder' : ios ? 'Ver passos para Android' : 'Ver passos para iPhone'}
-              </button>
-              {showOther && (
-                <div className="mt-4 space-y-3">
-                  <h2 className="text-xl font-black">{ios ? '🤖 Android' : '🍎 iPhone / iPad'}</h2>
-                  <Steps steps={ios ? ANDROID_STEPS : IOS_STEPS} tone={ios ? 'green' : 'blue'} />
-                </div>
-              )}
-            </div>
-          )}
+          ))}
+          {desktop && <IosInAppTip copied={copied} onCopy={copyLink} />}
 
           <div className="card space-y-2">
             <p className="text-sm font-bold text-white">🔔 Depois de instalar</p>
