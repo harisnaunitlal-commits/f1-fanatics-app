@@ -1,5 +1,6 @@
 'use client'
 
+import F1LeagueHelp from '@/components/F1LeagueHelp'
 import { useState, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
@@ -649,10 +650,10 @@ export default function RegisterPage() {
           </div>
 
           <div className="bg-yellow-900/20 border border-yellow-700/30 rounded-lg px-3 py-2.5">
-            <p className="text-xs text-yellow-400 font-bold mb-0.5">⚠️ Nick Fantasy e Nick Predict</p>
+            <p className="text-xs text-green-400 font-bold mb-0.5">✅ Para começar basta o F1 Play</p>
             <p className="text-xs text-yellow-300/80">
-              Copia o nome <span className="font-bold">exactamente como aparece</span> nos sites da Formula 1.
-              Se alterares o nome no site da F1, actualiza aqui também — caso contrário os teus pontos não serão contabilizados.
+              O F1 Fantasy e o F1 Predict são <span className="font-bold">opcionais</span> — podes preencher mais tarde, no teu perfil.
+              Se já jogas, copia o nome <span className="font-bold">exactamente como aparece</span> no site da F1 (se o mudares lá, actualiza aqui, senão os pontos não são contabilizados).
             </p>
           </div>
 
@@ -670,6 +671,7 @@ export default function RegisterPage() {
                 onChange={handleChange}
               />
               <p className="text-[11px] text-gray-600 mt-1">ex: "ABx Racing"</p>
+              <F1LeagueHelp which="fantasy" />
             </div>
             <div>
               <label className="label">
@@ -684,6 +686,7 @@ export default function RegisterPage() {
                 onChange={handleChange}
               />
               <p className="text-[11px] text-gray-600 mt-1">ex: "VirgoF1"</p>
+              <F1LeagueHelp which="predict" />
             </div>
           </div>
 

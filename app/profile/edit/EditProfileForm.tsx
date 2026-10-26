@@ -1,5 +1,6 @@
 'use client'
 
+import F1LeagueHelp from '@/components/F1LeagueHelp'
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
@@ -236,16 +237,16 @@ export default function EditProfileForm({ member }: { member: Member }) {
         </div>
 
         <div className="bg-yellow-900/20 border border-yellow-700/30 rounded-lg px-3 py-2.5">
-          <p className="text-xs text-yellow-400 font-bold mb-0.5">⚠️ Atenção — Nick Fantasy e Nick Predict</p>
+          <p className="text-xs text-yellow-400 font-bold mb-0.5">⚠️ Nick Fantasy e Nick Predict (opcionais)</p>
           <p className="text-xs text-yellow-300/80">
-            O nome deve ser <span className="font-bold">exactamente igual</span> ao nome da tua equipa/conta nos sites oficiais da Formula 1.
-            Se alterares o nome no site da F1, actualiza aqui também — caso contrário os teus pontos não serão contabilizados.
+            Só precisas deles se jogas no F1 Fantasy ou no F1 Predict. O nome deve ser <span className="font-bold">exactamente igual</span> ao da tua equipa/conta nos sites oficiais da Formula 1.
+            Se o alterares lá, actualiza aqui também — caso contrário os teus pontos não serão contabilizados.
           </p>
         </div>
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="label">Nick Fantasy</label>
+            <label className="label">Nick Fantasy <span className="text-gray-500 font-normal text-xs">(opcional)</span></label>
             <input
               name="fantasy_nick"
               placeholder="Nome exacto no fantasy.formula1.com"
@@ -254,9 +255,10 @@ export default function EditProfileForm({ member }: { member: Member }) {
               onChange={handleChange}
             />
             <p className="text-[11px] text-gray-600 mt-1">ex: "ABx Racing" — copia do site</p>
+            <F1LeagueHelp which="fantasy" />
           </div>
           <div>
-            <label className="label">Nick Predict</label>
+            <label className="label">Nick Predict <span className="text-gray-500 font-normal text-xs">(opcional)</span></label>
             <input
               name="predict_nick"
               placeholder="Nome exacto no f1predict.formula1.com"
@@ -265,6 +267,7 @@ export default function EditProfileForm({ member }: { member: Member }) {
               onChange={handleChange}
             />
             <p className="text-[11px] text-gray-600 mt-1">ex: "VirgoF1" — copia do site</p>
+            <F1LeagueHelp which="predict" />
           </div>
         </div>
 
