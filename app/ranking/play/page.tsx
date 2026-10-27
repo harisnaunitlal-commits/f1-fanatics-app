@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { RankingTabs } from '@/components/RankingTabs'
 import { GpSelector } from '@/components/GpSelector'
 import { ClickableRow } from '@/components/ClickableRow'
+import RankMove from '@/components/RankMove'
 
 type PlayScoreRow = {
   member_email: string
@@ -87,6 +88,21 @@ export default async function PlayRankingPage({
     return primary || a.nickname.localeCompare(b.nickname)
   })
 
+  // rank before the latest scored GP (same sort), to show who climbed or dropped
+  const prevRank = new Map<string, number>()
+  if (isAccumulado && scoredGps && scoredGps.length >= 2) {
+    const latestId = scoredGps[0].id
+    const before = new Map<string, { nick: string; total: number }>()
+    ;((allScores ?? []) as PlayScoreRow[]).forEach((s: any) => {
+      if (s.gp_id === latestId) return
+      const cur = before.get(s.member_email) ?? { nick: s.members?.nickname ?? s.member_email.split('@')[0], total: 0 }
+      cur.total += s.total ?? 0
+      before.set(s.member_email, cur)
+    })
+    Array.from(before.entries()).sort((a, b) => b[1].total - a[1].total || a[1].nick.localeCompare(b[1].nick))
+      .forEach(([email], i) => prevRank.set(email, i + 1))
+  }
+
   return (
     <div>
       <div className="flex items-center justify-between mb-2 flex-wrap gap-3">
@@ -115,7 +131,7 @@ export default async function PlayRankingPage({
           <table className="w-full text-sm">
             <thead>
               <tr className="text-xs text-gray-500 border-b border-gray-700 uppercase tracking-wider bg-f1gray/30">
-                <th className="text-center py-3 px-3 w-12">#</th>
+                <th className="text-center py-3 px-3 w-20">#</th>
                 <th className="text-left py-3 px-3">Jogador</th>
                 {isAccumulado && (
                   <th className="text-right py-3 px-3 hidden md:table-cell">GPs</th>
@@ -172,9 +188,12 @@ export default async function PlayRankingPage({
                     className={`border-b border-gray-800/50 transition-colors hover:bg-white/[0.03] ${st.row}`}
                   >
                     <td className="py-4 px-3 text-center">
-                      <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold ${st.ring}`}>
+                      <div className="flex items-center justify-center gap-1.5">
+                        {isAccumulado && <RankMove prev={prevRank.get(r.member_email) ?? null} now={i + 1} hasPrev={prevRank.size > 0} />}
+                        <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold ${st.ring}`}>
                         {i + 1}
                       </span>
+                      </div>
                     </td>
 
                     <td className="py-4 px-3">

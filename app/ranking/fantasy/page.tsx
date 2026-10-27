@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { RankingTabs } from '@/components/RankingTabs'
 import { GpSelector } from '@/components/GpSelector'
 import { ClickableRow } from '@/components/ClickableRow'
+import RankMove from '@/components/RankMove'
 
 export default async function FantasyRankingPage({
   searchParams,
@@ -73,6 +74,14 @@ export default async function FantasyRankingPage({
     }
   }
 
+  // rank before the latest scored GP, to show who climbed or dropped
+  const prevRank = new Map<string, number>()
+  if (isAccumulado && scoredGps && scoredGps.length >= 2) {
+    const { data: prevAcum } = await (supabase as any).from('scores_fantasy').select('member_email, pontos_acum').eq('gp_id', scoredGps[1].id)
+    ;[...(prevAcum ?? [])].sort((a: any, b: any) => b.pontos_acum - a.pontos_acum || a.member_email.localeCompare(b.member_email))
+      .forEach((r: any, i: number) => prevRank.set(r.member_email, i + 1))
+  }
+
   return (
     <div>
       <div className="flex items-center justify-between mb-2 flex-wrap gap-3">
@@ -96,7 +105,7 @@ export default async function FantasyRankingPage({
           <table className="w-full text-sm">
             <thead>
               <tr className="text-xs text-gray-500 border-b border-gray-700 uppercase tracking-wider bg-f1gray/30">
-                <th className="text-center py-3 px-3 w-12">#</th>
+                <th className="text-center py-3 px-3 w-20">#</th>
                 <th className="text-left py-3 px-3">Membro</th>
                 <th className="text-right py-3 px-4 text-white">
                   {isAccumulado ? 'Acumulado' : 'Pontos GP'}
@@ -150,9 +159,12 @@ export default async function FantasyRankingPage({
                     className={`border-b border-gray-800/50 transition-colors hover:bg-white/[0.03] ${st.row}`}
                   >
                     <td className="py-4 px-3 text-center">
-                      <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold ${st.ring}`}>
+                      <div className="flex items-center justify-center gap-1.5">
+                        {isAccumulado && <RankMove prev={prevRank.get(s.member_email) ?? null} now={i + 1} hasPrev={prevRank.size > 0} />}
+                        <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold ${st.ring}`}>
                         {i + 1}
                       </span>
+                      </div>
                     </td>
                     <td className="py-4 px-3">
                       <div className="flex items-center gap-2.5">

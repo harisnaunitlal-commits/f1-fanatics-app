@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { RankingTabs } from '@/components/RankingTabs'
 import { GpSelector } from '@/components/GpSelector'
 import { ClickableRow } from '@/components/ClickableRow'
+import RankMove from '@/components/RankMove'
 
 type RankingRow = {
   member_email: string
@@ -106,6 +107,14 @@ export default async function GlobalRankingPage({
     }
   }
 
+  // rank before the latest scored GP, to show who climbed or dropped
+  const prevRank = new Map<string, number>()
+  if (isAccumulado && (scoredGps?.length ?? 0) >= 2) {
+    const { data: prevRows } = await (supabase as any).from('global_ranking').select('member_email, global_score').eq('gp_id', scoredGps[1].id)
+    ;[...(prevRows ?? [])].sort((a: any, b: any) => b.global_score - a.global_score || a.member_email.localeCompare(b.member_email))
+      .forEach((r: any, i: number) => prevRank.set(r.member_email, i + 1))
+  }
+
   return (
     <div>
       {/* Header */}
@@ -171,7 +180,7 @@ export default async function GlobalRankingPage({
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-xs text-gray-500 border-b border-gray-700 uppercase tracking-wider bg-f1gray/30">
-                  <th className="text-center py-3 px-3 w-12">#</th>
+                  <th className="text-center py-3 px-3 w-20">#</th>
                   <th className="text-left py-3 px-3">Jogador</th>
                   <th className="text-right py-3 px-3 hidden md:table-cell">Play</th>
                   <th className="text-right py-3 px-3 hidden md:table-cell">Fantasy</th>
@@ -228,9 +237,12 @@ export default async function GlobalRankingPage({
                       className={`border-b border-gray-800/50 transition-colors hover:bg-white/[0.03] ${st.row}`}
                     >
                       <td className="py-4 px-3 text-center">
+                        <div className="flex items-center justify-center gap-1.5">
+                        {isAccumulado && <RankMove prev={prevRank.get(r.member_email) ?? null} now={i + 1} hasPrev={prevRank.size > 0} />}
                         <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold ${st.ring}`}>
                           {i + 1}
                         </span>
+                      </div>
                       </td>
 
                       <td className="py-4 px-3">
