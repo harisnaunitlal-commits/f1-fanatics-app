@@ -1,3 +1,4 @@
+// (Columns show the points each member scored in THIS GP in the 3 leagues; Score is the accumulated Triatlo score.)
 // Top 10 flyer announcing that the results of a GP were published (Triatlo Score, with arrows vs the previous GP).
 // Run from the project root:  node scripts/top10-flyer.mjs <gp_id>     (e.g. 16 for the US GP)
 // Reads .env.local (Supabase service key), writes docs/promo/top10-<gp>.html and docs/entregas/top10-<gp>.png
@@ -53,9 +54,9 @@ const rowsHtml = top.map((r, i) => {
     <div class="pos">${i + 1}</div>${move(r, i)}
     ${av}
     <div class="nm">${esc(name)}</div>
-    <div class="lg"><b>${r.play_pts}</b><small>Play</small></div>
-    <div class="lg"><b>${r.fantasy_pts}</b><small>Fantasy</small></div>
-    <div class="lg"><b>${r.predict_pts}</b><small>Predict</small></div>
+    <div class="lg"><b>${r.play_gp_pts ?? 0}</b><small>Play</small></div>
+    <div class="lg"><b>${r.fantasy_gp_pts ?? 0}</b><small>Fantasy</small></div>
+    <div class="lg"><b>${r.predict_gp_pts ?? 0}</b><small>Predict</small></div>
     <div class="sc">${Number(r.global_score).toFixed(1)}</div>
   </div>`
 }).join('\n')
@@ -114,12 +115,12 @@ const html = `<!doctype html><html lang="pt"><head><meta charset="utf-8"><title>
   </div>
   <div class="gp">${flag ? `<img src="${flag}" alt="">` : ''}<span>GP ${esc(gp.nome)} · R${String(gp.round).padStart(2, '0')}</span></div>
   <div class="tbl">
-    <div class="th"><span>Classificação acumulada da época</span><div class="a"><span>Play</span><span>Fantasy</span><span>Predict</span><span>Score</span></div></div>
+    <div class="th"><span>Pontos do GP ${esc(gp.nome)} + score da época</span><div class="a"><span>Play</span><span>Fantasy</span><span>Predict</span><span>Score</span></div></div>
     ${rowsHtml}
   </div>
   <div class="foot">
     <div class="cta">Ranking completo em <b>app.beiraf1fanatics.com</b></div>
-    <p>Triatlo Score = F1 Play + F1 Fantasy + F1 Predict · ▲ subiu · ▼ desceu face ao GP anterior</p>
+    <p>Play / Fantasy / Predict = pontos deste GP · Score = Triatlo acumulado da época · ▲ subiu · ▼ desceu</p>
   </div>
 </div></body></html>`
 
