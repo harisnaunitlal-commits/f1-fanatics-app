@@ -1,0 +1,150 @@
+<!doctype html><html lang="pt"><head><meta charset="utf-8"><title>Top 10 · GP EUA</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=DM+Sans:wght@400;500;600;700&display=swap">
+<style>
+  * { box-sizing: border-box; margin: 0; }
+  html, body { width: 1080px; height: 1920px; background: #08080b; }
+  body { color: #f0f0f2; font-family: 'DM Sans', system-ui, sans-serif; position: relative; overflow: hidden;
+    background: radial-gradient(1000px 650px at 50% -5%, rgba(225,6,0,.42), transparent 70%), radial-gradient(900px 600px at 50% 108%, rgba(225,6,0,.2), transparent 70%), #08080b; }
+  .stripe { position: absolute; left: 0; right: 0; top: 0; height: 14px; background: #e10600; }
+  .wrap { padding: 64px 60px 50px; height: 100%; display: flex; flex-direction: column; gap: 26px; }
+  .head { display: flex; align-items: center; gap: 20px; }
+  .logo { width: 88px; height: 88px; border-radius: 50%; background: #fff; border: 4px solid #e10600; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+  .logo img { width: 78px; height: 78px; object-fit: contain; }
+  .brand { font-family: 'Barlow Condensed'; font-weight: 800; font-size: 40px; line-height: 1; }
+  .brand small { display: block; font-family: 'DM Sans'; font-weight: 500; font-size: 17px; color: #9a9aa8; margin-top: 5px; letter-spacing: .08em; text-transform: uppercase; }
+  .badge { display: inline-flex; align-items: center; gap: 12px; font-size: 22px; font-weight: 800; letter-spacing: .16em; color: #fff; background: #16a34a; border-radius: 999px; padding: 9px 24px; text-transform: uppercase; }
+  h1 { font-family: 'Barlow Condensed'; font-weight: 900; font-size: 128px; line-height: .88; text-transform: uppercase; margin-top: 16px; }
+  h1 span { color: #e10600; }
+  .gp { display: flex; align-items: center; gap: 18px; font-family: 'Barlow Condensed'; font-weight: 800; font-size: 46px; color: #e8e8ee; }
+  .gp img { height: 44px; border-radius: 6px; }
+  .tbl { display: flex; flex-direction: column; gap: 9px; }
+  .th { display: flex; align-items: center; padding: 0 18px; font-size: 18px; font-weight: 700; letter-spacing: .14em; color: #8a8a98; text-transform: uppercase; }
+  .th .a { margin-left: auto; display: flex; gap: 0; }
+  .th .a span { width: 92px; text-align: center; letter-spacing: .04em; font-size: 16px; } .th .a span:last-child { width: 118px; color: #fff; }
+  .row { display: flex; align-items: center; gap: 12px; background: #15151b; border: 1px solid rgba(255,255,255,.08); border-radius: 20px; padding: 10px 18px; height: 102px; }
+  .row.podium { border-color: rgba(245,197,24,.45); background: linear-gradient(90deg, rgba(245,197,24,.12), #15151b 60%); }
+  .row.gold { border-color: rgba(245,197,24,.9); background: linear-gradient(90deg, rgba(245,197,24,.28), #1b1810 65%); box-shadow: 0 0 34px rgba(245,197,24,.25); }
+  .pos { width: 52px; height: 52px; border-radius: 50%; background: #23232b; color: #cfcfd8; font-family: 'Barlow Condensed'; font-weight: 900; font-size: 36px; display: flex; align-items: center; justify-content: center; flex: none; }
+  .podium .pos, .gold .pos { background: #f5c518; color: #08080b; }
+  .mv { width: 44px; font-size: 20px; font-weight: 800; text-align: center; flex: none; }
+  .mv.up { color: #4ade80; } .mv.down { color: #f87171; } .mv.same { color: #4a4a55; } .mv.new { color: #38bdf8; font-size: 14px; letter-spacing: .06em; }
+  .av { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; flex: none; background: #2a2a33; border: 2px solid rgba(255,255,255,.18); }
+  .av.ini { display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 28px; color: #cfcfd8; }
+  .nm { flex: 1; min-width: 0; font-weight: 700; font-size: 30px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .gold .nm, .podium .nm { color: #fde68a; }
+  .lg { width: 92px; text-align: center; line-height: 1.05; flex: none; }
+  .lg b { display: block; font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .lg small { font-size: 13px; color: #8a8a98; letter-spacing: .1em; text-transform: uppercase; }
+  .sc { width: 118px; text-align: right; font-family: 'Barlow Condensed'; font-weight: 900; font-size: 58px; color: #fff; flex: none; font-variant-numeric: tabular-nums; }
+  .gold .sc, .podium .sc { color: #f5c518; }
+  .foot { margin-top: auto; text-align: center; }
+  .foot .cta { display: inline-block; background: #15151b; border: 2px solid rgba(225,6,0,.6); border-radius: 999px; padding: 14px 38px; font-size: 30px; font-weight: 700; }
+  .foot .cta b { color: #e10600; }
+  .foot p { color: #8a8a98; font-size: 20px; margin-top: 14px; }
+</style></head><body>
+<div class="stripe"></div>
+<div class="wrap">
+  <div class="head"><div class="logo"><img src="../../public/logos/beira-f1.png" alt=""></div><div class="brand">Beira F1 Fanatics<small>Temporada 2026 · Beira, Moçambique</small></div></div>
+  <div>
+    <span class="badge">✓ Resultados publicados</span>
+    <h1>Top 10<br><span>Triatlo</span></h1>
+  </div>
+  <div class="gp"><img src="../../public/flags/us.png" alt=""><span>GP EUA · R18</span></div>
+  <div class="tbl">
+    <div class="th"><span>Classificação acumulada da época</span><div class="a"><span>Play</span><span>Fantasy</span><span>Predict</span><span>Score</span></div></div>
+    <div class="row gold">
+    <div class="pos">1</div><span class="mv same">•</span>
+    <img class="av" src="https://digrlsiwzfhbpsfwtmuq.supabase.co/storage/v1/object/public/avatars/haris.naunitlal@gmail.com/avatar.jpg" alt="">
+    <div class="nm">Haris</div>
+    <div class="lg"><b>123</b><small>Play</small></div>
+    <div class="lg"><b>4032</b><small>Fantasy</small></div>
+    <div class="lg"><b>2019</b><small>Predict</small></div>
+    <div class="sc">92.5</div>
+  </div>
+<div class="row podium">
+    <div class="pos">2</div><span class="mv same">•</span>
+    <img class="av" src="https://digrlsiwzfhbpsfwtmuq.supabase.co/storage/v1/object/public/avatars/amarildomomola@gmail.com/avatar.jpg" alt="">
+    <div class="nm">Amarildo</div>
+    <div class="lg"><b>142</b><small>Play</small></div>
+    <div class="lg"><b>4264</b><small>Fantasy</small></div>
+    <div class="lg"><b>1570</b><small>Predict</small></div>
+    <div class="sc">91.3</div>
+  </div>
+<div class="row podium">
+    <div class="pos">3</div><span class="mv same">•</span>
+    <img class="av" src="https://digrlsiwzfhbpsfwtmuq.supabase.co/storage/v1/object/public/avatars/derciopita1990@gmail.com/avatar.jpg" alt="">
+    <div class="nm">Remane</div>
+    <div class="lg"><b>105</b><small>Play</small></div>
+    <div class="lg"><b>4436</b><small>Fantasy</small></div>
+    <div class="lg"><b>1935</b><small>Predict</small></div>
+    <div class="sc">89.9</div>
+  </div>
+<div class="row ">
+    <div class="pos">4</div><span class="mv up">▲1</span>
+    <img class="av" src="https://digrlsiwzfhbpsfwtmuq.supabase.co/storage/v1/object/public/avatars/miguel.nhaia@gmail.com/avatar.jpg" alt="">
+    <div class="nm">Isolino</div>
+    <div class="lg"><b>131</b><small>Play</small></div>
+    <div class="lg"><b>3791</b><small>Fantasy</small></div>
+    <div class="lg"><b>1678</b><small>Predict</small></div>
+    <div class="sc">86.9</div>
+  </div>
+<div class="row ">
+    <div class="pos">5</div><span class="mv down">▼1</span>
+    <img class="av" src="https://digrlsiwzfhbpsfwtmuq.supabase.co/storage/v1/object/public/avatars/amamudo@gmail.com/avatar.png" alt="">
+    <div class="nm">Amade</div>
+    <div class="lg"><b>129</b><small>Play</small></div>
+    <div class="lg"><b>4187</b><small>Fantasy</small></div>
+    <div class="lg"><b>1492</b><small>Predict</small></div>
+    <div class="sc">86.4</div>
+  </div>
+<div class="row ">
+    <div class="pos">6</div><span class="mv same">•</span>
+    <img class="av" src="https://digrlsiwzfhbpsfwtmuq.supabase.co/storage/v1/object/public/avatars/ravi.prehlad@gmail.com/avatar.jpg" alt="">
+    <div class="nm">Ravi</div>
+    <div class="lg"><b>91</b><small>Play</small></div>
+    <div class="lg"><b>3885</b><small>Fantasy</small></div>
+    <div class="lg"><b>1850</b><small>Predict</small></div>
+    <div class="sc">81.1</div>
+  </div>
+<div class="row ">
+    <div class="pos">7</div><span class="mv same">•</span>
+    <img class="av" src="https://digrlsiwzfhbpsfwtmuq.supabase.co/storage/v1/object/public/avatars/marco.antunes@live.com/avatar.png" alt="">
+    <div class="nm">Maranello Kings</div>
+    <div class="lg"><b>126</b><small>Play</small></div>
+    <div class="lg"><b>3681</b><small>Fantasy</small></div>
+    <div class="lg"><b>1430</b><small>Predict</small></div>
+    <div class="sc">80.9</div>
+  </div>
+<div class="row ">
+    <div class="pos">8</div><span class="mv same">•</span>
+    <img class="av" src="https://digrlsiwzfhbpsfwtmuq.supabase.co/storage/v1/object/public/avatars/rishilsubash@gmail.com/avatar.png" alt="">
+    <div class="nm">Rishil</div>
+    <div class="lg"><b>119</b><small>Play</small></div>
+    <div class="lg"><b>3360</b><small>Fantasy</small></div>
+    <div class="lg"><b>1662</b><small>Predict</small></div>
+    <div class="sc">80.6</div>
+  </div>
+<div class="row ">
+    <div class="pos">9</div><span class="mv same">•</span>
+    <span class="av ini">A</span>
+    <div class="nm">Antonio Pinho</div>
+    <div class="lg"><b>107</b><small>Play</small></div>
+    <div class="lg"><b>3348</b><small>Fantasy</small></div>
+    <div class="lg"><b>1350</b><small>Predict</small></div>
+    <div class="sc">72.6</div>
+  </div>
+<div class="row ">
+    <div class="pos">10</div><span class="mv same">•</span>
+    <img class="av" src="https://digrlsiwzfhbpsfwtmuq.supabase.co/storage/v1/object/public/avatars/lino.carlos76@gmail.com/avatar.jpg" alt="">
+    <div class="nm">Cape_AMG</div>
+    <div class="lg"><b>81</b><small>Play</small></div>
+    <div class="lg"><b>3976</b><small>Fantasy</small></div>
+    <div class="lg"><b>1295</b><small>Predict</small></div>
+    <div class="sc">70.3</div>
+  </div>
+  </div>
+  <div class="foot">
+    <div class="cta">Ranking completo em <b>app.beiraf1fanatics.com</b></div>
+    <p>Triatlo Score = F1 Play + F1 Fantasy + F1 Predict · ▲ subiu · ▼ desceu face ao GP anterior</p>
+  </div>
+</div></body></html>
