@@ -14,12 +14,22 @@ function Move({ from, to }: { from: number; to: number }) {
 }
 
 function Table({ title, rows }: { title: string; rows: { key: string; pos: number; start: number; colour: string; label: string; sub?: string; points: number; delta: number; hl?: boolean }[] }) {
+  const leaderPts = rows[0]?.points ?? 0
   return (
     <div className="card">
       <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">{title}</h3>
       <table className="w-full text-sm">
+        <thead>
+          <tr className="text-[10px] uppercase tracking-wider text-gray-500">
+            <th colSpan={3} />
+            <th className="text-right font-bold px-1 pb-1">Pts</th>
+            <th className="text-right font-bold px-1 pb-1 w-12" title="Diferença para o de cima">Ant.</th>
+            <th className="text-right font-bold px-1 pb-1 w-12" title="Diferença para o líder">Líder</th>
+            <th className="text-right font-bold px-1 pb-1 w-10" title="Pontos ganhos na corrida">Corr.</th>
+          </tr>
+        </thead>
         <tbody>
-          {rows.map(r => (
+          {rows.map((r, i) => (
             <tr key={r.key} className={`border-b border-gray-800/50 ${r.hl ? 'bg-yellow-400/10' : ''}`}>
               <td className="py-1.5 px-1 w-7 text-center tabular-nums text-gray-400">{r.pos}</td>
               <td className="py-1.5 px-1 w-9"><Move from={r.start} to={r.pos} /></td>
@@ -27,6 +37,8 @@ function Table({ title, rows }: { title: string; rows: { key: string; pos: numbe
                 <span className="inline-flex items-center gap-2"><span className="w-1 h-5 rounded-sm" style={{ background: r.colour }} /><b>{r.label}</b>{r.sub && <span className="text-xs text-gray-500 hidden sm:inline">{r.sub}</span>}</span>
               </td>
               <td className="py-1.5 px-1 text-right tabular-nums font-bold">{r.points}</td>
+              <td className="py-1.5 px-1 text-right tabular-nums text-xs text-gray-400">{i === 0 ? <span className="text-gray-600">—</span> : (rows[i - 1].points === r.points ? '=' : `-${rows[i - 1].points - r.points}`)}</td>
+              <td className="py-1.5 px-1 text-right tabular-nums text-xs text-gray-500">{i === 0 ? <span className="text-gray-600">—</span> : (leaderPts === r.points ? '=' : `-${leaderPts - r.points}`)}</td>
               <td className="py-1.5 px-1 text-right tabular-nums text-xs w-12">{r.delta > 0 ? <span className="text-green-400">+{r.delta}</span> : <span className="text-gray-600">·</span>}</td>
             </tr>
           ))}
@@ -45,9 +57,15 @@ function TitleBox({ title, name }: { title: TitleInfo; name: string }) {
   const miss = worst ? Math.max(0, worst.miss) : 0
   const champion = title.clinchedIfEndsNow
   // before the race a net swing above 25 points is not possible in a single race
-  const impossible = !champion && title.mode === 'prerace' && miss > 25
+  const impossible = !champion && title.mode === 'prerace' && (title.minPoints ?? 0) > 25
+  // before the race: points the leader must score if the toughest rival wins it (tie decided on wins when it favours the leader)
+  const need = title.minPoints ?? 0
+  const sure = !champion && title.mode === 'prerace' && need <= 0
+  const posFor = (n: number): number | null => { const T = [25, 18, 15, 12, 10, 8, 6, 4, 2, 1]; let k: number | null = null; T.forEach((p, i) => { if (p >= n) k = i + 1 }); return k }
+  const bestPos = posFor(need)
+  const atLeast = title.tieFavours ? 'pelo menos' : 'mais de'
 
-  const tone = champion ? 'bg-green-600 shadow-[0_20px_80px_rgba(22,163,74,.45)]'
+  const tone = champion || sure ? 'bg-green-600 shadow-[0_20px_80px_rgba(22,163,74,.45)]'
     : impossible ? 'bg-gray-700'
     : 'bg-red-600 shadow-[0_20px_80px_rgba(225,6,0,.45)]'
   const live = title.mode === 'live'
@@ -63,7 +81,12 @@ function TitleBox({ title, name }: { title: TitleInfo; name: string }) {
       {champion ? (
         <>
           <div className="text-5xl sm:text-7xl font-black leading-none mt-3" style={{ fontFamily: "'Barlow Condensed', system-ui, sans-serif" }}>🏆 {first.toUpperCase()} É CAMPEÃO!</div>
-          <p className="mt-3 text-sm sm:text-base opacity-95">Avanço de <b>{worst ? lead : '—'} pts</b> sobre o rival mais próximo ({worst?.r.code}) — precisava de mais de {title.remainingMax}.</p>
+          <p className="mt-3 text-sm sm:text-base opacity-95">Avanço de <b>{worst ? lead : '—'} pts</b> sobre o rival mais próximo ({worst?.r.code}) — precisava de {atLeast} {title.remainingMax}.</p>
+        </>
+      ) : sure ? (
+        <>
+          <div className="text-4xl sm:text-6xl font-black leading-none mt-3" style={{ fontFamily: "'Barlow Condensed', system-ui, sans-serif" }}>🏆 {first.toUpperCase()} É CAMPEÃO NO {(title.raceName ?? '').toUpperCase()}!</div>
+          <p className="mt-3 text-sm sm:text-base opacity-95">Aconteça o que acontecer na corrida, os rivais já não o apanham: mesmo que o {title.minPointsRival} ganhe, o avanço fica {atLeast} {title.remainingMax} pontos{title.tieFavours ? ' (e num empate decide o número de vitórias: ' + title.leader.wins + ')' : ''}.</p>
         </>
       ) : impossible ? (
         <>
@@ -74,18 +97,18 @@ function TitleBox({ title, name }: { title: TitleInfo; name: string }) {
         <>
           <div className="flex items-end gap-3 mt-3">
             <span className="text-xs font-bold tracking-[0.2em] opacity-90 mb-2 sm:mb-4">FALTAM</span>
-            <span className="text-7xl sm:text-9xl font-black leading-[0.85] tabular-nums" style={{ fontFamily: "'Barlow Condensed', system-ui, sans-serif" }}>{miss}</span>
+            <span className="text-7xl sm:text-9xl font-black leading-[0.85] tabular-nums" style={{ fontFamily: "'Barlow Condensed', system-ui, sans-serif" }}>{live ? miss : need}</span>
             <span className="text-xl sm:text-3xl font-black mb-1 sm:mb-3">PONTOS</span>
           </div>
           <p className="mt-3 text-sm sm:text-base opacity-95">
             {live
-              ? <>de avanço sobre o <b>{worst?.r.code}</b> (agora a {lead} pts; precisa de mais de {title.remainingMax}).</>
-              : <>a ganhar ao <b>{worst?.r.code}</b> nesta corrida (hoje a {lead} pts; precisa de mais de {title.remainingMax} no fim).</>}
+              ? <>de avanço sobre o <b>{worst?.r.code}</b> (agora a {lead} pts; precisa de {atLeast} {title.remainingMax}).</>
+              : <>para o {first} ser campeão no {title.raceName}: <b>se o {title.minPointsRival} ganhar o GP</b>, o {first} tem de somar {atLeast === 'pelo menos' ? 'pelo menos ' : ''}<b>{need} pts</b>{bestPos ? <> (<b>P{bestPos} ou melhor</b>)</> : null}. Se o rival não ganhar, basta menos.</>}
           </p>
         </>
       )}
       <div className="mt-4 h-2.5 rounded-full bg-black/30 overflow-hidden">
-        <div className="h-full bg-white/90 rounded-full transition-all duration-700" style={{ width: `${Math.max(4, Math.min(100, ((title.needed - miss) / title.needed) * 100))}%` }} />
+        <div className="h-full bg-white/90 rounded-full transition-all duration-700" style={{ width: `${live ? Math.max(4, Math.min(100, ((title.needed - miss) / title.needed) * 100)) : Math.max(4, Math.min(100, (1 - need / 25) * 100))}%` }} />
       </div>
     </div>
   )
@@ -202,12 +225,12 @@ export default function ChampionshipLive() {
             <p className="text-sm text-yellow-200">Temporada terminada.</p>
           ) : title.canClinchThisRace ? (
             <p className="text-sm text-yellow-200">
-              🔥 <b>{nice(lead.name).split(' ')[0]} pode ser campeão já no GP {title.raceName}!</b> Para isso precisa de ficar com <b>mais de {title.remainingMax} pontos</b> de avanço sobre cada rival
+              🔥 <b>{nice(lead.name).split(' ')[0]} pode ser campeão já no GP {title.raceName}!</b> Para isso precisa de ficar com <b>{title.tieFavours ? 'pelo menos' : 'mais de'} {title.remainingMax} pontos</b> de avanço sobre cada rival
               (é o máximo que ainda ficará por disputar depois deste GP).
             </p>
           ) : (
             <p className="text-sm text-yellow-200">
-              {nice(lead.name).split(' ')[0]} ainda <b>não consegue fechar o título no GP {title.raceName}</b>: precisava de mais de {title.remainingMax} pontos de avanço e isso não é possível só com esta corrida.
+              {nice(lead.name).split(' ')[0]} ainda <b>não consegue fechar o título no GP {title.raceName}</b>: precisava de {title.tieFavours ? 'pelo menos' : 'mais de'} {title.remainingMax} pontos de avanço e isso não é possível só com esta corrida.
             </p>
           )}
 
@@ -216,14 +239,15 @@ export default function ChampionshipLive() {
             <div className="space-y-1.5">
               {title.rivals.map(r => {
                 const gap = r.margin
-                const ok = gap > title.remainingMax
+                const ok = title.mode === 'prerace' ? gap >= r.need + 25 : gap >= r.need
+                const minVs = r.need - gap + 25
                 return (
                   <div key={r.code} className="flex items-center gap-x-3 gap-y-0.5 text-sm flex-wrap">
                     <span className="w-1 h-5 rounded-sm" style={{ background: r.colour }} />
                     <b className="w-10">{r.code}</b>
                     <span className="text-gray-400 tabular-nums whitespace-nowrap">{r.pointsNow} pts</span>
                     <span className="tabular-nums whitespace-nowrap">a <b>{gap}</b> pts</span>
-                    <span className={`ml-auto text-xs font-bold text-right ${ok ? 'text-green-400' : 'text-yellow-300'}`}>{ok ? '✓ já não alcança' : title.mode === 'prerace' ? `tem de ganhar +${title.needed - gap} pts a ${r.code} neste GP` : `faltam +${title.needed - gap} pts de avanço`}</span>
+                    <span className={`ml-auto text-xs font-bold text-right ${ok ? 'text-green-400' : 'text-yellow-300'}`}>{ok ? '✓ já não alcança' : title.mode === 'prerace' ? (minVs <= 0 ? '✓ mesmo que ganhe, não o apanha' : `se ${r.code} ganhar, ${lead.code} precisa de somar ${minVs} pts`) : `faltam +${r.need - gap} pts de avanço`}</span>
                   </div>
                 )
               })}
@@ -253,7 +277,7 @@ export default function ChampionshipLive() {
                   </div>
                 ))}
               </div>
-              <p className="text-[10px] text-gray-500 mt-2">Pontos: 25-18-15-12-10-8-6-4-2-1 (sem ponto pela volta mais rápida). Todos os rivais da lista têm de cumprir a condição. Com empate em pontos decide o número de vitórias.</p>
+              <p className="text-[10px] text-gray-500 mt-2">Pontos: 25-18-15-12-10-8-6-4-2-1 (sem ponto pela volta mais rápida). Todos os rivais da lista têm de cumprir a condição. {title.tieFavours ? ` Em caso de empate em pontos decide o número de vitórias: ${lead.code} tem ${title.leader.wins}, mais do que qualquer rival pode ainda juntar.` : ' Com empate em pontos decide o número de vitórias.'}</p>
             </div>
           )}
         </div>

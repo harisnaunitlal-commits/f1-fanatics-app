@@ -1,7 +1,7 @@
 import { buildState, type ChampRow, type ChampTeamRow, type TrackStatus } from './engine'
 import { listSessions, loadRawChamp } from './openf1'
 import { createServiceClient } from '@/lib/supabase/service'
-import { titleInfo, type TitleInfo } from './title'
+import { titleInfo, type TitleInfo, type TieBreak } from './title'
 
 export type { TitleInfo, TitleRival, TitleScenario } from './title'
 
@@ -46,7 +46,12 @@ export async function buildChampionshipResponse(): Promise<ChampResponse> {
   const mode = live ? 'live' as const : upcoming ? 'prerace' as const : 'done' as const
   // before the next race nothing has been scored in it yet: start points = current points
   const base = mode === 'live' ? s.championship.drivers : s.championship.drivers.map(d => ({ ...d, pointsStart: d.pointsNow, delta: 0 }))
-  const title = titleInfo(base, after.length, after.filter(r => r.sprint).length, mode, focus?.nome ?? null)
+  // wins so far decide a points tie: count the official winners of the GPs already answered (sprints do not count)
+  const { data: won } = await db.from('gp_answers').select('p1_primeiro')
+  const wins: Record<string, number> = {}
+  for (const r of (won ?? []) as { p1_primeiro: string | null }[]) if (r.p1_primeiro) wins[r.p1_primeiro] = (wins[r.p1_primeiro] ?? 0) + 1
+  const tie: TieBreak = { wins, racesLeftInclThis: after.length + (mode === 'done' ? 0 : 1) }
+  const title = titleInfo(base, after.length, after.filter(r => r.sprint).length, mode, focus?.nome ?? null, tie)
 
   return {
     ready: true,
