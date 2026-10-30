@@ -1,5 +1,6 @@
 export const dynamic = 'force-dynamic'
 
+import FunPoll from '@/components/FunPoll'
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { isDeadlinePassed } from '@/lib/scoring'
@@ -199,6 +200,8 @@ export default async function HomePage() {
           </div>
         </div>
       )}
+
+      <FunPoll />
 
       <Link href="/campeonato" className="group flex items-center gap-4 rounded-2xl border border-f1red/40 bg-gradient-to-r from-f1red/20 via-gray-900 to-gray-900 px-5 py-4 hover:border-f1red transition-colors">
         <span className="text-3xl">📈</span>
