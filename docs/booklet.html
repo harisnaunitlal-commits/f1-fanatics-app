@@ -529,7 +529,7 @@
         <div class="feature-icon">🏆</div>
         <div>
           <div class="feature-name">Rankings em tempo real</div>
-          <div class="feature-desc">Ranking F1 Play, F1 Fantasy, F1 Predict e Ranking Global (combinação das 3 ligas). Filtro por GP ou Overall.</div>
+          <div class="feature-desc">Ranking F1 Play, F1 Fantasy, F1 Predict e Ranking Global (combinação das 3 ligas). Filtro por GP ou Overall. Nos rankings acumulados (Triatlo, F1 Play, Fantasy, Predict) aparecem <strong>setas verde ▲ / vermelha ▼</strong> com os lugares ganhos ou perdidos face ao GP anterior, a partir da publicação dos resultados.</div>
         </div>
       </div>
       <div class="feature-row">
@@ -575,6 +575,34 @@
         </div>
       </div>
       <div class="feature-row">
+        <div class="feature-icon">🧠</div>
+        <div>
+          <div class="feature-name">Telemetria — estratégia de corrida</div>
+          <div class="feature-desc">Na corrida o painel passa a ser virado para a estratégia, com contas feitas sobre os tempos reais (não é IA): <strong>ritmo das últimas 5 voltas</strong> com o pneu e a diferença face à volta anterior, <strong>degradação</strong> por piloto e <strong>janela de paragem do top 10</strong> com as paragens esperadas por circuito (média dos últimos anos em <code>gp_history</code>; não reabre logo a seguir a uma paragem). <strong>Painel de Safety Car / VSC / bandeira vermelha</strong>: perda numa paragem reduzida (~50% sob SC, ~55% sob VSC, ~40 s em bandeira vermelha), posição de saída das boxes e se vale a pena parar. <strong>Pneus:</strong> voltas por stint, ritmo por stint e ganho/perda ao mudar de composto (a última coluna é a degradação do próprio piloto, não face ao líder). <strong>Track limits:</strong> infracções contadas pelas mensagens da Direcção (tempo apagado), bandeira preto e branco e +5 s. <strong>Histórico de pneus</strong> do fim-de-semana inclui a própria sessão.</div>
+        </div>
+      </div>
+      <div class="feature-row">
+        <div class="feature-icon">🔄</div>
+        <div>
+          <div class="feature-name">Telemetria — segue o calendário sozinha</div>
+          <div class="feature-desc">Com "seguir sessões" activo, a transmissão muda sozinha quando cada sessão começa (treinos, qualificação, sprint, corrida) e quando começa um novo Grande Prémio: liga o GP do F1 Play, define o total de voltas pelo historial (México = 71) e limpa a alocação de pneus. Entre sessões fica a última, com um aviso da <strong>próxima sessão</strong>. <strong>Faixa grande no topo</strong> em bandeira vermelha, Safety Car e VSC; os botões "AO VIVO" e estado da pista estão à esquerda, por cima do nome do GP, e o relógio da sessão à direita (mostra "⏸ BANDEIRA VERMELHA" quando parada). Mesa de controlo: 4 pilotos em destaque (os de outra sessão podem ser retirados) e novo painel de limites da pista.</div>
+        </div>
+      </div>
+      <div class="feature-row">
+        <div class="feature-icon">🎲</div>
+        <div>
+          <div class="feature-name">Votação de brincadeira</div>
+          <div class="feature-desc">Cartão na homepage "Quem fica em 2.º no campeonato de pilotos?" (RUS, HAM, VER, LEC). Voto editável até ao arranque do GP do México (contagem decrescente), mostra percentagens depois de votar e, <strong>depois de fechar</strong>, quem votou em quem. O resultado é publicado no fim da época. <strong>Não conta para o Triatlo.</strong> Tabelas <code>fun_polls</code> e <code>fun_poll_votes</code>, API <code>/api/fun-poll</code>.</div>
+        </div>
+      </div>
+      <div class="feature-row">
+        <div class="feature-icon">📝</div>
+        <div>
+          <div class="feature-name">Registo e perfil simplificados</div>
+          <div class="feature-desc">Nick Fantasy e Predict opcionais e explicados, com link de registo no site da F1, link directo da liga e <strong>código de liga com botão copiar</strong> (<code>lib/leagues.ts</code>). Ícone do WhatsApp junto ao contacto no rodapé e em "Como Jogar".</div>
+        </div>
+      </div>
+      <div class="feature-row">
         <div class="feature-icon">👤</div>
         <div>
           <div class="feature-name">Perfil do membro</div>
@@ -599,7 +627,7 @@
         <div class="feature-icon">📈</div>
         <div>
           <div class="feature-name">Campeonato F1 ao vivo</div>
-          <div class="feature-desc"><code>/campeonato</code> (botão grande na homepage, antes do Ranking Global): classificação de pilotos e construtores projectada pela ordem da corrida (OpenF1) e actualizada a cada 15 s. Caixa grande como o contador da sessão: <strong>vermelha</strong> com os pontos que faltam ao líder para ser campeão, <strong>verde</strong> quando já o seria com a ordem actual. Foto do líder com gráfico ascendente e taça, rivais ainda na luta e o que cada um tem de fazer (se o líder ganhar, o rival X tem de acabar em P10 ou pior). Antes da corrida mostra o que o líder precisa nesse GP. Pontos 25-18-15-12-10-8-6-4-2-1, sem ponto pela volta mais rápida; só para membros com login.</div>
+          <div class="feature-desc"><code>/campeonato</code> (botão grande na homepage, antes do Ranking Global): classificação de pilotos e construtores projectada pela ordem da corrida (OpenF1) e actualizada a cada 15 s. Caixa grande como o contador da sessão: <strong>vermelha</strong> com os pontos que faltam ao líder para ser campeão, <strong>verde</strong> quando já o seria com a ordem actual. Foto do líder com gráfico ascendente e taça, rivais ainda na luta e o que cada um tem de fazer (se o líder ganhar, o rival X tem de acabar em P10 ou pior). Antes da corrida mostra o que o líder precisa nesse GP. Pontos 25-18-15-12-10-8-6-4-2-1, sem ponto pela volta mais rápida; só para membros com login. <strong>Desempate por vitórias</strong> (critério oficial: no México Kimi precisa de 2 pts, não de 1) e <strong>colunas de diferença</strong> ao piloto/equipa de cima e ao líder, em pilotos e construtores.</div>
         </div>
       </div>
       <div class="feature-row">
@@ -855,6 +883,25 @@
       <div class="log-entry">
         <div class="log-dot"></div>
         <div class="log-body">
+          <div class="log-date">26–31 Outubro 2026 · R18 GP EUA → R19 GP México</div>
+          <div class="log-title">Estratégia na telemetria, auto-seguir o calendário, rankings com setas e votação</div>
+          <ul class="log-items">
+            <li><strong>Telemetria de corrida virada para a estratégia:</strong> últimas 5 voltas com pneu e delta, degradação, janela de paragem do top 10 (paragens esperadas por circuito), painel de Safety Car/VSC/bandeira vermelha, ritmo e voltas por stint, ganho/perda ao mudar de composto. Calculado com a correcção de combustível de 0,035 s/volta; sem IA</li>
+            <li><strong>Track limits:</strong> painel com infracções por piloto e curva, estado (aviso iminente, bandeira preto e branco, +5 s) a partir das mensagens oficiais; novo painel na mesa de controlo</li>
+            <li><strong>Segue o calendário sozinha:</strong> muda de sessão e de GP quando começam (liga o GP do F1 Play, voltas totais, limpa pneus) e mostra a próxima sessão. Corrigido: máximo de 4 pilotos em destaque e histórico de pneus a incluir a sessão actual</li>
+            <li><strong>Cabeçalho:</strong> faixa grande em bandeira vermelha/SC/VSC; botões "AO VIVO" e estado da pista passam para a esquerda com o dobro do tamanho</li>
+            <li><strong>F1 Play ao vivo:</strong> classificação com o acumulado da época (oficial + provisório de hoje), líder destacado e aviso de provisório; P13 e P15 renomeadas para "Melhor do pelotão do meio / de trás"; respostas oficiais do admin (ex. Piloto do Dia) prevalecem sobre as calculadas; margem de vitória e pilotos dobrados mantêm-se depois da bandeira</li>
+            <li><strong>Rankings acumulados com setas verde/vermelha</strong> de quem subiu ou desceu face ao GP anterior (<code>components/RankMove.tsx</code>)</li>
+            <li><strong>Campeonato:</strong> desempate por vitórias, caixa pré-corrida com os pontos mínimos e colunas de diferença em pilotos e construtores</li>
+            <li><strong>Flyer Top 10 após cada GP</strong> (<code>node scripts/top10-flyer.mjs &lt;gp_id&gt;</code>): Top 10 do Triatlo com os pontos do GP nas 3 ligas. Primeiro: GP dos EUA. Importados os pontos Fantasy e Predict dos EUA (24/24 membros conferidos com a classificação oficial)</li>
+            <li><strong>Votação de brincadeira</strong> na homepage (2.º do campeonato) e <strong>registo simplificado</strong> com links e códigos das ligas; ícone do WhatsApp</li>
+            <li>Rádios das equipas (texto): OpenF1 tem poucos clips (só os transmitidos na TV, ~6 por sessão para as 4 equipas); fica para a próxima fase</li>
+          </ul>
+        </div>
+      </div>
+      <div class="log-entry">
+        <div class="log-dot"></div>
+        <div class="log-body">
           <div class="log-date">25 Outubro 2026 · R18 GP EUA (Austin)</div>
           <div class="log-title">Campeonato ao vivo, instalação fácil, perguntas mais claras e divulgação</div>
           <ul class="log-items">
@@ -1032,8 +1079,16 @@
         <div style="font-size:13px;color:var(--muted);">Para cada GP, em <code>/admin/gp-questions/</code>: mudar o nome, <strong>o texto da P2</strong> (vem com o GP antigo), duelos P5/P6/P7, P13 e P15. Ao gravar, avisar os membros para voltarem a submeter — as respostas das perguntas que mudaram são apagadas. O historial P3/P8/P12 já existe para os circuitos com dados.</div>
       </div>
       <div class="card">
-        <div style="font-size:13px;font-weight:600;margin-bottom:8px;">📡 Telemetria: feedback do fim-de-semana EUA</div>
-        <div style="font-size:13px;color:var(--muted);">Fase de teste (FP1 → corrida 25 Out). Validar ao vivo: relógio da sessão e das fases face à TV (a pausa entre fases é uma estimativa), Q3 com 10 pilotos, eliminados, atraso face à TV, e a caixa do <strong>Campeonato ao vivo</strong> (muda de cor e de número com as posições; o título só é oficial depois da FIA confirmar penalizações). Antes da corrida pôr o <strong>total de voltas = 56</strong>. Possíveis próximos passos: serviço sempre ligado (MQTT) se muitos membros, IA a explicar a estratégia.</div>
+        <div style="font-size:13px;font-weight:600;margin-bottom:8px;">📡 Telemetria: validar no México (30 Out – 1 Nov)</div>
+        <div style="font-size:13px;color:var(--muted);">Confirmar ao vivo: mudança automática de sessão (FP2 → FP3 → Qualificação → Corrida), faixa de bandeira vermelha/SC/VSC, total de voltas automático (71), e na corrida o painel de estratégia — limiares da janela de paragem (rever depois da corrida), Safety Car e track limits. Possíveis próximos passos: serviço sempre ligado (MQTT) se muitos membros.</div>
+      </div>
+      <div class="card">
+        <div style="font-size:13px;font-weight:600;margin-bottom:8px;">🎙️ Rádios das equipas (texto)</div>
+        <div style="font-size:13px;color:var(--muted);">Painel "Rádios (texto)" para Mercedes, Red Bull, Ferrari e McLaren (8 pilotos), só texto, desligado por defeito na mesa de controlo. Fase 1: listar os clips do OpenF1 (<code>team_radio</code>). Fase 2: transcrição e tradução para português, que exige criar contas/chaves de API e guardá-las no Vercel (nunca no chat); custo estimado abaixo de ~0,5 USD por corrida. Licença: conteúdo F1, uso pessoal — pedir autorização.</div>
+      </div>
+      <div class="card">
+        <div style="font-size:13px;font-weight:600;margin-bottom:8px;">🎲 Resultado da votação do 2.º lugar</div>
+        <div style="font-size:13px;color:var(--muted);">No fim do campeonato (Abu Dhabi, 6 Dez) indicar o 2.º classificado para publicar o resultado e quem acertou (<code>fun_polls.result</code>, slug <code>segundo-lugar-2026</code>). Depois de cada GP publicado: gerar o flyer Top 10.</div>
       </div>
       <div class="card">
         <div style="font-size:13px;font-weight:600;margin-bottom:8px;">📲 Lojas de aplicações (opcional)</div>
@@ -1064,7 +1119,7 @@
 
   <!-- ══ FOOTER ══════════════════════════════════════════════════════════════ -->
   <footer class="footer">
-    <span>Beira F1 Fanatics 2026 · Booklet v1.7 · Outubro 2026</span>
+    <span>Beira F1 Fanatics 2026 · Booklet v1.8 · Outubro 2026</span>
     <span>Actualizado após cada GP</span>
   </footer>
 
