@@ -62,19 +62,20 @@ const shortName = (n: string) => SHORT.find(([re]) => re.test(n))?.[1] ?? n
 async function buildTyreHistory(meta: SessionMeta, raw: RawSession, state: TelemetryState): Promise<TyreHistory | null> {
   const all = await of1<SessionMeta>('sessions', [['meeting_key', '', meta.meeting_key]], 3600)
   const before = all.filter(s => Date.parse(s.date_start) < Date.parse(meta.date_start)).sort((a, b) => Date.parse(a.date_start) - Date.parse(b.date_start))
-  if (before.length === 0) return { sessions: [], drivers: [] } // first session of the weekend
-  const stintsBy = await Promise.all(before.map(s => of1<OF1Stint>('stints', [['session_key', '', s.session_key]], 86_400)))
+  const stintsBy = before.length ? await Promise.all(before.map(s => of1<OF1Stint>('stints', [['session_key', '', s.session_key]], 86_400))) : []
   const numToCode = new Map(raw.drivers.map(d => [d.driver_number, d.name_acronym]))
   const drivers: TyreHistory['drivers'] = state.tower.map(r => {
     const bySession = stintsBy.map(st => st
       .filter(x => numToCode.get(x.driver_number) === r.code && x.lap_start != null)
       .sort((a, b) => a.stint_number - b.stint_number)
       .map(x => ({ compound: x.compound, laps: x.lap_end != null ? x.lap_end - (x.lap_start as number) + 1 : 0 })))
+    // the session being watched counts too (otherwise the first session of a weekend shows an empty table)
+    bySession.push(r.stints.map(x => ({ compound: x.compound, laps: Math.max(0, (x.lapEnd ?? r.lap) - x.lapStart + 1) })))
     const totals: Record<string, number> = {}
     bySession.flat().forEach(x => { if (x.compound) totals[x.compound] = (totals[x.compound] ?? 0) + x.laps })
     return { code: r.code, colour: r.colour, bySession, totals }
   })
-  return { sessions: before.map(s => ({ key: s.session_key, short: shortName(s.session_name) })), drivers }
+  return { sessions: [...before.map(s => ({ key: s.session_key, short: shortName(s.session_name) })), { key: meta.session_key, short: `${shortName(meta.session_name)} (esta)` }], drivers }
 }
 
 // Stops usual at this circuit (last seasons, without Safety Car / red flag), to judge pit windows. Kept 6 h.

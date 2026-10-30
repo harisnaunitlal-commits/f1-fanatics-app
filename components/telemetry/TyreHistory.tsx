@@ -31,7 +31,7 @@ export function TyreHistory({ data, allocation }: { data: TyreHistoryData | null
       {!data ? (
         <p className="text-sm text-gray-500">A carregar os pneus das sessões anteriores…</p>
       ) : data.sessions.length === 0 ? (
-        <p className="text-sm text-gray-500">Esta é a primeira sessão do fim-de-semana — ainda não há pneus de sessões anteriores.</p>
+        <p className="text-sm text-gray-500">Ainda não há pneus registados.</p>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-xs sm:text-sm">
@@ -64,7 +64,7 @@ export function TyreHistory({ data, allocation }: { data: TyreHistoryData | null
               ))}
             </tbody>
           </table>
-          <p className="text-[10px] text-gray-600 mt-2">Cada bola é um stint: composto e número de voltas. O OpenF1 não identifica os sets nem diz quais restam — por isso não se calculam &quot;sets disponíveis&quot;.</p>
+          <p className="text-[10px] text-gray-600 mt-2">Cada bola é um stint: composto e número de voltas. A última coluna é a sessão que estás a ver. O OpenF1 não identifica os sets nem diz quais restam — por isso não se calculam &quot;sets disponíveis&quot;.</p>
         </div>
       )}
     </div>
