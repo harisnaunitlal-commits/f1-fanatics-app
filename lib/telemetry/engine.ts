@@ -497,7 +497,7 @@ function buildResults(raw: RawSession, tMs: number, kind: SessionKind, tower: To
       for (const r of rc) {
         if (ms(r.date) > tMs) break
         if (r.category === 'Flag' || !re.test(r.message)) continue
-        if (r.driver_number === row.num || new RegExp('\(' + row.code + '\)').test(r.message)) at = ms(r.date)
+        if (r.driver_number === row.num || r.message.includes('(' + row.code + ')')) at = ms(r.date)  // "(HAM)" in the text
       }
       if (at < 0) continue
       const moved = (lapsBy.get(row.num) ?? []).some(l => l.date_start && ms(l.date_start) > at + 20_000 && !l.is_pit_out_lap)
