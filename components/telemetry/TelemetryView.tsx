@@ -304,6 +304,13 @@ export default function TelemetryView({ endpoint = '/api/telemetria/state' }: { 
         )}
       </div>
 
+      {data.upcoming && data.upcoming.startMs - Date.now() < 48 * 3600_000 && data.upcoming.startMs > Date.now() && (
+        <div className="rounded-xl border border-sky-400/40 bg-sky-400/10 px-4 py-2.5 text-sm text-sky-100">
+          ⏭ <b>Próxima sessão:</b> {data.upcoming.country} · {data.upcoming.name} · {new Date(data.upcoming.startMs).toLocaleString('pt', { weekday: 'short', day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+          <span className="text-sky-200/70"> — esta transmissão muda sozinha quando começar; até lá fica a última sessão.</span>
+        </div>
+      )}
+
       {scene.banner && (
         <div className="rounded-xl border-2 border-yellow-400/70 bg-yellow-400/10 px-4 py-3 text-yellow-100 font-semibold">📣 {scene.banner}</div>
       )}

@@ -1,5 +1,5 @@
 import { createServiceClient } from '@/lib/supabase/service'
-import { loadRaw, of1, isoNoZ, type SessionMeta } from './openf1'
+import { loadRaw, of1, isoNoZ, listSessions, type SessionMeta } from './openf1'
 import { buildState, computeClock, sessionKindOf, provisionalAnswers, driverFromText, type PlayCfg, type RawSession, type OF1Lap, type OF1Location, type OF1Stint, type TelemetryState } from './engine'
 import { resampleLap, compareLaps, type CarSample, type CompareData, type LapTrace } from './compare'
 import type { StrategyHint } from './engine'
@@ -117,15 +117,39 @@ function trimToPanels(s: TelemetryState, p: Panels): TelemetryState {
 }
 
 // Auto-follow: during a live weekend, show the session in progress (or the latest finished one) of the same meeting.
-async function followSession(baseKey: number, nowMs: number): Promise<number> {
+// Follows the calendar by itself, across weekends: the session that started last (practice, qualifying, sprint, race of
+// any Grand Prix). The previous one stays on screen until the next one starts. Also returns the next session, for the notice.
+async function followSession(nowMs: number, fallbackKey: number): Promise<{ key: number; next: SessionMeta | null }> {
   try {
-    const [base] = await of1<SessionMeta>('sessions', [['session_key', '', baseKey]], 3600)
-    if (!base) return baseKey
-    const sibs = (await of1<SessionMeta>('sessions', [['meeting_key', '', base.meeting_key]], 600)).sort((a, b) => Date.parse(a.date_start) - Date.parse(b.date_start))
-    if (sibs.length === 0) return baseKey
-    const started = sibs.filter(x => Date.parse(x.date_start) - 10 * 60_000 <= nowMs)
-    return (started.length ? started[started.length - 1] : sibs[0]).session_key
-  } catch { return baseKey }
+    const all = await listSessions(new Date(nowMs).getUTCFullYear())
+    if (all.length === 0) return { key: fallbackKey, next: null }
+    const started = all.filter(x => Date.parse(x.date_start) <= nowMs)
+    const next = all.find(x => Date.parse(x.date_start) > nowMs) ?? null
+    return { key: started.length ? started[started.length - 1].session_key : fallbackKey, next }
+  } catch { return { key: fallbackKey, next: null } }
+}
+
+// A new weekend: which GP of our calendar is it (for the F1 Play points) and how many laps did the race have last years.
+const gpOfMeeting = new Map<number, { at: number; gpId: number | null; laps: number | null }>()
+async function gpForMeeting(meta: SessionMeta): Promise<{ gpId: number | null; laps: number | null }> {
+  const hit = gpOfMeeting.get(meta.meeting_key)
+  if (hit && Date.now() - hit.at < 3600_000) return hit
+  let gpId: number | null = null, laps: number | null = null
+  try {
+    const all = await listSessions(new Date(meta.date_start).getUTCFullYear())
+    const mine = all.filter(s => s.meeting_key === meta.meeting_key)
+    const ref = mine.find(s => s.session_name === 'Race') ?? mine[mine.length - 1] ?? meta
+    const db = createServiceClient()
+    const { data: gps } = await db.from('gp_calendar').select('id, data_corrida')
+    const best = (gps ?? []).map(g => ({ id: g.id as number, d: Math.abs(Date.parse(g.data_corrida) - Date.parse(ref.date_start)) })).sort((a, b) => a.d - b.d)[0]
+    if (best && best.d < 36 * 3600_000) {
+      gpId = best.id
+      const { data: h } = await db.from('gp_history').select('year, laps').eq('gp_id', gpId).not('laps', 'is', null).order('year', { ascending: false }).limit(1)
+      laps = h?.[0]?.laps ?? null
+    }
+  } catch { /* leave null: the admin can still set it by hand */ }
+  gpOfMeeting.set(meta.meeting_key, { at: Date.now(), gpId, laps })
+  return { gpId, laps }
 }
 
 // Predictions, members and question config barely change during a race: keep them 30 s.
@@ -166,9 +190,29 @@ export async function buildStateResponse(viewer: { email: string; isAdmin: boole
   if (!sc.members_enabled && !isAdmin) return { status: 200, body: { ready: false, disabled: true, message: 'A telemetria ainda está em preparação.' } }
 
   try {
-    const sessionKey = sc.auto_follow && sc.mode === 'live' ? await followSession(sc.session_key, Date.now()) : sc.session_key
+    let sessionKey = sc.session_key
+    let nextSession: SessionMeta | null = null
+    if (sc.auto_follow && sc.mode === 'live') {
+      const f = await followSession(Date.now(), sc.session_key)
+      sessionKey = f.key
+      nextSession = f.next
+    }
     const [meta] = await of1<SessionMeta>('sessions', [['session_key', '', sessionKey]], 3600)
     if (!meta) return { status: 200, body: { ready: false, isAdmin, message: 'Sessão não encontrada no OpenF1.' } }
+
+    // the followed session changed (new session, or a new Grand Prix): keep the control room and the F1 Play link in step with it
+    if (sc.auto_follow && sc.mode === 'live' && sessionKey !== sc.session_key) {
+      const [old] = await of1<SessionMeta>('sessions', [['session_key', '', sc.session_key]], 3600)
+      const patch: Record<string, unknown> = { session_key: sessionKey }
+      const g = await gpForMeeting(meta)
+      if (old?.meeting_key !== meta.meeting_key) {
+        if (g.gpId) patch.gp_id = g.gpId
+        if (g.laps) patch.total_laps = g.laps
+        patch.tyre_allocation = null   // Pirelli allocation belongs to the weekend that just ended
+      }
+      try { await createServiceClient().from('telemetry_scene').update(patch).eq('id', 1) } catch { /* next request tries again */ }
+      sc = { ...sc, ...patch } as Scene
+    }
 
     const rawT = sceneTime(sc, Date.now(), Date.parse(meta.date_end) + 20 * 60_000)
     const t = Math.floor(rawT / QUANTUM_MS) * QUANTUM_MS // everyone shares the same upstream calls
@@ -242,6 +286,7 @@ export async function buildStateResponse(viewer: { email: string; isAdmin: boole
         ready: true, isAdmin,
         scene: { mode: sc.mode, banner: sc.banner, featured: sc.featured, panels: sc.panels, members_enabled: sc.members_enabled, total_laps: sc.total_laps, replay_playing: sc.replay_playing, replay_speed: Number(sc.replay_speed), compare_mode: sc.compare_mode ?? 'best', tyre_allocation: sc.tyre_allocation ?? null, auto_follow: !!sc.auto_follow },
         session: { name: meta.session_name, country: meta.country_name, date_start: meta.date_start, date_end: meta.date_end },
+        upcoming: nextSession ? { name: nextSession.session_name, country: nextSession.country_name, startMs: Date.parse(nextSession.date_start) } : null,
         clock: (() => { const c = computeClock(raw.raceControl, sessionKindOf(meta.session_name), meta.session_name, { start: Date.parse(meta.date_start), end: Date.parse(meta.date_end) }, rawT); return c ? { ...c, endsAtMs: c.remainingMs !== null ? rawT + c.remainingMs : null } : null })(),
         serverNow: Date.now(), serverT: rawT, live: sc.mode === 'live',
         gp, drivers, state: trimToPanels(state, panels), outline, compare, tyreHistory, favCode, play,

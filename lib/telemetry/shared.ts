@@ -89,6 +89,7 @@ export interface StateResponse {
   isAdmin?: boolean
   scene?: Pick<Scene, 'mode' | 'banner' | 'featured' | 'panels' | 'members_enabled' | 'total_laps' | 'replay_playing' | 'replay_speed' | 'compare_mode' | 'tyre_allocation' | 'auto_follow'>
   session?: { name: string; country: string; date_start: string; date_end: string }
+  upcoming?: { name: string; country: string; startMs: number } | null   // next session of the calendar (auto-follow only)
   gp?: { nome: string; emoji: string | null; round: number } | null
   drivers?: { code: string; name: string; team: string; colour: string }[]
   state?: import('./engine').TelemetryState
