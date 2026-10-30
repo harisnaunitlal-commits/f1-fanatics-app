@@ -59,6 +59,7 @@ export interface ResultRow {
   tyre: string | null
   tyreAge: number | null
   inPit: boolean
+  stopped: boolean   // practice/quali: Race Control said the car stopped on track and it has not moved since
 }
 export interface SessionResults {
   kind: SessionKind
@@ -485,9 +486,25 @@ function buildResults(raw: RawSession, tMs: number, kind: SessionKind, tower: To
       best, gap: best !== null && lead !== null ? best - lead : null, gapPrev: best !== null && prev !== null ? best - prev : null,
       bestTyre, bestTyreAge, laps: done.length, lastLap: lastT, lastLapColour,
       phaseTimes: d.times, group: g, eliminatedIn: eliminatedIn.get(d.r.num) ?? null, inDanger: inDanger.has(d.r.num),
-      tyre: d.r.tyre, tyreAge: d.r.tyreAge, inPit: d.r.inPit,
+      tyre: d.r.tyre, tyreAge: d.r.tyreAge, inPit: d.r.inPit, stopped: false,
     })
   })
+  // a car stopped on track (practice/qualifying have no DNF): Race Control names it, and it stays marked until it starts another lap
+  if (kind !== 'race') {
+    const re = /STOPPED|BROKEN DOWN|ABANDON|SLOW ON TRACK/i
+    for (const row of rows) {
+      let at = -1
+      for (const r of rc) {
+        if (ms(r.date) > tMs) break
+        if (r.category === 'Flag' || !re.test(r.message)) continue
+        if (r.driver_number === row.num || new RegExp('\(' + row.code + '\)').test(r.message)) at = ms(r.date)
+      }
+      if (at < 0) continue
+      const moved = (lapsBy.get(row.num) ?? []).some(l => l.date_start && ms(l.date_start) > at + 20_000 && !l.is_pit_out_lap)
+      const left = raw.pits.some(p => p.driver_number === row.num && ms(p.date) > at && ms(p.date) <= tMs)
+      row.stopped = !moved && !left && !row.inPit
+    }
+  }
   const currentLeader = phaseLeader(kind === 'quali' ? maxPhase : 1)
   return { kind, phase: kind === 'quali' ? maxPhase : null, phaseEnded, finished, advance: kind === 'quali' && maxPhase <= 2 ? advanceN(maxPhase) : null, rows, sessionBest: currentLeader }
 }

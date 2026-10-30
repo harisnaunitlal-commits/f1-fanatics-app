@@ -22,7 +22,8 @@ function Name({ r, mine, feat }: { r: ResultRow; mine: boolean; feat: boolean })
       <span className="text-xs text-gray-500 hidden md:inline">{r.name.split(' ').slice(-1)[0]}</span>
       {mine && <span className="text-[9px] font-bold text-yellow-300">★ TEU</span>}
       {!mine && feat && <span className="text-[9px] font-bold text-gray-400">◆</span>}
-      {r.inPit && <span className="text-[9px] font-bold bg-blue-600 text-white px-1 rounded">BOX</span>}
+      {r.stopped && <span className="text-[9px] font-black bg-red-600 text-white px-1.5 py-0.5 rounded animate-pulse">🛑 PARADO NA PISTA</span>}
+      {r.inPit && !r.stopped && <span className="text-[9px] font-bold bg-blue-600 text-white px-1 rounded">BOX</span>}
     </span>
   )
 }
@@ -69,7 +70,7 @@ export function SessionResults({ data, favCode, featured }: { data: Results; fav
     lastGroup = r.group
     const elim = r.eliminatedIn !== null
     body.push(
-      <tr key={r.num} className={`border-b border-gray-800/50 ${mine ? 'bg-yellow-400/10' : feat ? 'bg-white/[0.04]' : ''} ${elim ? 'opacity-70' : ''} ${r.inDanger ? 'bg-orange-900/10' : ''}`}>
+      <tr key={r.num} className={`border-b border-gray-800/50 ${mine ? 'bg-yellow-400/10' : feat ? 'bg-white/[0.04]' : ''} ${elim ? 'opacity-70' : ''} ${r.stopped ? 'bg-red-900/25' : ''} ${r.inDanger ? 'bg-orange-900/10' : ''}`}>
         <td className="py-1.5 px-2 text-center font-bold tabular-nums text-gray-300">{r.pos}</td>
         <td className="py-1.5 px-2"><Name r={r} mine={mine} feat={feat} /></td>
         {quali ? (
