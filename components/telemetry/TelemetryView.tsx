@@ -29,6 +29,15 @@ const STATUS: Record<TrackStatus, { label: string; cls: string }> = {
   FINISHED: { label: 'BANDEIRA XADREZ', cls: 'bg-white text-black' },
 }
 
+// Big banner at the top of the header while the session is neutralised (red flag, safety car, VSC).
+const NEUTRAL_BANNER: Partial<Record<TrackStatus, { icon: string; cls: string; text: string }>> = {
+  RED: { icon: '🚨', cls: 'bg-red-600 text-white ring-4 ring-red-400/40', text: 'Sessão interrompida — carros nas boxes ou parados.' },
+  SC: { icon: '🚗', cls: 'bg-orange-500 text-black ring-4 ring-orange-300/40', text: 'Safety Car em pista — sem ultrapassagens.' },
+  SC_ENDING: { icon: '🚗', cls: 'bg-orange-400 text-black ring-4 ring-orange-300/40', text: 'O Safety Car vai recolher — relançamento a seguir.' },
+  VSC: { icon: '🟡', cls: 'bg-yellow-400 text-black ring-4 ring-yellow-200/40', text: 'Velocidade reduzida para todos — sem ultrapassagens.' },
+  VSC_ENDING: { icon: '🟡', cls: 'bg-yellow-300 text-black ring-4 ring-yellow-200/40', text: 'O VSC vai terminar — atenção ao relançamento.' },
+}
+
 const RC_ICON: Record<RcKind, string> = { flag: '🏁', safetycar: '🚗', penalty: '⚖️', investigation: '🔍', noted: '📝', cleared: '✅', deleted: '⏱️', info: 'ℹ️' }
 const FLAG_ICON: Record<string, string> = { YELLOW: '🟡', 'DOUBLE YELLOW': '🟡🟡', GREEN: '🟢', CLEAR: '🟢', BLUE: '🔵', RED: '🔴', CHEQUERED: '🏁', 'BLACK AND WHITE': '⚫⚪', BLACK: '⚫' }
 
@@ -175,6 +184,7 @@ function SessionClockBox({ data, receivedAt, sessionName }: { data: StateRespons
   useEffect(() => { const id = setInterval(() => force(n => n + 1), 1000); return () => clearInterval(id) }, [])
   const c = data.clock
   if (!c) return null
+  const redFlag = data.state?.status === 'RED' && c.state !== 'finished'
 
   const nowSim = data.live
     ? Date.now() + ((data.serverNow ?? receivedAt) - receivedAt)
@@ -193,8 +203,9 @@ function SessionClockBox({ data, receivedAt, sessionName }: { data: StateRespons
       <div className={`rounded-2xl px-5 py-3 text-white shadow-lg sm:min-w-[250px] ${tone}`}>
         <div className="flex items-center justify-between gap-3 text-[11px] font-black uppercase tracking-[0.18em] opacity-90">
           <span>{sessionName}</span>
-          {c.state === 'running' && <span className="inline-flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-white animate-pulse" />EM CURSO</span>}
-          {c.state === 'paused' && <span>⏸ BANDEIRA VERMELHA</span>}
+          {redFlag ? <span className="bg-white text-red-700 rounded px-1.5 py-0.5">⏸ BANDEIRA VERMELHA</span>
+            : c.state === 'running' ? <span className="inline-flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-white animate-pulse" />EM CURSO</span>
+            : c.state === 'paused' ? <span>⏸ BANDEIRA VERMELHA</span> : null}
         </div>
         {finished || remaining === null ? (
           <div className="text-4xl font-black leading-tight py-1">{c.text ?? '—'}</div>
@@ -273,6 +284,13 @@ export default function TelemetryView({ endpoint = '/api/telemetria/state' }: { 
 
       {/* Header */}
       <div className="card">
+        {NEUTRAL_BANNER[s.status] ? (
+          <div className={`-mx-1 mb-4 rounded-xl px-4 py-3 flex flex-wrap items-center gap-x-4 gap-y-1 animate-pulse ${NEUTRAL_BANNER[s.status]!.cls}`}>
+            <span className="text-3xl leading-none">{NEUTRAL_BANNER[s.status]!.icon}</span>
+            <span className="text-2xl sm:text-3xl font-black tracking-wide leading-none">{st.label}</span>
+            <span className="text-sm font-semibold opacity-90">{NEUTRAL_BANNER[s.status]!.text}</span>
+          </div>
+        ) : null}
         <div className="flex flex-wrap items-center gap-3">
           <div>
             <div className="text-xs text-gray-500 uppercase tracking-widest">{session.country}</div>
