@@ -1,6 +1,7 @@
 import type { TelemetryState, SectorColour, LapTimeLine } from '@/lib/telemetry/engine'
 import { LineChart, type Series } from './charts'
 import { fmtLap } from './ui'
+import { RacePace } from './RacePace'
 
 const SECTOR_CLS: Record<NonNullable<SectorColour>, string> = { purple: 'text-purple-400 font-black', green: 'text-green-400 font-bold', yellow: 'text-yellow-300' }
 
@@ -21,9 +22,11 @@ export function LapAnalysis({ s, focus }: { s: TelemetryState; focus: string[] }
   const yt: number[] = []
   for (let v = Math.ceil(yMin); v <= yMax; v += 1) yt.push(v)
 
+  const race = s.kind === 'race'
   return (
     <div className="space-y-5">
-      <div className="overflow-x-auto">
+      {race && <RacePace s={s} focus={focus} />}
+      {!race && <div className="overflow-x-auto">
         <table className="w-full text-xs sm:text-sm">
           <thead>
             <tr className="text-[10px] text-gray-500 uppercase tracking-wider border-b border-gray-700/60">
@@ -53,7 +56,7 @@ export function LapAnalysis({ s, focus }: { s: TelemetryState; focus: string[] }
           </tbody>
         </table>
         <p className="text-[10px] text-gray-600 mt-2"><span className="text-purple-400 font-bold">Roxo</span> = melhor sector da sessão · <span className="text-green-400 font-bold">verde</span> = melhor pessoal · <span className="text-yellow-300">amarelo</span> = mais lento. Velocidade máxima = melhor da &quot;speed trap&quot;.</p>
-      </div>
+      </div>}
 
       {series.length > 0 && (
         <div>

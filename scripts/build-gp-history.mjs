@@ -32,6 +32,8 @@ for (const gp of cal) {
     const res = await g(`/session_result?session_key=${h.session_key}`)
     if (!res.length) continue
     const laps = await g(`/laps?session_key=${h.session_key}`)
+    const pits = await g(`/pit?session_key=${h.session_key}`)
+    const rcs = await g(`/race_control?session_key=${h.session_key}`)
     const drv = await g(`/drivers?session_key=${h.session_key}`)
     const winnerRow = res.find(r => r.position === 1)
     const maxLaps = Math.max(...res.map(r => r.number_of_laps ?? 0))
@@ -51,10 +53,43 @@ for (const gp of cal) {
       for (const d of byDriver.keys()) { const e = endOf(d, n); if (e !== null && (best === null || e < best.e)) best = { d, e } }
       if (best) leaders.add(best.d)
     }
+    // strategy: stops per classified driver outside Safety Car / VSC / red flag periods, and the lap of the first such stop
+    const neutral = []
+    { let from = null; let kind = null
+      for (const r of [...rcs].sort((a, b) => Date.parse(a.date) - Date.parse(b.date))) {
+        const at = Date.parse(r.date), m = String(r.message ?? '').toUpperCase()
+        if (r.category === 'SafetyCar') {
+          if (m.includes('DEPLOYED')) { if (from === null) from = at }
+          else if ((m.includes('ENDING') || m.includes('IN THIS LAP')) && from !== null) { neutral.push([from, at + 90000]); from = null }
+        } else if (r.category === 'Flag' && String(r.flag).toUpperCase() === 'RED' && from === null) from = at
+        else if (r.category === 'Flag' && from !== null && ['GREEN', 'CLEAR'].includes(String(r.flag).toUpperCase()) && kind === null && m.includes('TRACK')) { neutral.push([from, at + 90000]); from = null }
+        else if (r.category === 'SessionStatus' && m.includes('STARTED') && from !== null) { neutral.push([from, at + 90000]); from = null }
+      }
+    }
+    const clsNums = new Set(res.filter(r => !r.dns && !r.dsq && (r.number_of_laps ?? 0) >= 0.9 * maxLaps).map(r => r.driver_number))
+    const stopsBy = new Map()
+    for (const p of pits) {
+      if (!clsNums.has(p.driver_number)) continue
+      const at = Date.parse(p.date)
+      if (neutral.some(([a, b]) => at >= a && at <= b)) continue
+      const arr = stopsBy.get(p.driver_number) ?? []; arr.push(p.lap_number); stopsBy.set(p.driver_number, arr)
+    }
+    const avgStops = clsNums.size ? [...clsNums].reduce((n, d) => n + (stopsBy.get(d)?.length ?? 0), 0) / clsNums.size : null
+    const firsts = [...stopsBy.values()].map(a => Math.min(...a)).sort((a, b) => a - b)
+    const firstStopLap = firsts.length ? firsts[Math.floor(firsts.length / 2)] : null
     const code = drv.find(d => d.driver_number === winnerRow?.driver_number)?.name_acronym ?? null
-    rows.push({ gp_id: gp.id, year, race_name: h.meeting_name ?? `${h.country_name} ${year}`, laps: maxLaps, cars: res.length, leaders: leaders.size, margin_s: margin, classified, dnf, lapped, winner: code })
-    console.log(gp.round, gp.nome, year, `lideres=${leaders.size} margem=${margin} classif=${classified}/${res.length} dnf=${dnf} dobrados=${lapped} vencedor=${code} voltas=${maxLaps}`)
+    rows.push({ gp_id: gp.id, year, race_name: h.meeting_name ?? `${h.country_name} ${year}`, laps: maxLaps, cars: res.length, leaders: leaders.size, margin_s: margin, classified, dnf, lapped, winner: code, avg_stops: avgStops === null ? null : Math.round(avgStops * 100) / 100, first_stop_lap: firstStopLap })
+    console.log(gp.round, gp.nome, year, `lideres=${leaders.size} margem=${margin} classif=${classified}/${res.length} dnf=${dnf} dobrados=${lapped} paragens=${avgStops === null ? '-' : avgStops.toFixed(2)} 1a=${firstStopLap} vencedor=${code} voltas=${maxLaps}`)
   }
 }
 fs.writeFileSync('gp_history_rows.json', JSON.stringify(rows))
 console.log('rows', rows.length)
+
+// write straight to the database (service role)
+{
+  const body = rows.map(r => ({ ...r, leaders: r.leaders > 0 ? r.leaders : null }))
+  if (body.length >= 30) {
+    const res = await fetch(`${SB}/rest/v1/gp_history?on_conflict=gp_id,year`, { method: 'POST', headers: { ...H, 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates,return=minimal' }, body: JSON.stringify(body) })
+    console.log('upsert gp_history:', res.status, body.length, 'linhas')
+  } else console.log('poucas linhas, nao grava:', body.length)
+}

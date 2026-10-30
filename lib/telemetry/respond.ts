@@ -2,6 +2,7 @@ import { createServiceClient } from '@/lib/supabase/service'
 import { loadRaw, of1, isoNoZ, type SessionMeta } from './openf1'
 import { buildState, computeClock, sessionKindOf, provisionalAnswers, driverFromText, type PlayCfg, type RawSession, type OF1Lap, type OF1Location, type OF1Stint, type TelemetryState } from './engine'
 import { resampleLap, compareLaps, type CarSample, type CompareData, type LapTrace } from './compare'
+import type { StrategyHint } from './engine'
 import { PLAY_FIELDS, QUANTUM_MS, sceneTime, type Scene, type StateResponse, type PlayLine, type LeaderRow, type TyreHistory, type Panels, type PanelKey } from './shared'
 import { getEffectiveGpConfig } from '@/lib/gp-config'
 import { P8_MARGENS } from '@/lib/gp-questions'
@@ -76,6 +77,23 @@ async function buildTyreHistory(meta: SessionMeta, raw: RawSession, state: Telem
   return { sessions: before.map(s => ({ key: s.session_key, short: shortName(s.session_name) })), drivers }
 }
 
+// Stops usual at this circuit (last seasons, without Safety Car / red flag), to judge pit windows. Kept 6 h.
+const hintCache = new Map<number, { at: number; hint: StrategyHint | null }>()
+async function loadStrategyHint(gpId: number): Promise<StrategyHint | null> {
+  const hit = hintCache.get(gpId)
+  if (hit && Date.now() - hit.at < 6 * 3600_000) return hit.hint
+  let hint: StrategyHint | null = null
+  try {
+    const db = createServiceClient()
+    const { data } = await db.from('gp_history').select('avg_stops, first_stop_lap').eq('gp_id', gpId)
+    const stops = (data ?? []).map(r => (r.avg_stops == null ? null : Number(r.avg_stops))).filter((v): v is number => v !== null && v >= 0.5)   // below 0.5: red-flag race, not representative
+    const firsts = (data ?? []).map(r => r.first_stop_lap).filter((v): v is number => v != null).sort((a, b) => a - b)
+    if (stops.length) hint = { typicalStops: stops.reduce((a, b) => a + b, 0) / stops.length, firstStopLap: firsts.length ? firsts[Math.floor(firsts.length / 2)] : null }
+  } catch { /* no history: windows fall back to "sem dados" */ }
+  hintCache.set(gpId, { at: Date.now(), hint })
+  return hint
+}
+
 // The admin decides what members see: data of switched-off panels is not sent at all (not just hidden).
 function trimToPanels(s: TelemetryState, p: Panels): TelemetryState {
   const on = (k: PanelKey) => p[k] !== false
@@ -88,6 +106,8 @@ function trimToPanels(s: TelemetryState, p: Panels): TelemetryState {
     fastestSectors: on('laps') ? s.fastestSectors : [null, null, null],
     championship: on('championship') ? s.championship : null,
     undercuts: on('strategy') ? s.undercuts : [],
+    pitWindows: on('strategy') ? s.pitWindows : [],
+    racePace: on('laps') || on('strategy') ? s.racePace : [],
     rejoin: on('strategy') || on('ours') ? s.rejoin : [],
     raceControl: on('control') ? s.raceControl : [],
     penalties: on('control') ? s.penalties : [],
@@ -151,7 +171,8 @@ export async function buildStateResponse(viewer: { email: string; isAdmin: boole
     const rawT = sceneTime(sc, Date.now(), Date.parse(meta.date_end) + 20 * 60_000)
     const t = Math.floor(rawT / QUANTUM_MS) * QUANTUM_MS // everyone shares the same upstream calls
     const raw = await loadRaw(sessionKey, t, sc.mode === 'live', meta.session_name)
-    const state = buildState(raw, t, sc.total_laps, meta.session_name)
+    const hint = sc.gp_id ? await loadStrategyHint(sc.gp_id) : null
+    const state = buildState(raw, t, sc.total_laps, meta.session_name, hint)
     const panels = sc.panels ?? {}
     const [outline, compare, tyreHistory] = await Promise.all([
       panels.map !== false ? trackOutline(sessionKey, raw, t).catch(() => null) : Promise.resolve(null),

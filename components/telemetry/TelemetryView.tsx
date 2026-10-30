@@ -11,6 +11,8 @@ import { TelemetryCompare } from './TelemetryCompare'
 import { PositionChart, OvertakeFeed } from './PositionChart'
 import { LapAnalysis } from './LapAnalysis'
 import { Championship } from './Championship'
+import { RacePace } from './RacePace'
+import { PitWindowChart, SafetyCarPanel, StintPaceTable, Bands } from './StrategyPanels'
 import type { TowerRow, TrackStatus, RcItem, RcKind, TelemetryState, RejoinSim } from '@/lib/telemetry/engine'
 
 const POLL_MS = 5000
@@ -121,20 +123,26 @@ function StintTimeline({ s }: { s: TelemetryState }) {
       {s.tower.map(r => (
         <div key={r.num} className="flex items-center gap-2">
           <span className="w-9 text-xs font-black text-gray-300">{r.code}</span>
-          <div className="relative h-4 flex-1 rounded bg-white/5 overflow-hidden">
+          <div className="relative h-5 flex-1 rounded bg-white/5 overflow-hidden">
+            <Bands neutral={s.neutral} total={total} lap={s.leaderLap} />
             {r.stints.map((st, i) => {
               const end = st.lapEnd ?? Math.max(r.lap, st.lapStart)
               const left = ((st.lapStart - 1) / total) * 100
               const width = ((end - st.lapStart + 1) / total) * 100
-              return <span key={i} className="absolute top-0 bottom-0 border-r border-black/60" style={{ left: `${left}%`, width: `${width}%`, background: (st.compound && COMPOUND[st.compound]?.bar) || '#555' }} title={`${st.compound ?? '?'} · voltas ${st.lapStart}–${end}`} />
+              const c = st.compound ? COMPOUND[st.compound] : null
+              return (
+                <span key={i} className="absolute top-0.5 bottom-0.5 rounded-sm border-r border-black/60 flex items-center justify-center text-[9px] font-black text-black/80 overflow-hidden" style={{ left: `${left}%`, width: `${width}%`, background: c?.bar || '#555' }} title={`${st.compound ?? '?'} · voltas ${st.lapStart}–${end} (${end - st.lapStart + 1} voltas)`}>
+                  {width > 4 ? `${c?.letter ?? '?'} ${end - st.lapStart + 1}` : ''}
+                </span>
+              )
             })}
           </div>
-          <span className="w-14 text-right text-[11px] text-gray-500 tabular-nums">{r.degPerLap === null ? '' : `${r.degPerLap > 0 ? '+' : ''}${r.degPerLap.toFixed(2)}s/v`}</span>
+          <span className="w-16 text-right text-[11px] tabular-nums" style={{ color: r.degPerLap === null ? '#6b7280' : r.degPerLap >= 0.08 ? '#f87171' : r.degPerLap >= 0.03 ? '#fdba74' : '#4ade80' }} title="Degradação do pneu no stint actual, em segundos perdidos por volta (já sem o efeito do combustível)">{r.degPerLap === null ? '' : `${r.degPerLap + 0.035 > 0 ? '+' : ''}${(r.degPerLap + 0.035).toFixed(2)} s/v`}</span>
         </div>
       ))}
       <div className="flex flex-wrap gap-3 pt-2 text-[11px] text-gray-400">
         {Object.entries(COMPOUND).map(([k, c]) => <span key={k} className="inline-flex items-center gap-1"><span className="w-3 h-3 rounded-sm" style={{ background: c.bar }} />{k === 'SOFT' ? 'Macio' : k === 'MEDIUM' ? 'Médio' : k === 'HARD' ? 'Duro' : k === 'INTERMEDIATE' ? 'Intermédio' : 'Chuva'}</span>)}
-        <span className="ml-auto">À direita: tendência de ritmo no stint (negativo = a ficar mais rápido)</span>
+        <span className="ml-auto text-right">Letra + número = pneu e voltas nesse conjunto. À direita: <b className="text-gray-300">degradação</b> do pneu actual do próprio piloto (s perdidos por volta), não é relativo ao líder.</span>
       </div>
     </div>
   )
@@ -386,10 +394,15 @@ export default function TelemetryView({ endpoint = '/api/telemetria/state' }: { 
 
       {panelOn(scene.panels, 'strategy') && (
         <Section title="Estratégia" hint="contas feitas com os tempos reais, não é IA">
+          <div className="mb-4"><SafetyCarPanel s={s} /></div>
           <div className="grid gap-4 lg:grid-cols-3">
             <div className="lg:col-span-2 space-y-4">
               <div>
-                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">Pneus e stints</h3>
+                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">Janela de paragem · top 10</h3>
+                <PitWindowChart s={s} />
+              </div>
+              <div>
+                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">Pneus e stints · todos os pilotos</h3>
                 <StintTimeline s={s} />
               </div>
             </div>
@@ -414,9 +427,13 @@ export default function TelemetryView({ endpoint = '/api/telemetria/state' }: { 
                     ))}
                   </ul>
                 )}
-                <p className="text-[10px] text-gray-600 mt-1">Regra prática: intervalo ≤ 2,5 s com pneus de pelo menos 8 voltas.</p>
+                <p className="text-[10px] text-gray-600 mt-1">Regra prática: intervalo ≤ 2,5 s, pelo menos 8 voltas no conjunto actual e ainda com paragens previstas. Depois de parar, o piloto só volta a ter janela quando estiver na altura da próxima paragem esperada.</p>
               </div>
             </div>
+          </div>
+          <div className="mt-4">
+            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">O que cada mudança de pneu fez ao ritmo · top 10</h3>
+            <StintPaceTable s={s} />
           </div>
           {rejoinList.length > 0 && (
             <div className="mt-4">
@@ -453,7 +470,7 @@ export default function TelemetryView({ endpoint = '/api/telemetria/state' }: { 
       )}
 
       {panelOn(scene.panels, 'laps') && (
-        <Section title="Análise de voltas" hint="sectores, velocidades e ritmo">
+        <Section title={s.kind === 'race' ? 'Ritmo e pneus' : 'Análise de voltas'} hint={s.kind === 'race' ? 'últimas 5 voltas, pneu e degradação' : 'sectores, velocidades e ritmo'}>
           <LapAnalysis s={s} focus={focus} />
         </Section>
       )}

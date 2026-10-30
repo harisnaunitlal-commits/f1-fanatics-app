@@ -119,6 +119,33 @@ export interface RejoinSim {
   cleanAir: boolean
 }
 
+// Race strategy (new): safety-car periods, last laps with tyre and delta, stint pace and pit windows
+export interface NeutralPeriod { kind: 'SC' | 'VSC' | 'RED'; fromMs: number; toMs: number | null; fromLap: number | null; toLap: number | null }
+export interface PaceLap { lap: number; t: number; delta: number | null; compound: string | null; flag: 'pit' | 'out' | 'neutral' | null }
+export interface StintStat {
+  compound: string | null; lapStart: number; lapEnd: number | null; laps: number
+  pace: number | null            // median of the clean laps of the stint
+  deg: number | null             // s/lap lost to the tyres (slope of the clean laps + fuel burn correction)
+  vsPrev: number | null          // pace of this stint minus the previous one (raw)
+  vsPrevFuel: number | null      // same, with the fuel burn (~0.035 s/lap) taken out
+}
+export interface RacePaceRow {
+  code: string; colour: string; pos: number
+  tyre: string | null; tyreAge: number | null; stintLaps: number
+  laps: PaceLap[]                // last 5 completed laps
+  avg5: number | null; prev5: number | null; avg10: number | null
+  deg: number | null             // tyre degradation estimate in the current stint (s/lap)
+  stints: StintStat[]
+}
+export type PitWindowStatus = 'sem-dados' | 'cedo' | 'janela' | 'tarde' | 'sem-mais' | 'na-box'
+export interface PitWindowRow {
+  code: string; colour: string; pos: number
+  stops: number; expected: number | null; lastStopLap: number; stintLaps: number
+  windowFrom: number | null; windowTo: number | null
+  status: PitWindowStatus
+}
+export interface StrategyHint { typicalStops: number; firstStopLap: number | null }
+
 export interface UndercutAlert { attacker: string; target: string; intervalS: number; attackerAge: number; targetAge: number; strength: 'forte' | 'possível' }
 
 export type RcKind = 'flag' | 'safetycar' | 'penalty' | 'investigation' | 'noted' | 'cleared' | 'deleted' | 'info'
@@ -152,6 +179,10 @@ export interface TelemetryState {
   lapTimes: LapTimeLine[]
   fastestSectors: (number | null)[]
   championship: { drivers: ChampRow[]; teams: ChampTeamRow[]; sprint: boolean } | null
+  neutral: NeutralPeriod[]
+  racePace: RacePaceRow[]
+  pitWindows: PitWindowRow[]
+  strategyHint: StrategyHint | null
 }
 
 // ───────────────────────────── helpers ─────────────────────────────
@@ -451,7 +482,7 @@ function buildResults(raw: RawSession, tMs: number, kind: SessionKind, tower: To
 }
 
 // ───────────────────────────── main ─────────────────────────────
-export function buildState(raw: RawSession, tMs: number, totalLapsHint: number | null = null, sessionName = ''): TelemetryState {
+export function buildState(raw: RawSession, tMs: number, totalLapsHint: number | null = null, sessionName = '', hint: StrategyHint | null = null): TelemetryState {
   const drivers = new Map(raw.drivers.map(d => [d.driver_number, d]))
   const rc = [...raw.raceControl].sort((a, b) => ms(a.date) - ms(b.date))
   const ts = trackStatusAt(rc, tMs)
@@ -647,13 +678,37 @@ export function buildState(raw: RawSession, tMs: number, totalLapsHint: number |
     }
   }
 
+  // pit window per driver: stops already made vs the stops usual at this circuit (without Safety Car / red flag)
+  const FUEL = 0.035   // s per lap of fuel burn, estimated
+  const totalForHint = totalLapsHint ?? (Math.max(0, ...raw.results.map(r => r.number_of_laps ?? 0)) || null)
+  const lastStopLapBy = new Map<number, number>()
+  for (const [num, arr] of Array.from(pitsBy.entries())) lastStopLapBy.set(num, Math.max(0, ...arr.map(p => p.lap_number ?? 0)))
+  const pitWindowOf = (r: TowerRow): PitWindowRow => {
+    const lastStopLap = lastStopLapBy.get(r.num) ?? 0
+    const stintLaps = Math.max(0, r.lap - lastStopLap)
+    const base = { code: r.code, colour: r.colour, pos: r.pos, stops: r.stops, lastStopLap, stintLaps }
+    if (r.inPit) return { ...base, expected: hint ? Math.max(1, Math.round(hint.typicalStops)) : null, windowFrom: null, windowTo: null, status: 'na-box' }
+    if (!hint || !totalForHint) return { ...base, expected: null, windowFrom: null, windowTo: null, status: 'sem-dados' }
+    const expected = Math.max(1, Math.round(hint.typicalStops))
+    if (r.stops >= expected) return { ...base, expected, windowFrom: null, windowTo: null, status: 'sem-mais' }
+    const stintLen = totalForHint / (expected + 1)
+    const centre = r.stops === 0 && hint.firstStopLap ? hint.firstStopLap : lastStopLap + stintLen
+    const half = Math.max(3, Math.round(0.18 * stintLen))
+    const from = Math.max(lastStopLap + 6, Math.round(centre - half)), to = Math.round(centre + half)
+    const status: PitWindowStatus = stintLaps < 6 || r.lap < from ? 'cedo' : r.lap <= to ? 'janela' : 'tarde'
+    return { ...base, expected, windowFrom: from, windowTo: to, status }
+  }
+
   // undercut indicators (rule of thumb, clearly labelled in the UI)
   const undercuts: UndercutAlert[] = []
   if (started && (ts.status === 'GREEN' || ts.status === 'VSC' || ts.status === 'VSC_ENDING')) {
     for (let i = 1; i < live.length; i++) {
       const a = live[i], t = live[i - 1]
       if (a.inPit || t.inPit || a.intervalS === null || a.tyreAge === null || t.tyreAge === null || a.lapsDown) continue
-      if (a.intervalS <= 2.5 && a.tyreAge >= 8) {
+      // laps on the current set (not the age of a used set just fitted), and only if this stop is still expected
+      const aWin = pitWindowOf(a)
+      if (aWin.status === 'sem-mais' || aWin.status === 'cedo' || aWin.status === 'na-box') continue
+      if (a.intervalS <= 2.5 && aWin.stintLaps >= 8) {
         undercuts.push({
           attacker: a.code, target: t.code, intervalS: a.intervalS, attackerAge: a.tyreAge, targetAge: t.tyreAge,
           strength: a.intervalS <= 1.5 && a.tyreAge - t.tyreAge >= 3 ? 'forte' : 'possível',
@@ -718,6 +773,73 @@ export function buildState(raw: RawSession, tMs: number, totalLapsHint: number |
     laps: (lapsBy.get(r.num) ?? []).filter(l => isComplete(l) && !l.is_pit_out_lap && l.lap_number > 1 && (l.lap_duration as number) < refLap * 1.12).map(l => ({ lap: l.lap_number, t: l.lap_duration as number })),
   }))
 
+  // ── race strategy: neutralisations, last laps with tyre and delta, stint pace, pit windows ──
+  const neutralPeriods: NeutralPeriod[] = []
+  const racePace: RacePaceRow[] = []
+  const pitWindows: PitWindowRow[] = []
+  if (sessionKindOf(sessionName) === 'race' && started) {
+    const open: { cur: { at: number; kind: 'SC' | 'VSC' | 'RED'; lap: number | null } | null } = { cur: null }
+    const closeAt = (at: number, lap: number | null) => { if (open.cur) { neutralPeriods.push({ kind: open.cur.kind, fromMs: open.cur.at, toMs: at, fromLap: open.cur.lap, toLap: lap }); open.cur = null } }
+    for (const r of rc) {
+      const at = ms(r.date); if (at > tMs) break
+      const m = r.message.toUpperCase()
+      if (r.category === 'SafetyCar') {
+        if (m.includes('DEPLOYED')) { closeAt(at, r.lap_number); open.cur = { at, kind: m.includes('VIRTUAL') ? 'VSC' : 'SC', lap: r.lap_number } }
+        else if ((m.includes('ENDING') || m.includes('IN THIS LAP')) && open.cur) closeAt(at, r.lap_number)
+      } else if (r.category === 'Flag' && (r.flag ?? '').toUpperCase() === 'RED' && !open.cur) open.cur = { at, kind: 'RED', lap: r.lap_number }
+      else if (r.category === 'SessionStatus' && m.includes('STARTED') && open.cur?.kind === 'RED') closeAt(at, r.lap_number)
+    }
+    if (open.cur) neutralPeriods.push({ kind: open.cur.kind, fromMs: open.cur.at, toMs: null, fromLap: open.cur.lap, toLap: null })
+    const inNeutral = (a: number, b: number) => neutralPeriods.some(p => p.fromMs < b && (p.toMs ?? tMs) + 20_000 > a)
+    const compoundAt = (num: number, lap: number): string | null =>
+      raw.stints.filter(x => x.driver_number === num && x.lap_start != null && x.lap_start <= lap && (x.lap_end == null || x.lap_end >= lap)).sort((a, b) => b.stint_number - a.stint_number)[0]?.compound ?? null
+    const mean = (xs: number[]): number | null => xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : null
+
+    for (const r of tower.filter(x => !x.out).slice(0, 22)) {
+      const pitLaps = new Set((pitsBy.get(r.num) ?? []).map(p => p.lap_number))
+      const done = (lapsBy.get(r.num) ?? []).filter(isComplete)
+      const stat = new Map<number, { t: number; flag: PaceLap['flag']; clean: boolean }>()
+      for (const l of done) {
+        const t = l.lap_duration as number, a = ms(l.date_start as string)
+        const flag: PaceLap['flag'] = pitLaps.has(l.lap_number) ? 'pit' : l.is_pit_out_lap ? 'out' : inNeutral(a, a + t * 1000) ? 'neutral' : null
+        stat.set(l.lap_number, { t, flag, clean: flag === null && l.lap_number > 1 && t < refLap * 1.12 })
+      }
+      const myStints = raw.stints.filter(x => x.driver_number === r.num && x.lap_start != null && x.lap_start <= Math.max(r.lap, 1)).sort((a, b) => a.stint_number - b.stint_number)
+      const cur = myStints[myStints.length - 1]
+      const curStart = (cur?.lap_start as number | undefined) ?? 1
+      const last5 = done.slice(-5).map(l => {
+        const st = stat.get(l.lap_number)!, pv = stat.get(l.lap_number - 1)
+        return { lap: l.lap_number, t: st.t, delta: st.clean && pv?.clean ? st.t - pv.t : null, compound: compoundAt(r.num, l.lap_number), flag: st.flag } as PaceLap
+      })
+      const cleanIn = (laps: typeof done) => laps.filter(l => stat.get(l.lap_number)?.clean && l.lap_number >= curStart).map(l => ({ x: l.lap_number, y: stat.get(l.lap_number)!.t }))
+      const p5 = cleanIn(done.slice(-5)), pPrev = cleanIn(done.slice(-10, -5)), p10 = cleanIn(done.slice(-10))
+      const trend = p10.length >= 5 ? slope(p10) : null
+      const stints: StintStat[] = []
+      let prevCorr: number | null = null, prevPace: number | null = null
+      for (const st of myStints) {
+        const a = st.lap_start as number, b = Math.min(st.lap_end ?? r.lap, r.lap)
+        const cl = done.filter(l => l.lap_number >= a && l.lap_number <= b && stat.get(l.lap_number)?.clean).map(l => ({ x: l.lap_number, y: stat.get(l.lap_number)!.t }))
+        const pace = cl.length >= 3 ? median(cl.map(p => p.y)) : null
+        const medLap = cl.length >= 3 ? median(cl.map(p => p.x)) : null
+        const corr = pace !== null && medLap !== null ? pace + FUEL * medLap : null
+        const sl = cl.length >= 4 ? slope(cl) : null
+        stints.push({
+          compound: st.compound, lapStart: a, lapEnd: st.lap_end != null ? Math.min(st.lap_end, r.lap) : null, laps: Math.max(0, b - a + 1), pace,
+          deg: sl === null ? null : sl + FUEL,
+          vsPrev: pace !== null && prevPace !== null ? pace - prevPace : null,
+          vsPrevFuel: corr !== null && prevCorr !== null ? corr - prevCorr : null,
+        })
+        if (pace !== null) { prevPace = pace; prevCorr = corr }
+      }
+      racePace.push({
+        code: r.code, colour: r.colour, pos: r.pos, tyre: r.tyre, tyreAge: r.tyreAge, stintLaps: Math.max(0, r.lap - curStart + 1),
+        laps: last5, avg5: p5.length >= 3 ? mean(p5.map(p => p.y)) : null, prev5: pPrev.length >= 3 ? mean(pPrev.map(p => p.y)) : null,
+        avg10: p10.length >= 5 ? mean(p10.map(p => p.y)) : null, deg: trend === null ? null : trend + FUEL, stints,
+      })
+    }
+    for (const r of tower.filter(x => !x.out).slice(0, 10)) pitWindows.push(pitWindowOf(r))
+  }
+
   // ── championship if the race ended now (start-of-session standings + points for the current order) ──
   let championship: TelemetryState['championship'] = null
   const isRaceSession = /race|sprint/i.test(sessionName) && !/qualif|shootout/i.test(sessionName)
@@ -758,7 +880,7 @@ export function buildState(raw: RawSession, tMs: number, totalLapsHint: number |
     kind, results, map: mapCars, overtakes, lapChart, lapTimes, fastestSectors: sessionBest, championship,
     t: new Date(tMs).toISOString(), started, status: ts.status, yellowSectors: ts.yellow, leaderLap,
     totalLaps: totalLapsHint ?? (resLaps > 0 ? resLaps : null), tower, fastestLap: fastest,
-    pitLoss, rejoin, undercuts, events: { sc: ts.sc, vsc: ts.vsc, red: ts.red }, raceControl, penalties, deletedLaps, weather, firstRetirement,
+    neutral: neutralPeriods, racePace, pitWindows, strategyHint: hint, pitLoss, rejoin, undercuts, events: { sc: ts.sc, vsc: ts.vsc, red: ts.red }, raceControl, penalties, deletedLaps, weather, firstRetirement,
   }
 }
 
