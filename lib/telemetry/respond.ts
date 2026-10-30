@@ -107,6 +107,7 @@ function trimToPanels(s: TelemetryState, p: Panels): TelemetryState {
     championship: on('championship') ? s.championship : null,
     undercuts: on('strategy') ? s.undercuts : [],
     pitWindows: on('strategy') ? s.pitWindows : [],
+    trackLimits: on('limits') ? s.trackLimits : [],
     racePace: on('laps') || on('strategy') ? s.racePace : [],
     rejoin: on('strategy') || on('ours') ? s.rejoin : [],
     raceControl: on('control') ? s.raceControl : [],

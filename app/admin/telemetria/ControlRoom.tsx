@@ -17,6 +17,7 @@ const PANELS: { key: PanelKey; label: string }[] = [
   { key: 'positions', label: 'Gráfico de posições + ultrapassagens (corridas)' },
   { key: 'laps', label: 'Análise de voltas (sectores, velocidade máxima, ritmo)' },
   { key: 'control', label: 'Direcção de corrida + penalizações' },
+  { key: 'limits', label: 'Track limits: infracções por piloto, aviso e penalização (corrida)' },
 ]
 const SPEEDS = [1, 2, 5, 10, 20, 30]
 
@@ -164,6 +165,12 @@ export default function ControlRoom({ initialScene, sessions, gps, liveReady }: 
           <label className="label">Pilotos em destaque (máx. 4) — aparecem realçados e com o cálculo &quot;se parasse agora&quot;</label>
           <div className="flex flex-wrap gap-2">
             {drivers.length === 0 && <span className="text-xs text-gray-500">Escolhe uma sessão para ver os pilotos.</span>}
+            {/* destaques de outra sessão (ex.: pilotos que não estão neste treino) também ocupam vagas: mostrar para poderem ser retirados */}
+            {scene.featured.filter(c => !drivers.some(d => d.code === c)).map(c => (
+              <button key={c} disabled={busy} title="Este piloto não está nesta sessão; clica para retirar"
+                onClick={() => call('set', { featured: scene.featured.filter(x => x !== c) })}
+                className="px-2.5 py-1 rounded-lg text-xs font-black border-2 border-dashed border-orange-400 bg-orange-900/30 text-orange-200 disabled:opacity-30">{c} ✕</button>
+            ))}
             {drivers.map(d => {
               const on = scene.featured.includes(d.code)
               return (

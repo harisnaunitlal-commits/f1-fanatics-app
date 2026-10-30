@@ -12,6 +12,7 @@ import { PositionChart, OvertakeFeed } from './PositionChart'
 import { LapAnalysis } from './LapAnalysis'
 import { Championship } from './Championship'
 import { RacePace } from './RacePace'
+import { TrackLimitsPanel } from './TrackLimits'
 import { PitWindowChart, SafetyCarPanel, StintPaceTable, Bands } from './StrategyPanels'
 import type { TowerRow, TrackStatus, RcItem, RcKind, TelemetryState, RejoinSim } from '@/lib/telemetry/engine'
 
@@ -472,6 +473,12 @@ export default function TelemetryView({ endpoint = '/api/telemetria/state' }: { 
       {panelOn(scene.panels, 'laps') && (
         <Section title={s.kind === 'race' ? 'Ritmo e pneus' : 'Análise de voltas'} hint={s.kind === 'race' ? 'últimas 5 voltas, pneu e degradação' : 'sectores, velocidades e ritmo'}>
           <LapAnalysis s={s} focus={focus} />
+        </Section>
+      )}
+
+      {panelOn(scene.panels, 'limits') && (s.trackLimits.length > 0 || s.kind === 'race') && (
+        <Section title="Track limits" hint={s.trackLimits.some(t => t.status !== 'ok') ? '⚠️ há pilotos com aviso ou penalização' : 'infracções por piloto'}>
+          <TrackLimitsPanel s={s} />
         </Section>
       )}
 

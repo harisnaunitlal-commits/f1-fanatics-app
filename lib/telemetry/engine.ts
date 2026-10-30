@@ -144,6 +144,16 @@ export interface PitWindowRow {
   windowFrom: number | null; windowTo: number | null
   status: PitWindowStatus
 }
+// Track limits: every deleted lap time "TRACK LIMITS AT TURN n" is one infringement; the stewards' own flag / penalty messages are kept apart
+export type TrackLimitStatus = 'ok' | 'iminente' | 'aviso' | 'penalizado'
+export interface TrackLimitRow {
+  code: string; colour: string; count: number
+  turns: { turn: number; n: number }[]
+  lastLap: number | null
+  warned: boolean                // black-and-white flag shown for track limits
+  penaltySecs: number            // seconds of time penalty for track limits
+  status: TrackLimitStatus
+}
 export interface StrategyHint { typicalStops: number; firstStopLap: number | null }
 
 export interface UndercutAlert { attacker: string; target: string; intervalS: number; attackerAge: number; targetAge: number; strength: 'forte' | 'possível' }
@@ -180,6 +190,7 @@ export interface TelemetryState {
   fastestSectors: (number | null)[]
   championship: { drivers: ChampRow[]; teams: ChampTeamRow[]; sprint: boolean } | null
   neutral: NeutralPeriod[]
+  trackLimits: TrackLimitRow[]
   racePace: RacePaceRow[]
   pitWindows: PitWindowRow[]
   strategyHint: StrategyHint | null
@@ -840,6 +851,32 @@ export function buildState(raw: RawSession, tMs: number, totalLapsHint: number |
     for (const r of tower.filter(x => !x.out).slice(0, 10)) pitWindows.push(pitWindowOf(r))
   }
 
+  // ── track limits ──
+  const tlMap = new Map<string, { count: number; turns: Map<number, number>; lastLap: number | null; warned: boolean; penaltySecs: number }>()
+  for (const r of rc) {
+    if (ms(r.date) > tMs) break
+    const m = r.message.toUpperCase()
+    if (!m.includes('TRACK LIMITS') && !(m.includes('EXCEEDING') && m.includes('LIMITS'))) continue
+    const code = codeFromMessage(r.message) ?? (r.driver_number != null ? drivers.get(r.driver_number)?.name_acronym ?? null : null)
+    if (!code) continue
+    const e = tlMap.get(code) ?? { count: 0, turns: new Map<number, number>(), lastLap: null, warned: false, penaltySecs: 0 }
+    if (r.category === 'Flag' && (r.flag ?? '').toUpperCase().includes('BLACK AND WHITE')) e.warned = true
+    else if (m.includes('PENALTY')) e.penaltySecs += Number(/(\d+)\s*SECOND/.exec(m)?.[1] ?? 0)
+    else if (m.includes('DELETED')) {
+      e.count += 1
+      const t = /TURN\s*(\d+)/.exec(m); if (t) e.turns.set(Number(t[1]), (e.turns.get(Number(t[1])) ?? 0) + 1)
+      e.lastLap = r.lap_number ?? Number(/LAP\s*(\d+)/.exec(m)?.[1] ?? NaN) ?? e.lastLap
+      if (e.lastLap !== null && Number.isNaN(e.lastLap)) e.lastLap = null
+    }
+    tlMap.set(code, e)
+  }
+  const trackLimits: TrackLimitRow[] = Array.from(tlMap.entries()).map(([code, e]) => ({
+    code, colour: tower.find(t => t.code === code)?.colour ?? '#888888', count: e.count,
+    turns: Array.from(e.turns.entries()).map(([turn, n]) => ({ turn, n })).sort((a, b) => b.n - a.n || a.turn - b.turn),
+    lastLap: e.lastLap, warned: e.warned, penaltySecs: e.penaltySecs,
+    status: (e.penaltySecs > 0 ? 'penalizado' : e.warned ? 'aviso' : e.count >= 3 ? 'iminente' : 'ok') as TrackLimitStatus,
+  })).sort((a, b) => b.penaltySecs - a.penaltySecs || b.count - a.count || a.code.localeCompare(b.code))
+
   // ── championship if the race ended now (start-of-session standings + points for the current order) ──
   let championship: TelemetryState['championship'] = null
   const isRaceSession = /race|sprint/i.test(sessionName) && !/qualif|shootout/i.test(sessionName)
@@ -880,7 +917,7 @@ export function buildState(raw: RawSession, tMs: number, totalLapsHint: number |
     kind, results, map: mapCars, overtakes, lapChart, lapTimes, fastestSectors: sessionBest, championship,
     t: new Date(tMs).toISOString(), started, status: ts.status, yellowSectors: ts.yellow, leaderLap,
     totalLaps: totalLapsHint ?? (resLaps > 0 ? resLaps : null), tower, fastestLap: fastest,
-    neutral: neutralPeriods, racePace, pitWindows, strategyHint: hint, pitLoss, rejoin, undercuts, events: { sc: ts.sc, vsc: ts.vsc, red: ts.red }, raceControl, penalties, deletedLaps, weather, firstRetirement,
+    neutral: neutralPeriods, trackLimits, racePace, pitWindows, strategyHint: hint, pitLoss, rejoin, undercuts, events: { sc: ts.sc, vsc: ts.vsc, red: ts.red }, raceControl, penalties, deletedLaps, weather, firstRetirement,
   }
 }
 
