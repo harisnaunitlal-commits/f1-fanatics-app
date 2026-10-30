@@ -293,23 +293,25 @@ export default function TelemetryView({ endpoint = '/api/telemetria/state' }: { 
         ) : null}
         <div className="flex flex-wrap items-center gap-3">
           <div>
+            <div className="flex flex-wrap items-center gap-2 mb-2">
+              <span className={`text-[22px] font-black px-5 py-1.5 rounded-full ${scene.mode === 'live' ? 'bg-red-600 text-white animate-pulse' : 'bg-gray-700 text-gray-100'}`}>
+                {scene.mode === 'live' ? '● AO VIVO' : `↺ REPLAY${scene.replay_playing ? ` ${scene.replay_speed}×` : ' · PAUSA'}`}
+              </span>
+              <span className={`text-[22px] font-black px-5 py-1.5 rounded-full ${st.cls}`}>{st.label}</span>
+              {s.kind === 'race' && <span className="text-xl font-black tabular-nums bg-black/40 rounded-xl px-4 py-1.5">VOLTA {s.leaderLap}{s.totalLaps ? `/${s.totalLaps}` : ''}</span>}
+              <span className="text-xs text-gray-500 tabular-nums">{clock(s.t)}</span>
+            </div>
             <div className="text-xs text-gray-500 uppercase tracking-widest">{session.country}</div>
             <h1 className="text-2xl font-black flex items-center gap-2">
               {flagSrc(gp?.emoji) && <img src={flagSrc(gp?.emoji)!} alt="" className="w-8 h-5 rounded-[3px] object-cover ring-1 ring-white/15" />}
               {gp ? `GP ${gp.nome} · ` : ''}{session.name}
             </h1>
           </div>
-          <div className="ml-auto flex flex-col items-end gap-2 w-full sm:w-auto">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className={`text-[11px] font-black px-2.5 py-1 rounded-full ${scene.mode === 'live' ? 'bg-red-600 text-white animate-pulse' : 'bg-gray-700 text-gray-100'}`}>
-                {scene.mode === 'live' ? '● AO VIVO' : `↺ REPLAY${scene.replay_playing ? ` ${scene.replay_speed}×` : ' · PAUSA'}`}
-              </span>
-              <span className={`text-[11px] font-black px-2.5 py-1 rounded-full ${st.cls}`}>{st.label}</span>
-              {s.kind === 'race' && <span className="text-sm font-black tabular-nums bg-black/40 rounded-lg px-3 py-1">VOLTA {s.leaderLap}{s.totalLaps ? `/${s.totalLaps}` : ''}</span>}
-              <span className="text-xs text-gray-500 tabular-nums">{clock(s.t)}</span>
+          {s.kind !== 'race' && (
+            <div className="ml-auto w-full sm:w-auto">
+              <SessionClockBox data={data} receivedAt={receivedAt} sessionName={session.name} />
             </div>
-            {s.kind !== 'race' && <SessionClockBox data={data} receivedAt={receivedAt} sessionName={session.name} />}
-          </div>
+          )}
         </div>
         {s.weather && (
           <div className="mt-3 flex flex-wrap gap-2 text-xs text-gray-300">
