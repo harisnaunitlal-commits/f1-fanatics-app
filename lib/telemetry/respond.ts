@@ -9,6 +9,8 @@ import { P8_MARGENS } from '@/lib/gp-questions'
 import { calculatePlayScore } from '@/lib/scoring'
 import type { Prediction, GpAnswers } from '@/lib/supabase/types'
 
+let probeMemo: { key: number; at: number; v: string[] } | null = null
+
 // ── track outline: one clean lap of x/y, chosen once per session and kept ──
 const outlineChoice = new Map<number, { driver: number; start: number; dur: number }>()
 const outlineCache = new Map<string, { x: number; y: number }[]>()
@@ -280,9 +282,14 @@ export async function buildStateResponse(viewer: { email: string; isAdmin: boole
       }
     }
 
-    const probes = isAdmin && raw.laps.length === 0 && raw.raceControl.length === 0 && Date.now() > Date.parse(meta.date_start) + 5 * 60_000
-      ? await Promise.all(['laps', 'race_control', 'position', 'weather'].map(e => probe(e, sessionKey)))
-      : undefined
+    // diagnostics only: at most one round of 2 direct calls every 3 minutes (the OpenF1 limit is 60 requests/min for everything)
+    let probes: string[] | undefined
+    if (isAdmin && raw.laps.length === 0 && raw.raceControl.length === 0 && Date.now() > Date.parse(meta.date_start) + 5 * 60_000) {
+      if (!probeMemo || probeMemo.key !== sessionKey || Date.now() - probeMemo.at > 180_000) {
+        probeMemo = { key: sessionKey, at: Date.now(), v: await Promise.all(['laps', 'race_control'].map(e => probe(e, sessionKey))) }
+      }
+      probes = probeMemo.v
+    }
     return {
       status: 200,
       body: {
