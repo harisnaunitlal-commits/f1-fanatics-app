@@ -88,7 +88,7 @@ export interface StateResponse {
   disabled?: boolean
   message?: string
   isAdmin?: boolean
-  diag?: { sessionKey: number; start: string; end: string; counts: Record<string, number>; lastRc: string[]; errors?: string[]; token?: boolean; firstLap: string | null }
+  diag?: { sessionKey: number; start: string; end: string; counts: Record<string, number>; lastRc: string[]; errors?: string[]; token?: boolean; probes?: string[]; firstLap: string | null }
   scene?: Pick<Scene, 'mode' | 'banner' | 'featured' | 'panels' | 'members_enabled' | 'total_laps' | 'replay_playing' | 'replay_speed' | 'compare_mode' | 'tyre_allocation' | 'auto_follow'>
   session?: { name: string; country: string; date_start: string; date_end: string }
   upcoming?: { name: string; country: string; startMs: number } | null   // next session of the calendar (auto-follow only)

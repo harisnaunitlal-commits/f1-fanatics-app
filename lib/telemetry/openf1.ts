@@ -46,6 +46,17 @@ const memo = new Map<string, { at: number; data: unknown[] }>()
 
 // Last upstream failure per endpoint (the admin diagnostics show it: a failing call silently serves the last good copy)
 export const upstreamErrors = new Map<string, { at: number; msg: string }>()
+// Straight call to OpenF1 with no cache of ours (nor Next's): tells whether the empty data is ours or theirs
+export async function probe(endpoint: string, sessionKey: number): Promise<string> {
+  try {
+    const token = await getToken()
+    const res = await fetch(`${BASE}/v1/${endpoint}?session_key=${sessionKey}`, { headers: token ? { Authorization: `Bearer ${token}` } : {}, cache: 'no-store' })
+    const txt = await res.text()
+    let n: number | string = '?'
+    try { const j = JSON.parse(txt); n = Array.isArray(j) ? j.length : String(j?.detail ?? txt).slice(0, 70) } catch { n = txt.slice(0, 70) }
+    return `${endpoint}: HTTP ${res.status}, ${n}`
+  } catch (e) { return `${endpoint}: erro ${String(e).slice(0, 60)}` }
+}
 export const hasToken = (): boolean => !!(tokenCache && tokenCache.exp > Date.now())
 
 // OpenF1 allows 3 req/s without a token and 6 req/s with one: space the real upstream calls out.
