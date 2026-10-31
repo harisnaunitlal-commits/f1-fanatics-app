@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import Navbar from '@/components/Navbar'
+import SiteChrome from '@/components/SiteChrome'
 import WhatsAppIcon from '@/components/WhatsAppIcon'
 
 export const viewport: Viewport = {
@@ -34,32 +35,35 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="mobile-web-app-capable" content="yes" />
       </head>
       <body className="min-h-screen bg-f1dark text-white antialiased">
-        <Navbar />
-        <main className="max-w-5xl mx-auto px-4 py-6">
+        <SiteChrome
+          navbar={<Navbar />}
+          footer={
+          <footer className="text-center text-gray-500 text-sm py-8 mt-12 space-y-1.5">
+            <p>🏎️ Beira F1 Fanatics · Fundada 27 Mar 2021 · Beira, Moçambique</p>
+            <p>
+              Site desenvolvido por <span className="text-gray-400">Harishkumar Naunitlal</span>
+            </p>
+            <p className="flex items-center justify-center gap-4 flex-wrap">
+              <a
+                href="mailto:info@beiraf1fanatics.com"
+                className="text-gray-400 hover:text-white transition-colors underline underline-offset-2"
+              >
+                info@beiraf1fanatics.com
+              </a>
+              <a
+                href="https://wa.me/258825029170"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-gray-400 hover:text-green-400 transition-colors"
+              >
+                <WhatsAppIcon className="w-5 h-5" /> +258 82 502 9170
+              </a>
+            </p>
+          </footer>
+          }
+        >
           {children}
-        </main>
-        <footer className="text-center text-gray-500 text-sm py-8 mt-12 space-y-1.5">
-          <p>🏎️ Beira F1 Fanatics · Fundada 27 Mar 2021 · Beira, Moçambique</p>
-          <p>
-            Site desenvolvido por <span className="text-gray-400">Harishkumar Naunitlal</span>
-          </p>
-          <p className="flex items-center justify-center gap-4 flex-wrap">
-            <a
-              href="mailto:info@beiraf1fanatics.com"
-              className="text-gray-400 hover:text-white transition-colors underline underline-offset-2"
-            >
-              info@beiraf1fanatics.com
-            </a>
-            <a
-              href="https://wa.me/258825029170"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 text-gray-400 hover:text-green-400 transition-colors"
-            >
-              <WhatsAppIcon className="w-5 h-5" /> +258 82 502 9170
-            </a>
-          </p>
-        </footer>
+        </SiteChrome>
       </body>
     </html>
   )

@@ -40,7 +40,7 @@ export default async function TelemetriaAdminPage() {
       <div className="mb-6">
         <Link href="/admin" className="text-gray-500 hover:text-white text-sm">← Admin</Link>
         <h1 className="text-2xl font-bold mt-2">📡 Mesa de controlo da Telemetria</h1>
-        <p className="text-gray-400 text-sm">Tu montas o ecrã; os membros só vêem. Abre <Link href="/telemetria" className="text-f1red underline">/telemetria</Link> noutro separador para ver o resultado.</p>
+        <p className="text-gray-400 text-sm">Tu montas o ecrã; os membros só vêem. Abre <Link href="/telemetria" className="text-f1red underline">/telemetria</Link> noutro separador para ver o resultado. Para ti, em janelas soltas: <Link href="/admin/janelas" className="text-f1red underline">🪟 Janelas de telemetria</Link>.</p>
       </div>
       {sessionsError && <p className="text-red-400 bg-red-900/20 rounded-lg px-4 py-3 mb-4">⚠️ Não consegui ler as sessões do OpenF1: {sessionsError}</p>}
       <ControlRoom initialScene={scene as Scene} sessions={sessions} gps={gpOpts} liveReady={hasLiveCredentials()} />

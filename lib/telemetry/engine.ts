@@ -156,6 +156,7 @@ export interface TrackLimitRow {
   penaltySecs: number            // seconds of time penalty for track limits
   status: TrackLimitStatus
 }
+export interface PitStopItem { code: string; colour: string; lap: number | null; at: string; laneS: number | null; stopS: number | null; from: string | null; to: string | null }
 export interface StrategyHint { typicalStops: number; firstStopLap: number | null }
 
 export interface UndercutAlert { attacker: string; target: string; intervalS: number; attackerAge: number; targetAge: number; strength: 'forte' | 'possível' }
@@ -196,6 +197,7 @@ export interface TelemetryState {
   racePace: RacePaceRow[]
   pitWindows: PitWindowRow[]
   strategyHint: StrategyHint | null
+  pitLog: PitStopItem[]
 }
 
 // ───────────────────────────── helpers ─────────────────────────────
@@ -938,12 +940,22 @@ export function buildState(raw: RawSession, tMs: number, totalLapsHint: number |
   const kind = sessionKindOf(sessionName)
   const results = kind === 'race' ? null : buildResults(raw, tMs, kind, tower, lapsBy, deleted, rc, ts.status)
 
+  // pit stop log: lane time, stationary time and the tyre change (in-lap = last lap of the old stint)
+  const pitLog: PitStopItem[] = pits.map(p => {
+    const row = tower.find(r => r.num === p.driver_number)
+    const sts = (row?.stints ?? []).slice().sort((a, b) => a.lapStart - b.lapStart)
+    const lap = p.lap_number
+    const before = lap == null ? null : [...sts].reverse().find(x => x.lapStart <= lap) ?? null
+    const after = before ? sts[sts.indexOf(before) + 1] ?? null : null
+    return { code: row?.code ?? `#${p.driver_number}`, colour: row?.colour ?? '#888888', lap, at: p.date, laneS: p.lane_duration ?? null, stopS: p.stop_duration ?? p.pit_duration ?? null, from: before?.compound ?? null, to: after?.compound ?? null }
+  }).sort((a, b) => ms(b.at) - ms(a.at))
+
   const resLaps = Math.max(0, ...raw.results.map(r => r.number_of_laps ?? 0))
   return {
     kind, results, map: mapCars, overtakes, lapChart, lapTimes, fastestSectors: sessionBest, championship,
     t: new Date(tMs).toISOString(), started, status: ts.status, yellowSectors: ts.yellow, leaderLap,
     totalLaps: totalLapsHint ?? (resLaps > 0 ? resLaps : null), tower, fastestLap: fastest,
-    neutral: neutralPeriods, trackLimits, racePace, pitWindows, strategyHint: hint, pitLoss, rejoin, undercuts, events: { sc: ts.sc, vsc: ts.vsc, red: ts.red }, raceControl, penalties, deletedLaps, weather, firstRetirement,
+    neutral: neutralPeriods, trackLimits, racePace, pitWindows, strategyHint: hint, pitLog, pitLoss, rejoin, undercuts, events: { sc: ts.sc, vsc: ts.vsc, red: ts.red }, raceControl, penalties, deletedLaps, weather, firstRetirement,
   }
 }
 

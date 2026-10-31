@@ -19,7 +19,7 @@ import type { TowerRow, TrackStatus, RcItem, RcKind, TelemetryState, RejoinSim }
 
 const POLL_MS = 5000
 
-const STATUS: Record<TrackStatus, { label: string; cls: string }> = {
+export const STATUS: Record<TrackStatus, { label: string; cls: string }> = {
   NOT_STARTED: { label: 'ANTES DO INÍCIO', cls: 'bg-gray-700 text-gray-100' },
   GREEN: { label: 'PISTA LIVRE', cls: 'bg-green-600 text-white' },
   VSC: { label: 'VIRTUAL SAFETY CAR', cls: 'bg-yellow-400 text-black' },
@@ -31,7 +31,7 @@ const STATUS: Record<TrackStatus, { label: string; cls: string }> = {
 }
 
 // Big banner at the top of the header while the session is neutralised (red flag, safety car, VSC).
-const NEUTRAL_BANNER: Partial<Record<TrackStatus, { icon: string; cls: string; text: string }>> = {
+export const NEUTRAL_BANNER: Partial<Record<TrackStatus, { icon: string; cls: string; text: string }>> = {
   RED: { icon: '🚨', cls: 'bg-red-600 text-white ring-4 ring-red-400/40', text: 'Sessão interrompida — carros nas boxes ou parados.' },
   SC: { icon: '🚗', cls: 'bg-orange-500 text-black ring-4 ring-orange-300/40', text: 'Safety Car em pista — sem ultrapassagens.' },
   SC_ENDING: { icon: '🚗', cls: 'bg-orange-400 text-black ring-4 ring-orange-300/40', text: 'O Safety Car vai recolher — relançamento a seguir.' },
@@ -42,9 +42,9 @@ const NEUTRAL_BANNER: Partial<Record<TrackStatus, { icon: string; cls: string; t
 const RC_ICON: Record<RcKind, string> = { flag: '🏁', safetycar: '🚗', penalty: '⚖️', investigation: '🔍', noted: '📝', cleared: '✅', deleted: '⏱️', info: 'ℹ️' }
 const FLAG_ICON: Record<string, string> = { YELLOW: '🟡', 'DOUBLE YELLOW': '🟡🟡', GREEN: '🟢', CLEAR: '🟢', BLUE: '🔵', RED: '🔴', CHEQUERED: '🏁', 'BLACK AND WHITE': '⚫⚪', BLACK: '⚫' }
 
-const clock = (iso: string) => new Date(iso).toLocaleTimeString('pt', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+export const clock = (iso: string) => new Date(iso).toLocaleTimeString('pt', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
 
-function Tyre({ compound, age }: { compound: string | null; age: number | null }) {
+export function Tyre({ compound, age }: { compound: string | null; age: number | null }) {
   const c = compound ? COMPOUND[compound] : null
   if (!c) return <span className="text-gray-600">—</span>
   return (
@@ -55,7 +55,7 @@ function Tyre({ compound, age }: { compound: string | null; age: number | null }
   )
 }
 
-function RejoinCard({ sim, row }: { sim: RejoinSim; row?: TowerRow }) {
+export function RejoinCard({ sim, row }: { sim: RejoinSim; row?: TowerRow }) {
   const lost = sim.toPos - sim.fromPos
   const tone = lost <= 0 ? 'text-green-400' : lost <= 2 ? 'text-yellow-300' : 'text-red-400'
   return (
@@ -79,7 +79,7 @@ function RejoinCard({ sim, row }: { sim: RejoinSim; row?: TowerRow }) {
   )
 }
 
-function Tower({ s, favCode, featured }: { s: TelemetryState; favCode: string | null; featured: string[] }) {
+export function Tower({ s, favCode, featured }: { s: TelemetryState; favCode: string | null; featured: string[] }) {
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
@@ -127,7 +127,7 @@ function Tower({ s, favCode, featured }: { s: TelemetryState; favCode: string | 
   )
 }
 
-function StintTimeline({ s }: { s: TelemetryState }) {
+export function StintTimeline({ s }: { s: TelemetryState }) {
   const total = Math.max(s.totalLaps ?? 0, s.leaderLap, 10)
   return (
     <div className="space-y-1">
@@ -159,7 +159,7 @@ function StintTimeline({ s }: { s: TelemetryState }) {
   )
 }
 
-function RcRow({ r }: { r: RcItem }) {
+export function RcRow({ r }: { r: RcItem }) {
   const icon = r.kind === 'flag' ? FLAG_ICON[(r.flag ?? '').toUpperCase()] ?? '🏁' : RC_ICON[r.kind]
   return (
     <li className="flex gap-2 py-1.5 border-b border-gray-800/50 text-xs">
@@ -180,7 +180,7 @@ const hhmm = (ms: number) => new Date(ms).toLocaleTimeString('pt', { hour: '2-di
 
 // Broadcast-style session clock. Counts down locally every second; in live mode it uses the server's clock
 // so the viewer's device time does not matter. Times of start/end are shown in the viewer's local time.
-function SessionClockBox({ data, receivedAt, sessionName }: { data: StateResponse; receivedAt: number; sessionName: string }) {
+export function SessionClockBox({ data, receivedAt, sessionName }: { data: StateResponse; receivedAt: number; sessionName: string }) {
   const [, force] = useState(0)
   useEffect(() => { const id = setInterval(() => force(n => n + 1), 1000); return () => clearInterval(id) }, [])
   const c = data.clock

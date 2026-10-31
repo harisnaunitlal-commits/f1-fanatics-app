@@ -1,6 +1,6 @@
 import type { MapCar } from '@/lib/telemetry/engine'
 
-export function TrackMap({ outline, cars, favCode, featured }: { outline: { x: number; y: number }[] | null | undefined; cars: MapCar[]; favCode: string | null; featured: string[] }) {
+export function TrackMap({ outline, cars, favCode, featured, fill }: { outline: { x: number; y: number }[] | null | undefined; cars: MapCar[]; favCode: string | null; featured: string[]; fill?: boolean }) {
   const pts = [...(outline ?? []), ...cars].map(p => ({ x: p.x, y: -p.y })) // y grows upwards in OpenF1, downwards in SVG
   if (pts.length === 0) return <p className="text-sm text-gray-500">Sem posições dos carros neste momento.</p>
 
@@ -15,7 +15,7 @@ export function TrackMap({ outline, cars, favCode, featured }: { outline: { x: n
 
   return (
     <div>
-      <svg viewBox={`${minX - pad} ${minY - pad} ${maxX - minX + 2 * pad} ${maxY - minY + 2 * pad}`} className="w-full h-auto max-h-[460px] rounded-xl bg-black/30">
+      <svg viewBox={`${minX - pad} ${minY - pad} ${maxX - minX + 2 * pad} ${maxY - minY + 2 * pad}`} className={`w-full h-auto ${fill ? 'max-h-[calc(100vh-3rem)]' : 'max-h-[460px]'} rounded-xl bg-black/30`}>
         {line && <>
           <path d={line} fill="none" stroke="#2c2c38" strokeWidth={r * 4.2} strokeLinejoin="round" strokeLinecap="round" />
           <path d={line} fill="none" stroke="#454556" strokeWidth={r * 1.1} strokeLinejoin="round" strokeLinecap="round" strokeDasharray={`${r * 3} ${r * 3}`} />

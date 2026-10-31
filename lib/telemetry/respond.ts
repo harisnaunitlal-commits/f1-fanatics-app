@@ -186,8 +186,10 @@ async function loadPlayData(gpId: number): Promise<PlayData> {
 }
 
 // Everything the /telemetria screen needs for one viewer. Identical for all viewers except `me`/`favCode`.
-export async function buildStateResponse(viewer: { email: string; isAdmin: boolean; pilotoFav: string | null }, sc: Scene | null): Promise<{ status: number; body: StateResponse }> {
+// opts.full (admin windows only): every panel's data is computed whatever the members' panels say, and opts.drivers replaces the featured drivers.
+export async function buildStateResponse(viewer: { email: string; isAdmin: boolean; pilotoFav: string | null }, sc: Scene | null, opts?: { full?: boolean; drivers?: string[] }): Promise<{ status: number; body: StateResponse }> {
   const { isAdmin } = viewer
+  const full = isAdmin && !!opts?.full
   if (!sc?.session_key) return { status: 200, body: { ready: false, isAdmin, message: 'Ainda não há nenhuma sessão montada.' } }
   if (!sc.members_enabled && !isAdmin) return { status: 200, body: { ready: false, disabled: true, message: 'A telemetria ainda está em preparação.' } }
 
@@ -221,10 +223,11 @@ export async function buildStateResponse(viewer: { email: string; isAdmin: boole
     const raw = await loadRaw(sessionKey, t, sc.mode === 'live', meta.session_name)
     const hint = sc.gp_id ? await loadStrategyHint(sc.gp_id) : null
     const state = buildState(raw, t, sc.total_laps, meta.session_name, hint)
-    const panels = sc.panels ?? {}
+    const panels: Panels = full ? {} : (sc.panels ?? {})
+    const featured = full && opts?.drivers?.length ? opts.drivers : sc.featured
     const [outline, compare, tyreHistory] = await Promise.all([
       panels.map !== false ? trackOutline(sessionKey, raw, t).catch(() => null) : Promise.resolve(null),
-      panels.compare !== false ? buildCompare(sessionKey, raw, sc.featured, sc.compare_mode ?? 'best', t).catch(() => null) : Promise.resolve(null),
+      panels.compare !== false ? buildCompare(sessionKey, raw, featured, sc.compare_mode ?? 'best', t).catch(() => null) : Promise.resolve(null),
       panels.tyres !== false ? buildTyreHistory(meta, raw, state).catch(() => null) : Promise.resolve(null),
     ])
     const drivers = raw.drivers.map(d => ({ code: d.name_acronym, name: d.full_name, team: d.team_name, colour: d.team_colour.startsWith('#') ? d.team_colour : `#${d.team_colour}` }))
@@ -294,7 +297,7 @@ export async function buildStateResponse(viewer: { email: string; isAdmin: boole
       status: 200,
       body: {
         ready: true, isAdmin,
-        scene: { mode: sc.mode, banner: sc.banner, featured: sc.featured, panels: sc.panels, members_enabled: sc.members_enabled, total_laps: sc.total_laps, replay_playing: sc.replay_playing, replay_speed: Number(sc.replay_speed), compare_mode: sc.compare_mode ?? 'best', tyre_allocation: sc.tyre_allocation ?? null, auto_follow: !!sc.auto_follow },
+        scene: { mode: sc.mode, banner: sc.banner, featured, panels: full ? {} : sc.panels, members_enabled: sc.members_enabled, total_laps: sc.total_laps, replay_playing: sc.replay_playing, replay_speed: Number(sc.replay_speed), compare_mode: sc.compare_mode ?? 'best', tyre_allocation: sc.tyre_allocation ?? null, auto_follow: !!sc.auto_follow },
         session: { name: meta.session_name, country: meta.country_name, date_start: meta.date_start, date_end: meta.date_end },
         upcoming: nextSession ? { name: nextSession.session_name, country: nextSession.country_name, startMs: Date.parse(nextSession.date_start) } : null,
         clock: (() => { const c = computeClock(raw.raceControl, sessionKindOf(meta.session_name), meta.session_name, { start: Date.parse(meta.date_start), end: Date.parse(meta.date_end) }, rawT); return c ? { ...c, endsAtMs: c.remainingMs !== null ? rawT + c.remainingMs : null } : null })(),

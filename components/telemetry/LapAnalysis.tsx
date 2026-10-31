@@ -5,9 +5,7 @@ import { RacePace } from './RacePace'
 
 const SECTOR_CLS: Record<NonNullable<SectorColour>, string> = { purple: 'text-purple-400 font-black', green: 'text-green-400 font-bold', yellow: 'text-yellow-300' }
 
-export function LapAnalysis({ s, focus }: { s: TelemetryState; focus: string[] }) {
-  const rows = s.tower.filter(r => !r.out || r.lastLap !== null)
-  const overall = s.fastestLap?.code
+export function LapTimesChart({ s, focus, showEmpty }: { s: TelemetryState; focus: string[]; showEmpty?: boolean }) {
   const lines: LapTimeLine[] = (focus.length ? focus : s.tower.slice(0, 3).map(r => r.code)).map(c => s.lapTimes.find(l => l.code === c)).filter((l): l is LapTimeLine => !!l && l.laps.length > 0)
   const all = lines.flatMap(l => l.laps.map(x => x.t))
   const yMin = all.length ? Math.floor(Math.min(...all) * 2) / 2 : 90
@@ -22,6 +20,22 @@ export function LapAnalysis({ s, focus }: { s: TelemetryState; focus: string[] }
   const yt: number[] = []
   for (let v = Math.ceil(yMin); v <= yMax; v += 1) yt.push(v)
 
+  if (series.length === 0) return showEmpty ? <p className="text-sm text-gray-500">Ainda não há voltas completas destes pilotos.</p> : null
+  return (
+      <div>
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mb-1">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Tempos por volta (s)</span>
+          {lines.map((l, i) => <span key={l.code} className="inline-flex items-center gap-1 text-xs"><span className="w-3 h-1 rounded" style={{ background: series[i].color }} /><b>{l.code}</b></span>)}
+        </div>
+        <LineChart series={series} xMin={1} xMax={xMax} yMin={yMin} yMax={yMax} height={170} yTicks={yt} xTicks={Array.from({ length: Math.floor(xMax / 10) + 1 }, (_, i) => i * 10).filter(v => v >= 1).concat(1)} fmtY={v => `${v}`} />
+        <p className="text-[10px] text-gray-600">Voltas de box, de Safety Car e a 1ª volta ficam de fora. Mostra os pilotos destacados pelo admin (ou o top 3).</p>
+      </div>
+  )
+}
+
+export function LapAnalysis({ s, focus }: { s: TelemetryState; focus: string[] }) {
+  const rows = s.tower.filter(r => !r.out || r.lastLap !== null)
+  const overall = s.fastestLap?.code
   const race = s.kind === 'race'
   return (
     <div className="space-y-5">
@@ -58,16 +72,7 @@ export function LapAnalysis({ s, focus }: { s: TelemetryState; focus: string[] }
         <p className="text-[10px] text-gray-600 mt-2"><span className="text-purple-400 font-bold">Roxo</span> = melhor sector da sessão · <span className="text-green-400 font-bold">verde</span> = melhor pessoal · <span className="text-yellow-300">amarelo</span> = mais lento. Velocidade máxima = melhor da &quot;speed trap&quot;.</p>
       </div>}
 
-      {series.length > 0 && (
-        <div>
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mb-1">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Tempos por volta (s)</span>
-            {lines.map((l, i) => <span key={l.code} className="inline-flex items-center gap-1 text-xs"><span className="w-3 h-1 rounded" style={{ background: series[i].color }} /><b>{l.code}</b></span>)}
-          </div>
-          <LineChart series={series} xMin={1} xMax={xMax} yMin={yMin} yMax={yMax} height={170} yTicks={yt} xTicks={Array.from({ length: Math.floor(xMax / 10) + 1 }, (_, i) => i * 10).filter(v => v >= 1).concat(1)} fmtY={v => `${v}`} />
-          <p className="text-[10px] text-gray-600">Voltas de box, de Safety Car e a 1ª volta ficam de fora. Mostra os pilotos destacados pelo admin (ou o top 3).</p>
-        </div>
-      )}
+      <LapTimesChart s={s} focus={focus} />
     </div>
   )
 }
