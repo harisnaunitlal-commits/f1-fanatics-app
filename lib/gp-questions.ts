@@ -96,6 +96,7 @@ const PHOTO_FILES: Record<string, string> = {
   GAS: 'Gasley',
   HAD: 'Hadjar',
   HAM: 'Hamilton',
+  HIR: 'Hirakawa',
   HUL: 'Hulkenberg',
   LAW: 'Lawson',
   TSU: 'Tsunoda',
