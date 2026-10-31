@@ -71,7 +71,8 @@ export interface SessionResults {
   sessionBest: number | null
 }
 export interface MapCar { code: string; colour: string; x: number; y: number; out: boolean; inPit: boolean }
-export interface OvertakeItem { date: string; lap: number | null; by: string; over: string; pos: number }
+export interface OvertakeTyre { compound: string | null; age: number | null }
+export interface OvertakeItem { date: string; lap: number | null; by: string; over: string; pos: number; byTyre: OvertakeTyre; overTyre: OvertakeTyre }
 export interface PositionLine { code: string; colour: string; pos: (number | null)[] }
 export interface LapTimeLine { code: string; colour: string; laps: { lap: number; t: number }[] }
 export interface ChampRow { code: string; name: string; colour: string; posStart: number; pointsStart: number; pointsNow: number; posNow: number; delta: number }
@@ -779,9 +780,17 @@ export function buildState(raw: RawSession, tMs: number, totalLapsHint: number |
     for (const l of arr) { if (l.date_start && ms(l.date_start) <= at) v = l.lap_number; else break }
     return v
   }
+  // tyre (compound and age in laps) a driver was on at the moment of the move
+  const tyreAtLap = (num: number, at: number): OvertakeTyre => {
+    const lap = lapAt(num, at)
+    if (lap === null) return { compound: null, age: null }
+    const st = raw.stints.filter(x => x.driver_number === num && x.lap_start != null && x.lap_start <= lap && (x.lap_end == null || x.lap_end >= lap)).sort((a, b) => b.stint_number - a.stint_number)[0]
+    return st ? { compound: st.compound, age: (st.tyre_age_at_start ?? 0) + lap - (st.lap_start as number) } : { compound: null, age: null }
+  }
   const overtakes: OvertakeItem[] = raw.overtakes.filter(o => ms(o.date) <= tMs).sort((a, b) => ms(a.date) - ms(b.date)).slice(-10).reverse().map(o => ({
     date: o.date, lap: lapAt(o.overtaking_driver_number, ms(o.date)), pos: o.position,
     by: drivers.get(o.overtaking_driver_number)?.name_acronym ?? '?', over: drivers.get(o.overtaken_driver_number)?.name_acronym ?? '?',
+    byTyre: tyreAtLap(o.overtaking_driver_number, ms(o.date)), overTyre: tyreAtLap(o.overtaken_driver_number, ms(o.date)),
   }))
 
   // ── lap chart: position at the start of each lap, and clean lap times ──
