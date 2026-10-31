@@ -421,7 +421,7 @@ export default function TelemetryView({ endpoint = '/api/telemetria/state' }: { 
 
       {panelOn(scene.panels, 'map') && (
         <Section title="Mapa da pista" hint={s.map.length ? `${s.map.filter(c => !c.out).length} carros em pista` : undefined}>
-          <TrackMap outline={outline} cars={s.map} favCode={favCode ?? null} featured={featured} />
+          <TrackMap outline={outline} corners={data.corners} cars={s.map} favCode={favCode ?? null} featured={featured} />
         </Section>
       )}
 

@@ -108,7 +108,7 @@ async function fetchUpstream<T>(endpoint: string, url: string, ttlSec: number, s
   return data
 }
 
-export interface SessionMeta { session_key: number; session_name: string; session_type: string; date_start: string; date_end: string; meeting_key: number; country_name: string; circuit_short_name: string; year: number }
+export interface SessionMeta { session_key: number; session_name: string; session_type: string; date_start: string; date_end: string; meeting_key: number; circuit_key: number; country_name: string; circuit_short_name: string; year: number }
 
 export async function listSessions(year: number): Promise<SessionMeta[]> {
   const rows = await of1<SessionMeta>('sessions', [['year', '', year]], 600)

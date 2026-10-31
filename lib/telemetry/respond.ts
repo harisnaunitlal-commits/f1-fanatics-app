@@ -4,6 +4,7 @@ import { buildState, computeClock, sessionKindOf, provisionalAnswers, driverFrom
 import { resampleLap, compareLaps, type CarSample, type CompareData, type LapTrace } from './compare'
 import type { StrategyHint } from './engine'
 import { PLAY_FIELDS, QUANTUM_MS, sceneTime, type Scene, type StateResponse, type PlayLine, type LeaderRow, type TyreHistory, type Panels, type PanelKey } from './shared'
+import { trackCorners } from './circuit'
 import { getEffectiveGpConfig } from '@/lib/gp-config'
 import { P8_MARGENS } from '@/lib/gp-questions'
 import { calculatePlayScore } from '@/lib/scoring'
@@ -230,6 +231,7 @@ export async function buildStateResponse(viewer: { email: string; isAdmin: boole
       panels.compare !== false ? buildCompare(sessionKey, raw, featured, sc.compare_mode ?? 'best', t).catch(() => null) : Promise.resolve(null),
       panels.tyres !== false ? buildTyreHistory(meta, raw, state).catch(() => null) : Promise.resolve(null),
     ])
+    const corners = outline && meta.circuit_key ? await trackCorners(meta.circuit_key, meta.year, outline).catch(() => null) : null
     const drivers = raw.drivers.map(d => ({ code: d.name_acronym, name: d.full_name, team: d.team_name, colour: d.team_colour.startsWith('#') ? d.team_colour : `#${d.team_colour}` }))
     const favCode = driverFromText(viewer.pilotoFav, drivers.map(d => ({ code: d.code, name: d.name })))
 
@@ -302,7 +304,7 @@ export async function buildStateResponse(viewer: { email: string; isAdmin: boole
         upcoming: nextSession ? { name: nextSession.session_name, country: nextSession.country_name, startMs: Date.parse(nextSession.date_start) } : null,
         clock: (() => { const c = computeClock(raw.raceControl, sessionKindOf(meta.session_name), meta.session_name, { start: Date.parse(meta.date_start), end: Date.parse(meta.date_end) }, rawT); return c ? { ...c, endsAtMs: c.remainingMs !== null ? rawT + c.remainingMs : null } : null })(),
         serverNow: Date.now(), serverT: rawT, live: sc.mode === 'live',
-        gp, drivers, state: trimToPanels(state, panels), outline, compare, tyreHistory, favCode, play,
+        gp, drivers, state: trimToPanels(state, panels), outline, corners, compare, tyreHistory, favCode, play,
         // only for the admin: what the OpenF1 actually returned (helps when a session looks empty)
         diag: isAdmin ? {
           sessionKey, start: meta.date_start, end: meta.date_end,

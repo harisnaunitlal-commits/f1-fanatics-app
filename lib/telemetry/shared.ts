@@ -100,6 +100,7 @@ export interface StateResponse {
   serverT?: number
   live?: boolean
   outline?: { x: number; y: number }[] | null
+  corners?: import('./circuit').Corner[] | null   // numbered corners (only when they line up with the outline)
   compare?: import('./compare').CompareData | null
   tyreHistory?: TyreHistory | null
   favCode?: string | null
