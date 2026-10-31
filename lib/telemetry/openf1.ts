@@ -44,6 +44,10 @@ type Filter = [key: string, op: '' | '>=' | '<=', value: string | number]
 
 const memo = new Map<string, { at: number; data: unknown[] }>()
 
+// Last upstream failure per endpoint (the admin diagnostics show it: a failing call silently serves the last good copy)
+export const upstreamErrors = new Map<string, { at: number; msg: string }>()
+export const hasToken = (): boolean => !!(tokenCache && tokenCache.exp > Date.now())
+
 // OpenF1 allows 3 req/s without a token and 6 req/s with one: space the real upstream calls out.
 let nextSlot = 0
 async function throttle(gapMs: number) {
@@ -80,6 +84,9 @@ async function fetchUpstream<T>(endpoint: string, url: string, ttlSec: number, s
   if (!res) throw new Error(`OpenF1 ${endpoint} → sem resposta`)
   if (res.status === 404) { memo.set(url, { at: Date.now(), data: [] }); return [] }
   if (!res.ok) {
+    let body = ''
+    try { body = (await res.text()).slice(0, 90) } catch { /* ignore */ }
+    upstreamErrors.set(endpoint, { at: Date.now(), msg: `HTTP ${res.status}${token ? '' : ' (sem token)'} ${body}` })
     if (stale) return stale // rate-limited or upstream hiccup: keep serving the last good copy
     throw new Error(`OpenF1 ${endpoint} → HTTP ${res.status}`)
   }

@@ -1,5 +1,5 @@
 import { createServiceClient } from '@/lib/supabase/service'
-import { loadRaw, of1, isoNoZ, listSessions, type SessionMeta } from './openf1'
+import { loadRaw, of1, isoNoZ, listSessions, upstreamErrors, hasToken, type SessionMeta } from './openf1'
 import { buildState, computeClock, sessionKindOf, provisionalAnswers, driverFromText, type PlayCfg, type RawSession, type OF1Lap, type OF1Location, type OF1Stint, type TelemetryState } from './engine'
 import { resampleLap, compareLaps, type CarSample, type CompareData, type LapTrace } from './compare'
 import type { StrategyHint } from './engine'
@@ -295,6 +295,8 @@ export async function buildStateResponse(viewer: { email: string; isAdmin: boole
           sessionKey, start: meta.date_start, end: meta.date_end,
           counts: { drivers: raw.drivers.length, positions: raw.positions.length, laps: raw.laps.length, lapsTimed: raw.laps.filter(l => l.lap_duration != null).length, raceControl: raw.raceControl.length, pits: raw.pits.length, stints: raw.stints.length, weather: raw.weather.length, results: raw.results.length },
           lastRc: raw.raceControl.slice(-3).map(r => `${r.date.slice(11, 19)} ${r.category}: ${r.message}`.slice(0, 120)),
+          errors: Array.from(upstreamErrors.entries()).filter(([, v]) => Date.now() - v.at < 10 * 60_000).map(([k, v]) => `${k}: ${v.msg} (há ${Math.round((Date.now() - v.at) / 1000)}s)`),
+          token: hasToken(),
           firstLap: raw.laps.map(l => l.date_start).filter(Boolean).sort()[0] ?? null,
         } : undefined,
       },
