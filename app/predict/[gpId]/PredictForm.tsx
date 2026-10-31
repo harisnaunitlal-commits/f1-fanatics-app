@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { PILOTOS_2026, EQUIPAS_2026 } from '@/lib/supabase/types'
+import { gpDrivers } from '@/lib/gp-drivers'
 import {
   P8_MARGENS, P3_OPTIONS, P12_OPTIONS, P14_BINARY, P14_MULTI, P14_MULTI_RF,
   getGpQuestions, getDriverPhoto, TEAM_COLORS,
@@ -374,16 +375,7 @@ export default function PredictForm({
   const [countdown, setCountdown] = useState(getDeadlineCountdown(gp.deadline_play))
 
   const config = configProp ?? getGpQuestions(gp.round)
-  const gpDisabled = (gp.round === 12 || gp.round === 13 || gp.round === 14) ? ['HAD'] : []
-  const gpPilotos = (gp.round === 12 || gp.round === 13 || gp.round === 14)
-    ? [
-        { codigo: 'LAW', nome: 'Liam Lawson', equipa: 'Red Bull Racing' as const },
-        ...PILOTOS_2026.map(p =>
-          p.codigo === 'LAW' ? { codigo: 'TSU', nome: 'Yuki Tsunoda', equipa: 'Racing Bulls' as const } :
-          { ...p }
-        ),
-      ]
-    : [...PILOTOS_2026]
+  const { pilotos: gpPilotos, disabled: gpDisabled } = gpDrivers(gp.round)
   const gpNameFull = config ? `Grande Prémio ${config.gpPrep} ${config.gpName}` : gp.nome
 
   const blank: FormData = {

@@ -1,18 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { PILOTOS_2026 } from '@/lib/supabase/types'
+import { gpDrivers } from '@/lib/gp-drivers'
 import type { GpQuestions, DuelConfig, DriverOption } from '@/lib/gp-questions'
 import { TEAM_COLORS } from '@/lib/gp-questions'
-
-function buildDriverList(round: number) {
-  const lawSub = round === 12 || round === 13 || round === 14
-  return (PILOTOS_2026 as readonly { codigo: string; nome: string; equipa: string }[]).map(p =>
-    p.codigo === 'HAD' && lawSub ? { codigo: 'LAW', nome: 'Liam Lawson', equipa: 'Red Bull Racing' } :
-    p.codigo === 'LAW' && lawSub ? { codigo: 'TSU', nome: 'Yuki Tsunoda', equipa: 'Racing Bulls' } :
-    { ...p }
-  )
-}
 
 function driverColor(equipa: string): string {
   return TEAM_COLORS[equipa] ?? '#888888'
@@ -132,7 +123,7 @@ export default function GpQuestionsEditor({
   gpRound: number
   initialConfig: GpQuestions
 }) {
-  const ALL_DRIVERS = buildDriverList(gpRound)
+  const ALL_DRIVERS = gpDrivers(gpRound).pilotos
   const [config, setConfig] = useState<GpQuestions>(initialConfig)
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)

@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { PILOTOS_2026 } from '@/lib/supabase/types'
+import { EXTRA_DRIVER_NAMES } from '@/lib/gp-drivers'
 import { getEffectiveGpConfig } from '@/lib/gp-config'
 import { calculatePlayScore } from '@/lib/scoring'
 import type { Prediction, GpAnswers } from '@/lib/supabase/types'
@@ -13,7 +14,7 @@ function dn(code: string | null | undefined): string {
   if (code.toUpperCase() === 'NONE') return 'Nenhum Piloto'
   const p = (PILOTOS_2026 as readonly { codigo: string; nome: string }[])
     .find(x => x.codigo === code.toUpperCase())
-  return p?.nome ?? code
+  return p?.nome ?? EXTRA_DRIVER_NAMES[code.toUpperCase()] ?? code
 }
 
 function Row({

@@ -659,7 +659,7 @@ const GP_QUESTIONS: Record<number, GpQuestions> = {
       { codigo: 'HAD', nome: 'Isack Hadjar',    equipa: 'Red Bull Racing',color: TEAM_COLORS['Red Bull Racing'] },
       { codigo: 'LAW', nome: 'Liam Lawson',     equipa: 'Racing Bulls',   color: TEAM_COLORS['Racing Bulls'] },
       { codigo: 'HUL', nome: 'Nico Hülkenberg', equipa: 'Audi',           color: TEAM_COLORS['Audi'] },
-      { codigo: 'OCO', nome: 'Esteban Ocon',    equipa: 'Haas',           color: TEAM_COLORS['Haas'] },
+      { codigo: 'HIR', nome: 'Ryo Hirakawa',    equipa: 'Haas',           color: TEAM_COLORS['Haas'] },   // substitui Ocon no México
     ],
     p14Options: P14_MULTI_RF,
     p15Label: "Qual piloto terminará a corrida na posição mais alta?",
