@@ -3,11 +3,10 @@ import { of1, type SessionMeta } from './openf1'
 
 // Team radio as text: OpenF1 lists the clips the broadcast picked (mp3 on livetiming.formula1.com). Each clip is
 // transcribed once (English, original) and translated once (Portuguese); both texts are stored and shared by every viewer.
-// Only drivers of Mercedes, Red Bull, Ferrari and McLaren. Nothing runs unless the admin switched the panel on.
+// All drivers (the broadcast already picks which clips OpenF1 lists). Nothing runs unless the admin switched the panel on.
 
-const TEAMS = ['Mercedes', 'Red Bull Racing', 'Ferrari', 'McLaren']
-const MAX_NEW_PER_CALL = 2
-const SHOWN = 25
+const MAX_NEW_PER_CALL = 3
+const SHOWN = 40
 
 interface OF1Radio { date: string; driver_number: number; recording_url: string; session_key: number }
 interface OF1Drv { driver_number: number; name_acronym: string; team_name: string; team_colour: string; full_name: string }
@@ -65,7 +64,7 @@ async function translate(en: string): Promise<string> {
   return (j.choices?.[0]?.message?.content ?? '').trim()
 }
 
-// Lists the session's radio clips from our drivers, processes a few new ones (newest first) and returns the stored texts.
+// Lists the session's radio clips, processes a few new ones (newest first) and returns the stored texts.
 export async function radioFeed(sessionKey: number, live: boolean): Promise<RadioResponse> {
   const configured = radioConfigured()
   const db = createServiceClient()
@@ -74,7 +73,7 @@ export async function radioFeed(sessionKey: number, live: boolean): Promise<Radi
     of1<OF1Drv>('drivers', [['session_key', '', sessionKey]], 3600),
     of1<OF1Radio>('team_radio', [['session_key', '', sessionKey]], ttl).catch(() => [] as OF1Radio[]),
   ])
-  const by = new Map(drivers.filter(d => TEAMS.includes(d.team_name)).map(d => [d.driver_number, d]))
+  const by = new Map(drivers.map(d => [d.driver_number, d]))
   const mine = clips.filter(c => by.has(c.driver_number) && c.recording_url).sort((a, b) => Date.parse(b.date) - Date.parse(a.date))
 
   const { data: stored } = await db.from('radio_transcripts').select('id, status, en, pt, updated_at').eq('session_key', sessionKey)

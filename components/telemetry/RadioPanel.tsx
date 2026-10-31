@@ -42,7 +42,7 @@ export function RadioPanel({ isAdmin }: { isAdmin: boolean }) {
       {data.note && isAdmin && <p className="text-xs text-orange-300">⚠️ {data.note}</p>}
 
       {data.items.length === 0 ? (
-        <p className="text-sm text-gray-500">Ainda sem rádios das equipas Mercedes, Red Bull, Ferrari e McLaren nesta sessão. Só aparecem as mensagens que a transmissão da F1 escolhe.</p>
+        <p className="text-sm text-gray-500">Ainda sem rádios nesta sessão. Só aparecem as mensagens que a transmissão da F1 escolhe.</p>
       ) : (
         <ul className="space-y-2">
           {data.items.map(r => (
@@ -67,7 +67,7 @@ export function RadioPanel({ isAdmin }: { isAdmin: boolean }) {
           ))}
         </ul>
       )}
-      <p className="text-[10px] text-gray-600">Transcrição automática (pode ter erros, sobretudo com ruído do motor). Só as mensagens escolhidas pela transmissão da F1, dos pilotos Mercedes, Red Bull, Ferrari e McLaren.</p>
+      <p className="text-[10px] text-gray-600">Transcrição automática (pode ter erros, sobretudo com ruído do motor). Só as mensagens escolhidas pela transmissão da F1.</p>
     </div>
   )
 }
