@@ -1,9 +1,10 @@
 // Types and constants shared by the telemetry API routes and the UI (no server-only imports).
 
-export const PANEL_KEYS = ['tower', 'strategy', 'control', 'ours', 'map', 'compare', 'positions', 'laps', 'championship', 'tyres', 'limits'] as const
+export const PANEL_KEYS = ['tower', 'strategy', 'control', 'ours', 'map', 'compare', 'positions', 'laps', 'championship', 'tyres', 'limits', 'radio'] as const
 export type PanelKey = typeof PANEL_KEYS[number]
 export type Panels = Partial<Record<PanelKey, boolean>>
-export const panelOn = (p: Panels | null | undefined, k: PanelKey): boolean => p?.[k] !== false
+// every panel is on unless switched off; the radio text panel is the opposite (off until the admin switches it on)
+export const panelOn = (p: Panels | null | undefined, k: PanelKey): boolean => (k === 'radio' ? p?.[k] === true : p?.[k] !== false)
 
 export type TyreAllocation = { HARD: number; MEDIUM: number; SOFT: number }
 

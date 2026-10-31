@@ -13,6 +13,7 @@ import { LapAnalysis } from './LapAnalysis'
 import { Championship } from './Championship'
 import { RacePace } from './RacePace'
 import { TrackLimitsPanel } from './TrackLimits'
+import { RadioPanel } from './RadioPanel'
 import { PitWindowChart, SafetyCarPanel, StintPaceTable, Bands } from './StrategyPanels'
 import type { TowerRow, TrackStatus, RcItem, RcKind, TelemetryState, RejoinSim } from '@/lib/telemetry/engine'
 
@@ -506,6 +507,12 @@ export default function TelemetryView({ endpoint = '/api/telemetria/state' }: { 
       {panelOn(scene.panels, 'limits') && (s.trackLimits.length > 0 || s.kind === 'race') && (
         <Section title="Track limits" hint={s.trackLimits.some(t => t.status !== 'ok') ? '⚠️ há pilotos com aviso ou penalização' : 'infracções por piloto'}>
           <TrackLimitsPanel s={s} />
+        </Section>
+      )}
+
+      {panelOn(scene.panels, 'radio') && (
+        <Section title="Rádios das equipas" hint="texto em inglês e português">
+          <RadioPanel isAdmin={!!data.isAdmin} />
         </Section>
       )}
 

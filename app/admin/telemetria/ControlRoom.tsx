@@ -18,6 +18,7 @@ const PANELS: { key: PanelKey; label: string }[] = [
   { key: 'laps', label: 'Análise de voltas (sectores, velocidade máxima, ritmo)' },
   { key: 'control', label: 'Direcção de corrida + penalizações' },
   { key: 'limits', label: 'Track limits: infracções por piloto, aviso e penalização (corrida)' },
+  { key: 'radio', label: 'Rádios (texto) EN + PT — Mercedes, Red Bull, Ferrari, McLaren · DESLIGADO por defeito, gasta API' },
 ]
 const SPEEDS = [1, 2, 5, 10, 20, 30]
 

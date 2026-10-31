@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
   if (Array.isArray(body.featured)) patch.featured = body.featured.filter((c): c is string => typeof c === 'string' && /^[A-Z]{3}$/.test(c)).slice(0, 4)
   if (body.panels && typeof body.panels === 'object') {
     const p = body.panels as Record<string, unknown>
-    patch.panels = Object.fromEntries(PANEL_KEYS.map(k => [k, p[k] !== false]))
+    patch.panels = Object.fromEntries(PANEL_KEYS.map(k => [k, k === 'radio' ? p[k] === true : p[k] !== false]))
   }
   if ('tyre_allocation' in body) {
     const a = body.tyre_allocation as Record<string, unknown> | null
