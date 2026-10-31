@@ -332,6 +332,13 @@ export default function TelemetryView({ endpoint = '/api/telemetria/state' }: { 
         </div>
       )}
 
+      {data.diag && (s.status === 'NOT_STARTED' || !s.results?.rows.some(r => r.best !== null)) && s.kind !== 'race' && (
+        <div className="rounded-xl border border-gray-600 bg-black/30 px-4 py-2 text-[11px] text-gray-300 font-mono">
+          🛠 diag (só admin) · sessão {data.diag.sessionKey} · dados do OpenF1: {Object.entries(data.diag.counts).map(([k, v]) => `${k}=${v}`).join(' ')}
+          {data.diag.lastRc.map((l, i) => <div key={i}>RC {l}</div>)}
+        </div>
+      )}
+
       {scene.banner && (
         <div className="rounded-xl border-2 border-yellow-400/70 bg-yellow-400/10 px-4 py-3 text-yellow-100 font-semibold">📣 {scene.banner}</div>
       )}

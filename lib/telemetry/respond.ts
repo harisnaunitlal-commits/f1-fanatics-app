@@ -290,6 +290,13 @@ export async function buildStateResponse(viewer: { email: string; isAdmin: boole
         clock: (() => { const c = computeClock(raw.raceControl, sessionKindOf(meta.session_name), meta.session_name, { start: Date.parse(meta.date_start), end: Date.parse(meta.date_end) }, rawT); return c ? { ...c, endsAtMs: c.remainingMs !== null ? rawT + c.remainingMs : null } : null })(),
         serverNow: Date.now(), serverT: rawT, live: sc.mode === 'live',
         gp, drivers, state: trimToPanels(state, panels), outline, compare, tyreHistory, favCode, play,
+        // only for the admin: what the OpenF1 actually returned (helps when a session looks empty)
+        diag: isAdmin ? {
+          sessionKey, start: meta.date_start, end: meta.date_end,
+          counts: { drivers: raw.drivers.length, positions: raw.positions.length, laps: raw.laps.length, lapsTimed: raw.laps.filter(l => l.lap_duration != null).length, raceControl: raw.raceControl.length, pits: raw.pits.length, stints: raw.stints.length, weather: raw.weather.length, results: raw.results.length },
+          lastRc: raw.raceControl.slice(-3).map(r => `${r.date.slice(11, 19)} ${r.category}: ${r.message}`.slice(0, 120)),
+          firstLap: raw.laps.map(l => l.date_start).filter(Boolean).sort()[0] ?? null,
+        } : undefined,
       },
     }
   } catch (e) {
