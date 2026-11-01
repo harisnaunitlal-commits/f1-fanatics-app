@@ -586,6 +586,10 @@ export function buildState(raw: RawSession, tMs: number, totalLapsHint: number |
   const afterRed = ts.redEndMs !== null && effT - ts.redEndMs < 360_000
   const lastStart = new Map<number, number>()
   for (const [num, arr] of Array.from(lapsBy.entries())) { const last = arr[arr.length - 1]; if (last?.date_start) lastStart.set(num, ms(last.date_start)) }
+  // The race can stand still (red flag, cars back in the pits) with the flags already green/clear: if nobody starts a lap any more, judge retirements as of the moment the field stopped, otherwise the whole grid would read as retired
+  let maxStart = 0
+  lastStart.forEach(v => { if (v > maxStart) maxStart = v })
+  const refT = maxStart > 0 ? Math.min(effT, maxStart + 90_000) : effT
   const resultBy = new Map(raw.results.map(r => [r.driver_number, r]))
   const outSet = new Set<number>()
   for (const num of Array.from(posBy.keys())) {
@@ -595,8 +599,8 @@ export function buildState(raw: RawSession, tMs: number, totalLapsHint: number |
     if (ls === undefined || !started || ts.status === 'RED' || afterRed) continue
     const lastPit = pitsBy.get(num)?.slice(-1)[0]
     // pit.date is the moment the car LEFT the pit lane (checked against the car positions): it was in the lane during [date - lane_duration, date]
-    const inPitNow = raw.pits.some(p => p.driver_number === num && p.lane_duration != null && effT >= ms(p.date) - (p.lane_duration + 10) * 1000 && effT < ms(p.date) + 10_000)
-    if (effT - ls > threshold && !inPitNow) outSet.add(num)
+    const inPitNow = raw.pits.some(p => p.driver_number === num && p.lane_duration != null && refT >= ms(p.date) - (p.lane_duration + 10) * 1000 && refT < ms(p.date) + 10_000)
+    if (refT - ls > threshold && !inPitNow) outSet.add(num)
   }
   const winLaps = Math.max(0, ...raw.results.map(r => r.number_of_laps ?? 0))
   const finishedNow = ts.chequeredMs !== null && tMs >= ts.chequeredMs
