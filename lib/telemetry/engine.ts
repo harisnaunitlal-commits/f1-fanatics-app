@@ -1,7 +1,10 @@
 // Telemetry engine: turns raw OpenF1 datasets into the state shown on /telemetria at a given instant.
 // Pure functions, no I/O and no runtime imports, so the same code serves replay and live.
 
-export interface OF1Driver { driver_number: number; name_acronym: string; full_name: string; team_name: string; team_colour: string; headshot_url?: string | null }
+export interface OF1Driver { driver_number: number; name_acronym: string; full_name: string; team_name: string; team_colour: string | null; headshot_url?: string | null }
+
+// OpenF1 sometimes has no team colour for a driver (new seat, late entry): fall back to grey instead of crashing
+export const teamHex = (c: string | null | undefined, fallback = '#888888'): string => (c ? (c.startsWith('#') ? c : `#${c}`) : fallback)
 export interface OF1Position { date: string; driver_number: number; position: number }
 export interface OF1Interval { date: string; driver_number: number; gap_to_leader: number | string | null; interval: number | string | null }
 export interface OF1Stint { stint_number: number; driver_number: number; lap_start: number | null; lap_end: number | null; compound: string | null; tyre_age_at_start: number | null }
@@ -659,7 +662,7 @@ export function buildState(raw: RawSession, tMs: number, totalLapsHint: number |
 
     rows.push({
       sectors: secs, sectorColour, topSpeed: topSpeedBy.get(num) ?? null,
-      pos: position, num, code: d.name_acronym, name: d.full_name, team: d.team_name, colour: d.team_colour.startsWith('#') ? d.team_colour : `#${d.team_colour}`,
+      pos: position, num, code: d.name_acronym, name: d.full_name, team: d.team_name, colour: teamHex(d.team_colour),
       gapLabel, intervalLabel, gapS: position === 1 ? 0 : g.sec, intervalS: position === 1 ? null : itv.sec, lapsDown: g.lapsDown,
       lap, lastLap: lastDone?.lap_duration ?? null, bestLap: best?.lap_duration ?? null,
       tyre: cur?.compound ?? null, tyreAge, stops: myPits.length, inPit, out: outSet.has(num), stints, degPerLap: deg,
@@ -924,7 +927,7 @@ export function buildState(raw: RawSession, tMs: number, totalLapsHint: number |
       // drivers not in this session (replaced) keep their standings position
       return [{
         code: d?.name_acronym ?? `#${c.driver_number}`, name: d?.full_name ?? `Piloto ${c.driver_number}`,
-        colour: d ? (d.team_colour.startsWith('#') ? d.team_colour : `#${d.team_colour}`) : '#666666',
+        colour: teamHex(d?.team_colour, '#666666'),
         posStart: c.position_start, pointsStart: c.points_start, pointsNow: c.points_start + g, posNow: 0, delta: g,
       }]
     }).sort((a, b) => b.pointsNow - a.pointsNow || a.posStart - b.posStart)
@@ -935,7 +938,7 @@ export function buildState(raw: RawSession, tMs: number, totalLapsHint: number |
       if (c.points_start == null || c.position_start == null) return []
       const g = teamGain.get(teamKey(c.team_name)) ?? 0
       const dd = raw.drivers.find(d => teamKey(d.team_name) === teamKey(c.team_name))
-      return [{ name: c.team_name, colour: dd ? (dd.team_colour.startsWith('#') ? dd.team_colour : `#${dd.team_colour}`) : '#888888', posStart: c.position_start, pointsStart: c.points_start, pointsNow: c.points_start + g, posNow: 0, delta: g }]
+      return [{ name: c.team_name, colour: teamHex(dd?.team_colour), posStart: c.position_start, pointsStart: c.points_start, pointsNow: c.points_start + g, posNow: 0, delta: g }]
     }).sort((a, b) => b.pointsNow - a.pointsNow || a.posStart - b.posStart)
     trows.forEach((r, i) => { r.posNow = i + 1 })
     championship = { drivers: drows, teams: trows, sprint }

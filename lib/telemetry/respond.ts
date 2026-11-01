@@ -1,6 +1,6 @@
 import { createServiceClient } from '@/lib/supabase/service'
 import { loadRaw, of1, isoNoZ, listSessions, upstreamErrors, hasToken, probe, type SessionMeta } from './openf1'
-import { buildState, computeClock, sessionKindOf, provisionalAnswers, driverFromText, type PlayCfg, type RawSession, type OF1Lap, type OF1Location, type OF1Stint, type TelemetryState } from './engine'
+import { buildState, teamHex, computeClock, sessionKindOf, provisionalAnswers, driverFromText, type PlayCfg, type RawSession, type OF1Lap, type OF1Location, type OF1Stint, type TelemetryState } from './engine'
 import { resampleLap, compareLaps, type CarSample, type CompareData, type LapTrace } from './compare'
 import type { StrategyHint } from './engine'
 import { PLAY_FIELDS, QUANTUM_MS, sceneTime, type Scene, type StateResponse, type PlayLine, type LeaderRow, type TyreHistory, type Panels, type PanelKey } from './shared'
@@ -68,7 +68,7 @@ async function lapTraceFor(sessionKey: number, raw: RawSession, code: string, mo
     : done.reduce((a, b) => (b.lap_number > a.lap_number ? b : a))
   const start = Date.parse(lap.date_start as string)
   const samples = await of1<CarSample>('car_data', [['session_key', '', sessionKey], ['driver_number', '', d.driver_number], ['date', '>=', isoNoZ(start - 300)], ['date', '<=', isoNoZ(start + (lap.lap_duration as number) * 1000 + 300)]], 86_400)
-  return resampleLap(samples, start, lap.lap_duration as number, { code, colour: d.team_colour.startsWith('#') ? d.team_colour : `#${d.team_colour}`, lap: lap.lap_number })
+  return resampleLap(samples, start, lap.lap_duration as number, { code, colour: teamHex(d.team_colour), lap: lap.lap_number })
 }
 
 async function buildCompare(sessionKey: number, raw: RawSession, featured: string[], mode: 'best' | 'last', tMs: number): Promise<CompareData | null> {
@@ -256,7 +256,7 @@ export async function buildStateResponse(viewer: { email: string; isAdmin: boole
     ])
     const pitLane = panels.map !== false ? await pitLanePath(sessionKey, raw, t).catch(() => null) : null
     const corners = outline && meta.circuit_key ? await trackCorners(meta.circuit_key, meta.year, outline).catch(() => null) : null
-    const drivers = raw.drivers.map(d => ({ code: d.name_acronym, name: d.full_name, team: d.team_name, colour: d.team_colour.startsWith('#') ? d.team_colour : `#${d.team_colour}` }))
+    const drivers = raw.drivers.map(d => ({ code: d.name_acronym, name: d.full_name, team: d.team_name, colour: teamHex(d.team_colour) }))
     const favCode = driverFromText(viewer.pilotoFav, drivers.map(d => ({ code: d.code, name: d.name })))
 
     let gp: StateResponse['gp'] = null
