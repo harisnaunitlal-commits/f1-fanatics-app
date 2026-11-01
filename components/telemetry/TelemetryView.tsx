@@ -14,6 +14,7 @@ import { Championship } from './Championship'
 import { RacePace } from './RacePace'
 import { TrackLimitsPanel } from './TrackLimits'
 import { RadioPanel } from './RadioPanel'
+import { RaceSetsTable } from './RaceSets'
 import { PitWindowChart, SafetyCarPanel, StintPaceTable, Bands } from './StrategyPanels'
 import type { TowerRow, TrackStatus, RcItem, RcKind, TelemetryState, RejoinSim } from '@/lib/telemetry/engine'
 
@@ -486,7 +487,8 @@ export default function TelemetryView({ endpoint = '/api/telemetria/state' }: { 
       )}
 
       {panelOn(scene.panels, 'tyres') && (
-        <Section title="Pneus do fim-de-semana" hint="o que cada piloto já usou nas sessões anteriores">
+        <Section title="Pneus do fim-de-semana" hint="sets novos para a corrida + o que cada piloto já usou">
+          {scene.race_sets && <div className="mb-5"><h3 className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">Sets novos disponíveis para a corrida</h3><RaceSetsTable sets={scene.race_sets} s={s} favCode={favCode ?? null} featured={featured} /></div>}
           <TyreHistory data={data.tyreHistory ?? null} allocation={scene.tyre_allocation} />
         </Section>
       )}

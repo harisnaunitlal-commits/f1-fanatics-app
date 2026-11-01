@@ -44,6 +44,23 @@ export async function POST(req: NextRequest) {
     const n = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? Math.min(20, Math.max(0, Math.round(v))) : 0)
     patch.tyre_allocation = a && (n(a.HARD) || n(a.MEDIUM) || n(a.SOFT)) ? { HARD: n(a.HARD), MEDIUM: n(a.MEDIUM), SOFT: n(a.SOFT) } : null
   }
+  if ('race_sets' in body) {
+    const rs = body.race_sets as Record<string, unknown> | null
+    const pair = (v: unknown): [number, number] => {
+      const a = Array.isArray(v) ? v : []
+      const n = (x: unknown) => (typeof x === 'number' && Number.isFinite(x) ? Math.min(12, Math.max(0, Math.round(x))) : 0)
+      return [n(a[0]), n(a[1])]
+    }
+    const out: Record<string, unknown> = {}
+    if (rs && typeof rs === 'object') {
+      for (const [code, row] of Object.entries(rs).slice(0, 30)) {
+        if (!/^[A-Z]{3}$/.test(code) || !row || typeof row !== 'object') continue
+        const r = row as Record<string, unknown>
+        out[code] = { H: pair(r.H), M: pair(r.M), S: pair(r.S) }
+      }
+    }
+    patch.race_sets = Object.keys(out).length ? out : null
+  }
   if (typeof body.auto_follow === 'boolean') patch.auto_follow = body.auto_follow
   if (body.compare_mode === 'best' || body.compare_mode === 'last') patch.compare_mode = body.compare_mode
 

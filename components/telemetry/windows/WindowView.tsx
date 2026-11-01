@@ -15,6 +15,7 @@ import { Championship } from '../Championship'
 import { TrackLimitsPanel } from '../TrackLimits'
 import { RadioPanel } from '../RadioPanel'
 import { TyreHistory } from '../TyreHistory'
+import { RaceSetsTable, RaceSetsLine } from '../RaceSets'
 import { PlayBoards } from '../PlayBoards'
 import { PitWindowChart, SafetyCarPanel, StintPaceTable } from '../StrategyPanels'
 
@@ -274,6 +275,7 @@ function DriverCard({ s, code, data }: { s: TelemetryState; code: string | null;
           </div>
         </div>
       )}
+      <RaceSetsLine sets={data.scene?.race_sets} t={r} race={s.kind === 'race'} />
       {s.kind === 'race' && pw && (
         <div className="bg-black/30 rounded-lg px-3 py-2 text-sm">
           <div className="text-[10px] uppercase tracking-wide text-gray-500">Janela de paragem</div>
@@ -478,7 +480,8 @@ function Body({ id, data, receivedAt, drivers }: { id: string; data: StateRespon
     case 'boxes': return <PitLog s={s} />
     case 'ritmo': return <LapAnalysis s={s} focus={focus} />
     case 'tempos-volta': return <LapTimesChart s={s} focus={drivers} showEmpty />
-    case 'pneus-fds': return <TyreHistory data={data.tyreHistory ?? null} allocation={scene.tyre_allocation} />
+    case 'sets-corrida': return <RaceSetsTable sets={scene.race_sets} s={s} favCode={favCode} featured={focus} />
+    case 'pneus-fds': return <div className="space-y-5">{scene.race_sets && <RaceSetsTable sets={scene.race_sets} s={s} favCode={favCode} featured={focus} />}<TyreHistory data={data.tyreHistory ?? null} allocation={scene.tyre_allocation} /></div>
     case 'mapa': return <TrackMap outline={data.outline} corners={data.corners} pitLane={data.pitLane} cars={s.map} favCode={favCode} featured={focus} fill />
     case 'posicoes': return <PositionChart lines={s.lapChart} highlight={focus} totalLaps={s.totalLaps} leaderLap={s.leaderLap} />
     case 'ultrapassagens': return <OvertakeFeed items={s.overtakes} />

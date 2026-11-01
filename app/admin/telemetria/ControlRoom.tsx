@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { sceneTime, panelOn, type PanelKey, type Scene, type StateResponse } from '@/lib/telemetry/shared'
+import { sceneTime, panelOn, parseRaceSets, type PanelKey, type Scene, type StateResponse } from '@/lib/telemetry/shared'
 
 export interface SessionOpt { key: number; label: string; start: string; end: string; gpGuess: number | null }
 export interface GpOpt { id: number; label: string }
@@ -37,6 +37,7 @@ export default function ControlRoom({ initialScene, sessions, gps, liveReady }: 
   const [totalLaps, setTotalLaps] = useState(initialScene.total_laps ? String(initialScene.total_laps) : '')
   const [drag, setDrag] = useState<number | null>(null)
   const [alloc, setAlloc] = useState({ SOFT: String(initialScene.tyre_allocation?.SOFT ?? ''), MEDIUM: String(initialScene.tyre_allocation?.MEDIUM ?? ''), HARD: String(initialScene.tyre_allocation?.HARD ?? '') })
+  const [setsText, setSetsText] = useState('')
   const [checking, setChecking] = useState(false)
   const [checkMsg, setCheckMsg] = useState('')
 
@@ -190,12 +191,29 @@ export default function ControlRoom({ initialScene, sessions, gps, liveReady }: 
               <label key={k} className="flex items-center gap-2 text-sm text-gray-300">
                 {name}
                 <input className="input !w-16 text-center" inputMode="numeric" placeholder="0" value={alloc[k]} disabled={busy}
-                  onChange={e => setAlloc({ ...alloc, [k]: e.target.value.replace(/D/g, '').slice(0, 2) })} />
+                  onChange={e => setAlloc({ ...alloc, [k]: e.target.value.replace(/\D/g, '').slice(0, 2) })} />
               </label>
             ))}
             <button disabled={busy} className="btn-secondary" onClick={() => call('set', { tyre_allocation: { SOFT: Number(alloc.SOFT) || 0, MEDIUM: Number(alloc.MEDIUM) || 0, HARD: Number(alloc.HARD) || 0 } })}>Aplicar</button>
             <button disabled={busy} className="btn-secondary" onClick={() => { setAlloc({ SOFT: '', MEDIUM: '', HARD: '' }); call('set', { tyre_allocation: null }) }}>Limpar</button>
           </div>
+        </div>
+        <div>
+          <label className="label">Sets de pneus <b>para a corrida</b>, por piloto (folha da Pirelli / o teu Race Set) — actualiza todos os domingos</label>
+          <p className="text-xs text-gray-500 mb-2">Cola a tabela, uma linha por piloto: <code className="text-gray-300">HAM 1 0 1 0 0 4</code> = Duro novo/usado, Médio novo/usado, Macio novo/usado (como na tabela do flyer; o número da posição antes do código pode ficar). Só os <b>novos</b> contam na estratégia.</p>
+          <textarea className="input font-mono text-xs" rows={5} placeholder={'1 HAM 1 0 1 0 0 4\n2 RUS 1 0 1 0 0 4\n…'} value={setsText} disabled={busy} onChange={e => setSetsText(e.target.value)} />
+          {(() => {
+            const parsed = setsText.trim() ? parseRaceSets(setsText) : null
+            const n = parsed ? Object.keys(parsed.sets).length : 0
+            const cur = scene.race_sets ? Object.keys(scene.race_sets).length : 0
+            return (
+              <div className="flex flex-wrap items-center gap-3 mt-2">
+                <button disabled={busy || n === 0} className="btn-secondary" onClick={() => { if (parsed) { call('set', { race_sets: parsed.sets }); setSetsText('') } }}>Aplicar sets{n ? ` (${n} pilotos)` : ''}</button>
+                <button disabled={busy || cur === 0} className="btn-secondary" onClick={() => call('set', { race_sets: null })}>Limpar</button>
+                <span className="text-xs text-gray-400">{cur ? `Guardado: ${cur} pilotos` : 'Ainda sem sets guardados.'}{parsed && parsed.bad.length > 0 ? ` · não percebi ${parsed.bad.length} linha(s): ${parsed.bad.slice(0, 2).join(' | ')}` : ''}</span>
+              </div>
+            )
+          })()}
         </div>
         <div>
           <label className="label">Telemetria de piloto: compara os 2 <b>primeiros</b> pilotos destacados ({scene.featured.slice(0, 2).join(' vs ') || 'escolhe 2'}) — usando</label>

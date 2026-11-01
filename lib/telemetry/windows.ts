@@ -51,6 +51,7 @@ export const WINDOWS: WindowDef[] = [
   { id: 'boxes', group: 'estrategia', icon: '🔧', title: 'Registo de paragens', desc: 'Todas as paragens: volta, tempo na pit lane, tempo parado e pneus trocados.', w: 700, h: 800, race: true },
   { id: 'ritmo', group: 'estrategia', icon: '📊', title: 'Ritmo e degradação', desc: 'Últimas 5 voltas com delta, pneu e degradação (corrida) ou análise de voltas (treinos).', w: 900, h: 900 },
   { id: 'tempos-volta', group: 'estrategia', icon: '📉', title: 'Tempos por volta', desc: 'Gráfico de tempos por volta dos pilotos escolhidos (até 4).', w: 900, h: 420, needsDrivers: 2 },
+  { id: 'sets-corrida', group: 'estrategia', icon: '🆕', title: 'Sets novos para a corrida', desc: 'Quantos sets novos de cada composto cada piloto tem (folha da Pirelli). Na corrida, as paragens riscam os que já foram usados.', w: 760, h: 900 },
   { id: 'pneus-fds', group: 'estrategia', icon: '🛞', title: 'Pneus do fim-de-semana', desc: 'O que cada piloto já usou nas sessões anteriores e o que lhe resta.', w: 900, h: 800 },
 
   // ── Pista ──

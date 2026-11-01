@@ -8,6 +8,28 @@ export const panelOn = (p: Panels | null | undefined, k: PanelKey): boolean => (
 
 export type TyreAllocation = { HARD: number; MEDIUM: number; SOFT: number }
 
+// Pirelli's "sets available for the race" per driver, typed in by the admin each Sunday: [new, used] for Hard (C3), Medium (C4), Soft (C5)
+export type RaceSetsRow = { H: [number, number]; M: [number, number]; S: [number, number] }
+export type RaceSets = Record<string, RaceSetsRow>
+
+// Reads the table as it appears in the race-set flyer / Pirelli sheet, one driver per line:
+//   "1 HAM 1 0 1 0 0 4"  = Hard new/used, Medium new/used, Soft new/used   (the leading position is optional)
+//   "HAM 1 1 0"          = only the NEW sets: Hard, Medium, Soft
+export function parseRaceSets(text: string): { sets: RaceSets; bad: string[] } {
+  const sets: RaceSets = {}
+  const bad: string[] = []
+  for (const raw of text.split(/\r?\n/)) {
+    const line = raw.trim()
+    if (!line) continue
+    const m = /(?:^|[^A-Za-z])([A-Za-z]{3})(?=[^A-Za-z]|$)([^A-Za-z]*)$/.exec(line)
+    const nums = m ? (m[2].match(/\d+/g) ?? []).map(Number) : []
+    if (!m || (nums.length !== 6 && nums.length !== 3) || nums.some(n => n > 12)) { bad.push(line.slice(0, 40)); continue }
+    const code = m[1].toUpperCase()
+    sets[code] = nums.length === 6 ? { H: [nums[0], nums[1]], M: [nums[2], nums[3]], S: [nums[4], nums[5]] } : { H: [nums[0], 0], M: [nums[1], 0], S: [nums[2], 0] }
+  }
+  return { sets, bad }
+}
+
 export interface TyreHistory {
   sessions: { key: number; short: string }[]
   drivers: { code: string; colour: string; bySession: { compound: string | null; laps: number }[][]; totals: Record<string, number> }[]
@@ -26,6 +48,7 @@ export interface Scene {
   panels: Panels
   compare_mode: 'best' | 'last'
   tyre_allocation: TyreAllocation | null
+  race_sets?: RaceSets | null
   auto_follow: boolean
   featured: string[]
   banner: string | null
@@ -89,7 +112,7 @@ export interface StateResponse {
   message?: string
   isAdmin?: boolean
   diag?: { sessionKey: number; start: string; end: string; counts: Record<string, number>; lastRc: string[]; errors?: string[]; token?: boolean; probes?: string[]; firstLap: string | null }
-  scene?: Pick<Scene, 'mode' | 'banner' | 'featured' | 'panels' | 'members_enabled' | 'total_laps' | 'replay_playing' | 'replay_speed' | 'compare_mode' | 'tyre_allocation' | 'auto_follow'>
+  scene?: Pick<Scene, 'mode' | 'banner' | 'featured' | 'panels' | 'members_enabled' | 'total_laps' | 'replay_playing' | 'replay_speed' | 'compare_mode' | 'tyre_allocation' | 'race_sets' | 'auto_follow'>
   session?: { name: string; country: string; date_start: string; date_end: string }
   upcoming?: { name: string; country: string; startMs: number } | null   // next session of the calendar (auto-follow only)
   gp?: { nome: string; emoji: string | null; round: number } | null

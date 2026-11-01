@@ -64,7 +64,7 @@ export function TyreHistory({ data, allocation }: { data: TyreHistoryData | null
               ))}
             </tbody>
           </table>
-          <p className="text-[10px] text-gray-600 mt-2">Cada bola é um stint: composto e número de voltas. A última coluna é a sessão que estás a ver. O OpenF1 não identifica os sets nem diz quais restam — por isso não se calculam &quot;sets disponíveis&quot;.</p>
+          <p className="text-[10px] text-gray-600 mt-2">Cada bola é um stint: composto e número de voltas. A última coluna é a sessão que estás a ver. O OpenF1 não identifica os sets; os sets novos para a corrida vêm da folha da Pirelli, inserida pelo admin.</p>
         </div>
       )}
     </div>
