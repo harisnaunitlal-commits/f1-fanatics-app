@@ -15,6 +15,7 @@ import { RacePace } from './RacePace'
 import { TrackLimitsPanel } from './TrackLimits'
 import { RadioPanel } from './RadioPanel'
 import { RaceSetsTable } from './RaceSets'
+import { PreRace } from './PreRace'
 import { PitWindowChart, SafetyCarPanel, StintPaceTable, Bands } from './StrategyPanels'
 import type { TowerRow, TrackStatus, RcItem, RcKind, TelemetryState, RejoinSim } from '@/lib/telemetry/engine'
 
@@ -278,6 +279,8 @@ export default function TelemetryView({ endpoint = '/api/telemetria/state' }: { 
   const rejoinCodes = Array.from(new Set([...(favCode ? [favCode] : []), ...featured]))
   const rejoinList = (rejoinCodes.length ? rejoinCodes : s.tower.filter(r => !r.out).slice(0, 4).map(r => r.code))
     .map(c => s.rejoin.find(x => x.code === c)).filter((x): x is RejoinSim => !!x)
+
+  if (data.preRace) return <PreRace data={data} receivedAt={receivedAt} err={err} />
 
   return (
     <div className="space-y-4">

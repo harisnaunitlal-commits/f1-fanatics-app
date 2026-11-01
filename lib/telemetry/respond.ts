@@ -177,7 +177,7 @@ async function gpForMeeting(meta: SessionMeta): Promise<{ gpId: number | null; l
 // Predictions, members and question config barely change during a race: keep them 30 s.
 interface PlayData {
   at: number
-  gpRow: { nome: string; emoji_bandeira: string | null; round: number; deadline_play: string } | null
+  gpRow: { nome: string; emoji_bandeira: string | null; round: number; deadline_play: string; starting_grid_image?: string | null; session_images?: { label: string; url: string }[] | null } | null
   cfg: PlayCfg | undefined
   preds: Prediction[]
   members: { email: string; nickname: string; foto_url: string | null }[]
@@ -190,7 +190,7 @@ async function loadPlayData(gpId: number): Promise<PlayData> {
   const hit = playCache.get(gpId)
   if (hit && Date.now() - hit.at < 30_000) return hit
   const db = createServiceClient()
-  const { data: gpRow } = await db.from('gp_calendar').select('nome, emoji_bandeira, round, deadline_play').eq('id', gpId).single()
+  const { data: gpRow } = await db.from('gp_calendar').select('nome, emoji_bandeira, round, deadline_play, starting_grid_image, session_images').eq('id', gpId).single()
   const [cfg, { data: preds }, { data: members }, { data: official }, { data: prev }] = await Promise.all([
     gpRow ? getEffectiveGpConfig(null, gpId, gpRow.round) as Promise<PlayCfg | undefined> : Promise.resolve(undefined),
     db.from('predictions').select('*').eq('gp_id', gpId),
@@ -260,11 +260,13 @@ export async function buildStateResponse(viewer: { email: string; isAdmin: boole
     const favCode = driverFromText(viewer.pilotoFav, drivers.map(d => ({ code: d.code, name: d.name })))
 
     let gp: StateResponse['gp'] = null
+    let gridImage: string | null = null
     let play: StateResponse['play']
     if (sc.gp_id) {
       const { gpRow, cfg, preds, members, official, base } = await loadPlayData(sc.gp_id)
       if (gpRow) {
         gp = { nome: gpRow.nome, emoji: gpRow.emoji_bandeira, round: gpRow.round }
+        gridImage = (gpRow.session_images ?? []).find(i => i.label === 'Starting Grid')?.url ?? gpRow.starting_grid_image ?? null
         const answers = provisionalAnswers(state, cfg, P8_MARGENS)
         for (const f of PLAY_FIELDS) { const v = official[f.field]; if (typeof v === 'string' && v) answers[f.field] = v }
         const closed = Date.now() >= Date.parse(gpRow.deadline_play)
@@ -311,6 +313,13 @@ export async function buildStateResponse(viewer: { email: string; isAdmin: boole
       }
     }
 
+    // pre-race: from 3 h before the race starts, until it starts (then the race becomes the followed session)
+    let preRace: StateResponse['preRace'] = null
+    if (nextSession && /^race$/i.test(nextSession.session_name) && nextSession.session_key !== sessionKey && panels.prerace !== false) {
+      const startMs = Date.parse(nextSession.date_start)
+      if (startMs > Date.now() && startMs - Date.now() <= 3 * 3600_000) preRace = { startMs, name: nextSession.session_name, gridImage }
+    }
+
     // diagnostics only: at most one round of 2 direct calls every 3 minutes (the OpenF1 limit is 60 requests/min for everything)
     let probes: string[] | undefined
     if (isAdmin && raw.laps.length === 0 && raw.raceControl.length === 0 && Date.now() > Date.parse(meta.date_start) + 5 * 60_000) {
@@ -328,7 +337,7 @@ export async function buildStateResponse(viewer: { email: string; isAdmin: boole
         upcoming: nextSession ? { name: nextSession.session_name, country: nextSession.country_name, startMs: Date.parse(nextSession.date_start) } : null,
         clock: (() => { const c = computeClock(raw.raceControl, sessionKindOf(meta.session_name), meta.session_name, { start: Date.parse(meta.date_start), end: Date.parse(meta.date_end) }, rawT); return c ? { ...c, endsAtMs: c.remainingMs !== null ? rawT + c.remainingMs : null } : null })(),
         serverNow: Date.now(), serverT: rawT, live: sc.mode === 'live',
-        gp, drivers, state: trimToPanels(state, panels), outline, corners, pitLane, compare, tyreHistory, favCode, play,
+        gp, drivers, state: trimToPanels(state, panels), outline, corners, pitLane, compare, tyreHistory, favCode, play, preRace,
         // only for the admin: what the OpenF1 actually returned (helps when a session looks empty)
         diag: isAdmin ? {
           sessionKey, start: meta.date_start, end: meta.date_end,
