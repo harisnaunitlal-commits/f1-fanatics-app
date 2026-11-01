@@ -4,7 +4,7 @@ import type { Corner } from '@/lib/telemetry/circuit'
 interface Box { x0: number; y0: number; x1: number; y1: number }
 const hit = (a: Box, b: Box) => a.x0 < b.x1 && a.x1 > b.x0 && a.y0 < b.y1 && a.y1 > b.y0
 
-export function TrackMap({ outline, corners, cars, favCode, featured, fill }: { outline: { x: number; y: number }[] | null | undefined; corners?: Corner[] | null; cars: MapCar[]; favCode: string | null; featured: string[]; fill?: boolean }) {
+export function TrackMap({ outline, corners, pitLane, cars, favCode, featured, fill }: { outline: { x: number; y: number }[] | null | undefined; corners?: Corner[] | null; pitLane?: { x: number; y: number }[] | null; cars: MapCar[]; favCode: string | null; featured: string[]; fill?: boolean }) {
   const base = [...(outline ?? []), ...cars].map(p => ({ x: p.x, y: -p.y })) // y grows upwards in OpenF1, downwards in SVG
   if (base.length === 0) return <p className="text-sm text-gray-500">Sem posições dos carros neste momento.</p>
 
@@ -17,7 +17,8 @@ export function TrackMap({ outline, corners, cars, favCode, featured, fill }: { 
     return { n: c.n, x: c.x, y: -c.y, lx: c.x + Math.cos(a) * d, ly: -c.y - Math.sin(a) * d }
   })
 
-  const pts = [...base, ...cn.map(c => ({ x: c.lx, y: c.ly }))]
+  const pl = pitLane && pitLane.length > 1 ? pitLane.map(p => ({ x: p.x, y: -p.y })) : null
+  const pts = [...base, ...cn.map(c => ({ x: c.lx, y: c.ly })), ...(pl ?? [])]
   const minX = Math.min(...pts.map(p => p.x)), maxX = Math.max(...pts.map(p => p.x))
   const minY = Math.min(...pts.map(p => p.y)), maxY = Math.max(...pts.map(p => p.y))
   const span = Math.max(maxX - minX, maxY - minY, 1)
@@ -60,6 +61,18 @@ export function TrackMap({ outline, corners, cars, favCode, featured, fill }: { 
           <path d={line} fill="none" stroke="#2c2c38" strokeWidth={r * 4.2} strokeLinejoin="round" strokeLinecap="round" />
           <path d={line} fill="none" stroke="#454556" strokeWidth={r * 1.1} strokeLinejoin="round" strokeLinecap="round" strokeDasharray={`${r * 3} ${r * 3}`} />
         </>}
+        {pl && (() => {
+          const a = pl[0], z = pl[pl.length - 1]
+          return (
+            <g>
+              <path d={pl.map((p, i) => `${i ? 'L' : 'M'}${p.x},${p.y}`).join('')} fill="none" stroke="#3b82f6" strokeWidth={r * 1.3} strokeLinejoin="round" strokeLinecap="round" strokeDasharray={`${r * 2.4} ${r * 1.6}`} opacity={0.9} />
+              <circle cx={a.x} cy={a.y} r={r * 1.1} fill="#22c55e" stroke="#052e16" strokeWidth={r * 0.3} />
+              <circle cx={z.x} cy={z.y} r={r * 1.1} fill="#ef4444" stroke="#450a0a" strokeWidth={r * 0.3} />
+              <text x={a.x + r * 2} y={a.y - r * 1.6} fontSize={font * 0.8} fontWeight={800} fill="#86efac" stroke="#052e16" strokeWidth={font * 0.18} paintOrder="stroke">ENTRADA BOX</text>
+              <text x={z.x + r * 2} y={z.y + font * 1.1} fontSize={font * 0.8} fontWeight={800} fill="#fca5a5" stroke="#450a0a" strokeWidth={font * 0.18} paintOrder="stroke">SAÍDA BOX</text>
+            </g>
+          )
+        })()}
         {cn.map(c => (
           <g key={c.n}>
             <line x1={c.x} y1={c.y} x2={c.lx} y2={c.ly} stroke="#5a5a70" strokeWidth={r * 0.35} />
@@ -79,7 +92,7 @@ export function TrackMap({ outline, corners, cars, favCode, featured, fill }: { 
         })}
       </svg>
       {!outline && <p className="text-[11px] text-gray-500 mt-1">O traçado da pista aparece depois da primeira volta lançada.</p>}
-      <p className="text-[11px] text-gray-600 mt-1">Posição aproximada (OpenF1 ~3,7 Hz). Contorno azul = no pit lane. ★ realçados: o teu piloto e os destacados pelo admin.{cn.length > 0 ? ' Números = curvas.' : ''}</p>
+      <p className="text-[11px] text-gray-600 mt-1">Posição aproximada (OpenF1 ~3,7 Hz). Contorno azul = no pit lane.{pl ? ' Linha azul tracejada = pit lane (verde entrada, vermelho saída).' : ''} ★ realçados: o teu piloto e os destacados pelo admin.{cn.length > 0 ? ' Números = curvas.' : ''}</p>
     </div>
   )
 }

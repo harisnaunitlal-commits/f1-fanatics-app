@@ -479,7 +479,7 @@ function Body({ id, data, receivedAt, drivers }: { id: string; data: StateRespon
     case 'ritmo': return <LapAnalysis s={s} focus={focus} />
     case 'tempos-volta': return <LapTimesChart s={s} focus={drivers} showEmpty />
     case 'pneus-fds': return <TyreHistory data={data.tyreHistory ?? null} allocation={scene.tyre_allocation} />
-    case 'mapa': return <TrackMap outline={data.outline} corners={data.corners} cars={s.map} favCode={favCode} featured={focus} fill />
+    case 'mapa': return <TrackMap outline={data.outline} corners={data.corners} pitLane={data.pitLane} cars={s.map} favCode={favCode} featured={focus} fill />
     case 'posicoes': return <PositionChart lines={s.lapChart} highlight={focus} totalLaps={s.totalLaps} leaderLap={s.leaderLap} />
     case 'ultrapassagens': return <OvertakeFeed items={s.overtakes} />
     case 'limites': return <TrackLimitsPanel s={s} />

@@ -38,6 +38,25 @@ async function trackOutline(sessionKey: number, raw: RawSession, tMs: number): P
   return pts
 }
 
+// ── pit lane: path of one real pass through it. pit.date is the moment the car left the lane, so the pass is [date - lane_duration, date].
+const pitLaneCache = new Map<number, { x: number; y: number }[]>()
+async function pitLanePath(sessionKey: number, raw: RawSession, tMs: number): Promise<{ x: number; y: number }[] | null> {
+  const hit = pitLaneCache.get(sessionKey)
+  if (hit) return hit
+  const cand = raw.pits
+    .filter(p => p.lane_duration != null && p.lane_duration >= 14 && p.lane_duration <= 40 && Date.parse(p.date) <= tMs)
+    .sort((a, b) => (a.lane_duration as number) - (b.lane_duration as number))[0]   // shortest pass = the cleanest one
+  if (!cand) return null
+  const end = Date.parse(cand.date), start = end - (cand.lane_duration as number) * 1000
+  const rows = await of1<OF1Location>('location', [['session_key', '', sessionKey], ['driver_number', '', cand.driver_number], ['date', '>=', isoNoZ(start)], ['date', '<=', isoNoZ(end)]], 86_400)
+  const sorted = rows.sort((a, b) => Date.parse(a.date) - Date.parse(b.date))
+  if (sorted.length < 12) return null
+  const step = Math.max(1, Math.ceil(sorted.length / 60))
+  const pts = sorted.filter((_, i) => i % step === 0 || i === sorted.length - 1).map(r => ({ x: r.x, y: r.y }))
+  pitLaneCache.set(sessionKey, pts)
+  return pts
+}
+
 // ── telemetry comparison of the two featured drivers (best lap or last lap each) ──
 async function lapTraceFor(sessionKey: number, raw: RawSession, code: string, mode: 'best' | 'last', tMs: number): Promise<LapTrace | null> {
   const d = raw.drivers.find(x => x.name_acronym === code)
@@ -222,6 +241,9 @@ export async function buildStateResponse(viewer: { email: string; isAdmin: boole
     const rawT = sceneTime(sc, Date.now(), Date.parse(meta.date_end) + 20 * 60_000)
     const t = Math.floor(rawT / QUANTUM_MS) * QUANTUM_MS // everyone shares the same upstream calls
     const raw = await loadRaw(sessionKey, t, sc.mode === 'live', meta.session_name)
+    // OpenF1 has been seen filing another session's pit stops under this key (Mexico qualifying carried FP3's): keep only the ones inside this session's window
+    const winA = Date.parse(meta.date_start) - 45 * 60_000, winB = Date.parse(meta.date_end) + 45 * 60_000
+    raw.pits = raw.pits.filter(p => { const pt = Date.parse(p.date); return pt >= winA && pt <= winB })
     const hint = sc.gp_id ? await loadStrategyHint(sc.gp_id) : null
     const state = buildState(raw, t, sc.total_laps, meta.session_name, hint)
     const panels: Panels = full ? {} : (sc.panels ?? {})
@@ -231,6 +253,7 @@ export async function buildStateResponse(viewer: { email: string; isAdmin: boole
       panels.compare !== false ? buildCompare(sessionKey, raw, featured, sc.compare_mode ?? 'best', t).catch(() => null) : Promise.resolve(null),
       panels.tyres !== false ? buildTyreHistory(meta, raw, state).catch(() => null) : Promise.resolve(null),
     ])
+    const pitLane = panels.map !== false ? await pitLanePath(sessionKey, raw, t).catch(() => null) : null
     const corners = outline && meta.circuit_key ? await trackCorners(meta.circuit_key, meta.year, outline).catch(() => null) : null
     const drivers = raw.drivers.map(d => ({ code: d.name_acronym, name: d.full_name, team: d.team_name, colour: d.team_colour.startsWith('#') ? d.team_colour : `#${d.team_colour}` }))
     const favCode = driverFromText(viewer.pilotoFav, drivers.map(d => ({ code: d.code, name: d.name })))
@@ -304,7 +327,7 @@ export async function buildStateResponse(viewer: { email: string; isAdmin: boole
         upcoming: nextSession ? { name: nextSession.session_name, country: nextSession.country_name, startMs: Date.parse(nextSession.date_start) } : null,
         clock: (() => { const c = computeClock(raw.raceControl, sessionKindOf(meta.session_name), meta.session_name, { start: Date.parse(meta.date_start), end: Date.parse(meta.date_end) }, rawT); return c ? { ...c, endsAtMs: c.remainingMs !== null ? rawT + c.remainingMs : null } : null })(),
         serverNow: Date.now(), serverT: rawT, live: sc.mode === 'live',
-        gp, drivers, state: trimToPanels(state, panels), outline, corners, compare, tyreHistory, favCode, play,
+        gp, drivers, state: trimToPanels(state, panels), outline, corners, pitLane, compare, tyreHistory, favCode, play,
         // only for the admin: what the OpenF1 actually returned (helps when a session looks empty)
         diag: isAdmin ? {
           sessionKey, start: meta.date_start, end: meta.date_end,

@@ -12,7 +12,7 @@ export interface OF1Lap {
   driver_number: number; lap_number: number; date_start: string | null; lap_duration: number | null; is_pit_out_lap: boolean | null
   duration_sector_1?: number | null; duration_sector_2?: number | null; duration_sector_3?: number | null; st_speed?: number | null
 }
-export interface OF1Result { driver_number: number; position: number | null; number_of_laps: number | null; dnf: boolean; dns: boolean; dsq: boolean; gap_to_leader?: number | string | null }
+export interface OF1Result { driver_number: number; position: number | null; number_of_laps: number | null; dnf: boolean; dns: boolean; dsq: boolean; gap_to_leader?: number | string | (number | string | null)[] | null }
 export interface OF1Overtake { date: string; overtaking_driver_number: number; overtaken_driver_number: number; position: number }
 export interface OF1Location { date: string; driver_number: number; x: number; y: number }
 export interface OF1ChampDriver { driver_number: number; position_start: number | null; points_start: number | null }
@@ -210,9 +210,12 @@ function median(xs: number[]): number | null {
   return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2
 }
 
-function parseGap(v: number | string | null | undefined): { sec: number | null; lapsDown: number } {
+// gap_to_leader / interval come as a number, a text ("+1.234", "1 LAP") or, in qualifying results, a list with one value per phase
+function parseGap(v: unknown): { sec: number | null; lapsDown: number } {
+  if (Array.isArray(v)) v = [...v].reverse().find(x => x !== null && x !== undefined)
   if (v === null || v === undefined) return { sec: null, lapsDown: 0 }
   if (typeof v === 'number') return { sec: v, lapsDown: 0 }
+  if (typeof v !== 'string') return { sec: null, lapsDown: 0 }
   const m = /(\d+)\s*LAP/i.exec(v)
   if (m) return { sec: null, lapsDown: parseInt(m[1], 10) }
   const f = parseFloat(v.replace('+', ''))
@@ -588,7 +591,8 @@ export function buildState(raw: RawSession, tMs: number, totalLapsHint: number |
     const ls = lastStart.get(num)
     if (ls === undefined || !started || ts.status === 'RED' || afterRed) continue
     const lastPit = pitsBy.get(num)?.slice(-1)[0]
-    const inPitNow = lastPit ? effT - ms(lastPit.date) < ((lastPit.lane_duration ?? 25) + 10) * 1000 : false
+    // pit.date is the moment the car LEFT the pit lane (checked against the car positions): it was in the lane during [date - lane_duration, date]
+    const inPitNow = raw.pits.some(p => p.driver_number === num && p.lane_duration != null && effT >= ms(p.date) - (p.lane_duration + 10) * 1000 && effT < ms(p.date) + 10_000)
     if (effT - ls > threshold && !inPitNow) outSet.add(num)
   }
   const winLaps = Math.max(0, ...raw.results.map(r => r.number_of_laps ?? 0))
@@ -631,7 +635,7 @@ export function buildState(raw: RawSession, tMs: number, totalLapsHint: number |
 
     const myPits = pitsBy.get(num) ?? []
     const lastPit = myPits[myPits.length - 1]
-    const inPit = lastPit ? tMs - ms(lastPit.date) >= 0 && tMs - ms(lastPit.date) < (lastPit.lane_duration ?? 25) * 1000 : false
+    const inPit = raw.pits.some(p => p.driver_number === num && p.lane_duration != null && tMs >= ms(p.date) - p.lane_duration * 1000 && tMs < ms(p.date))
 
     const iv = ivBy.get(num)
     let g = parseGap(iv?.gap_to_leader); const itv = parseGap(iv?.interval)

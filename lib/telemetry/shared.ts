@@ -100,6 +100,7 @@ export interface StateResponse {
   serverT?: number
   live?: boolean
   outline?: { x: number; y: number }[] | null
+  pitLane?: { x: number; y: number }[] | null   // one real pass through the pit lane (first point = entry, last = exit)
   corners?: import('./circuit').Corner[] | null   // numbered corners (only when they line up with the outline)
   compare?: import('./compare').CompareData | null
   tyreHistory?: TyreHistory | null
