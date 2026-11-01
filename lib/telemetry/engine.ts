@@ -977,8 +977,8 @@ export interface PlayCfg {
   p14Options?: readonly { value: string }[]
 }
 
-export function teamKey(name: string): string {
-  const n = name.toLowerCase().replace(/[^a-z0-9]/g, '')
+export function teamKey(name: string | null | undefined): string {
+  const n = (name ?? '').toLowerCase().replace(/[^a-z0-9]/g, '')
   if (n.includes('redbull')) return 'redbull'
   if (n === 'rb' || n.includes('racingbulls') || n.includes('visacash')) return 'racingbulls'
   for (const k of ['haas', 'aston', 'alpine', 'williams', 'mercedes', 'ferrari', 'mclaren', 'cadillac']) if (n.includes(k)) return k
@@ -988,8 +988,8 @@ export function teamKey(name: string): string {
 
 const POINTS = [25, 18, 15, 12, 10, 8, 6, 4, 2, 1]
 
-function norm(s: string): string {
-  return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z ]/g, ' ').replace(/\s+/g, ' ').trim()
+function norm(s: string | null | undefined): string {
+  return (s ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z ]/g, ' ').replace(/\s+/g, ' ').trim()
 }
 
 function editDistance(a: string, b: string): number {
@@ -1006,7 +1006,7 @@ export function driverFromText(text: string | null | undefined, drivers: { code:
   if (!text) return null
   const t = norm(text)
   if (!t) return null
-  const byCode = drivers.find(d => d.code.toLowerCase() === t.replace(/ /g, ''))
+  const byCode = drivers.find(d => (d.code ?? '').toLowerCase() === t.replace(/ /g, ''))
   if (byCode) return byCode.code
   let best: { code: string; dist: number } | null = null
   for (const d of drivers) {
