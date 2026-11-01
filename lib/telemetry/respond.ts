@@ -242,6 +242,9 @@ export async function buildStateResponse(viewer: { email: string; isAdmin: boole
     const rawT = sceneTime(sc, Date.now(), Date.parse(meta.date_end) + 20 * 60_000)
     const t = Math.floor(rawT / QUANTUM_MS) * QUANTUM_MS // everyone shares the same upstream calls
     const raw = await loadRaw(sessionKey, t, sc.mode === 'live', meta.session_name)
+    // OpenF1 sometimes sends drivers/messages with null text fields (late entries, new seats): fill them so nothing downstream crashes
+    raw.drivers = raw.drivers.map(d => ({ ...d, name_acronym: d.name_acronym ?? `#${d.driver_number}`, full_name: d.full_name ?? d.name_acronym ?? `#${d.driver_number}`, team_name: d.team_name ?? '', team_colour: d.team_colour ?? '888888' }))
+    raw.raceControl = raw.raceControl.map(r => (r.message == null ? { ...r, message: '' } : r))
     // OpenF1 has been seen filing another session's pit stops under this key (Mexico qualifying carried FP3's): keep only the ones inside this session's window
     const winA = Date.parse(meta.date_start) - 45 * 60_000, winB = Date.parse(meta.date_end) + 45 * 60_000
     raw.pits = raw.pits.filter(p => { const pt = Date.parse(p.date); return pt >= winA && pt <= winB })
