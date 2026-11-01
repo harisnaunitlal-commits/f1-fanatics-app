@@ -86,9 +86,9 @@ export function PreRace({ data, receivedAt, err }: { data: StateResponse; receiv
 
       {scene.banner && <div className="rounded-xl border-2 border-yellow-400/70 bg-yellow-400/10 px-4 py-3 text-yellow-100 font-semibold">📣 {scene.banner}</div>}
 
-      <Section title="Grelha de partida" hint="pela classificação da qualificação · penalizações podem alterar a ordem">
-        {pre.gridImage && <img src={pre.gridImage} alt="Grelha de partida" className="w-full max-w-2xl mx-auto rounded-xl mb-4" />}
-        {grid.length === 0 ? <p className="text-sm text-gray-500">A grelha aparece quando a qualificação estiver classificada.</p> : (
+      <Section title="Grelha de partida" hint={pre.gridImage ? 'grelha oficial' : 'pela classificação da qualificação · penalizações podem alterar a ordem'}>
+        {pre.gridImage && <img src={pre.gridImage} alt="Grelha de partida" className="w-full max-w-2xl mx-auto rounded-xl" />}
+        {pre.gridImage ? null : grid.length === 0 ? <p className="text-sm text-gray-500">A grelha aparece quando a qualificação estiver classificada.</p> : (
           <div className="grid gap-x-6 md:grid-cols-2">
             {[grid.slice(0, half), grid.slice(half)].map((part, i) => (
               <table key={i} className="w-full text-sm">
