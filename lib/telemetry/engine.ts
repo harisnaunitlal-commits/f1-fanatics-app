@@ -257,6 +257,8 @@ function classifyRc(r: OF1RaceControl): RcKind {
   return 'info'
 }
 
+const RED_FLAG_TEXT = /^RED FLAG/
+
 // Track status machine over race-control messages up to instant t.
 function trackStatusAt(rc: OF1RaceControl[], t: number): { status: TrackStatus; yellow: number[]; sc: number; vsc: number; red: number; chequeredMs: number | null; redEndMs: number | null; startMs: number | null } {
   let status: TrackStatus = 'NOT_STARTED'
@@ -282,10 +284,12 @@ function trackStatusAt(rc: OF1RaceControl[], t: number): { status: TrackStatus; 
       else if (msg.includes('IN THIS LAP')) { status = 'SC_ENDING'; endingAt = at }
       continue
     }
+    // the race red flag arrives as category 'Other' with the text "RED FLAG - RACE SUSPENDED" (Mexico 2026), not as a Flag record
+    if (r.category !== 'Flag' && RED_FLAG_TEXT.test(msg)) { if (status !== 'RED') red++; status = 'RED'; continue }
     if (r.category === 'Flag') {
       const f = (r.flag ?? '').toUpperCase()
       if (f === 'CHEQUERED') { if (chequeredMs === null) chequeredMs = at; status = 'FINISHED' }
-      else if (f === 'RED') { red++; status = 'RED' }
+      else if (f === 'RED') { if (status !== 'RED') red++; status = 'RED' }
       else if ((f === 'GREEN' || f === 'CLEAR') && (r.scope === 'Track' || r.scope === null)) {
         if (status === 'RED') redEndMs = at
         if (status !== 'FINISHED' && status !== 'NOT_STARTED') status = 'GREEN'
@@ -836,7 +840,9 @@ export function buildState(raw: RawSession, tMs: number, totalLapsHint: number |
       if (r.category === 'SafetyCar') {
         if (m.includes('DEPLOYED')) { closeAt(at, r.lap_number); open.cur = { at, kind: m.includes('VIRTUAL') ? 'VSC' : 'SC', lap: r.lap_number } }
         else if ((m.includes('ENDING') || m.includes('IN THIS LAP')) && open.cur) closeAt(at, r.lap_number)
-      } else if (r.category === 'Flag' && (r.flag ?? '').toUpperCase() === 'RED' && !open.cur) open.cur = { at, kind: 'RED', lap: r.lap_number }
+      } else if ((r.category === 'Flag' && (r.flag ?? '').toUpperCase() === 'RED') || (r.category !== 'Flag' && r.category !== 'SessionStatus' && RED_FLAG_TEXT.test(m))) {
+        if (open.cur?.kind !== 'RED') { closeAt(at, r.lap_number); open.cur = { at, kind: 'RED', lap: r.lap_number } }
+      }
       else if (r.category === 'SessionStatus' && m.includes('STARTED') && open.cur?.kind === 'RED') closeAt(at, r.lap_number)
     }
     if (open.cur) neutralPeriods.push({ kind: open.cur.kind, fromMs: open.cur.at, toMs: null, fromLap: open.cur.lap, toLap: null })
