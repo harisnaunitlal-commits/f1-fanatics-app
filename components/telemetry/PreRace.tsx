@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { flagSrc, type StateResponse } from '@/lib/telemetry/shared'
 import { Section, fmtLap } from './ui'
 import { RaceSetsTable } from './RaceSets'
+import { WeatherStrip } from './WeatherStrip'
 import type { ResultRow } from '@/lib/telemetry/engine'
 
 const hhmm = (ms: number) => new Date(ms).toLocaleTimeString('pt', { hour: '2-digit', minute: '2-digit' })
@@ -73,15 +74,7 @@ export function PreRace({ data, receivedAt, err }: { data: StateResponse; receiv
             <div className="text-5xl font-black tabular-nums leading-none tracking-tight mt-1">{fmtCountdown(left)}</div>
           </div>
         </div>
-        {s.weather && (
-          <div className="mt-3 flex flex-wrap gap-2 text-xs text-gray-300">
-            <span className="bg-black/30 rounded-md px-2 py-1">🌡️ Ar {s.weather.air.toFixed(0)}°</span>
-            <span className="bg-black/30 rounded-md px-2 py-1">🛣️ Pista {s.weather.track.toFixed(0)}°</span>
-            <span className="bg-black/30 rounded-md px-2 py-1">💧 {s.weather.humidity.toFixed(0)}%</span>
-            <span className="bg-black/30 rounded-md px-2 py-1">💨 {s.weather.wind.toFixed(1)} m/s</span>
-            <span className={`rounded-md px-2 py-1 ${s.weather.rain ? 'bg-blue-700 text-white font-bold' : 'bg-black/30'}`}>{s.weather.rain ? '🌧️ A CHOVER' : '☀️ Sem chuva'}</span>
-          </div>
-        )}
+        {s.weather && <WeatherStrip w={s.weather} />}
       </div>
 
       {scene.banner && <div className="rounded-xl border-2 border-yellow-400/70 bg-yellow-400/10 px-4 py-3 text-yellow-100 font-semibold">📣 {scene.banner}</div>}

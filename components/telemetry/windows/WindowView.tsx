@@ -17,6 +17,7 @@ import { RadioPanel } from '../RadioPanel'
 import { TyreHistory } from '../TyreHistory'
 import { RaceSetsTable, RaceSetsLine } from '../RaceSets'
 import { PlayBoards } from '../PlayBoards'
+import { TrendBadge } from '../WeatherStrip'
 import { PitWindowChart, SafetyCarPanel, StintPaceTable } from '../StrategyPanels'
 
 const POLL_MS = 5000
@@ -321,11 +322,11 @@ function DriverCard({ s, code, data }: { s: TelemetryState; code: string | null;
 function Weather({ s }: { s: TelemetryState }) {
   const w = s.weather
   if (!w) return <Empty>Sem dados de meteorologia.</Empty>
-  const Cell = ({ k, v, sub, tone }: { k: string; v: string; sub?: string; tone?: string }) => <div className={`rounded-xl px-4 py-3 ${tone ?? 'bg-black/30'}`}><div className="text-[10px] uppercase tracking-wide text-gray-400">{k}</div><div className="text-3xl font-black tabular-nums">{v}</div>{sub && <div className="text-xs text-gray-400">{sub}</div>}</div>
+  const Cell = ({ k, v, sub, tone }: { k: string; v: string; sub?: React.ReactNode; tone?: string }) => <div className={`rounded-xl px-4 py-3 ${tone ?? 'bg-black/30'}`}><div className="text-[10px] uppercase tracking-wide text-gray-400">{k}</div><div className="text-3xl font-black tabular-nums">{v}</div>{sub && <div className="text-xs text-gray-400">{sub}</div>}</div>
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-      <Cell k="🌡️ Ar" v={`${w.air.toFixed(0)}°`} />
-      <Cell k="🛣️ Pista" v={`${w.track.toFixed(0)}°`} sub={w.trackTrend ? `${w.trackTrend > 0 ? '↗' : '↘'} ${Math.abs(w.trackTrend)}° / 10 min` : 'estável'} />
+      <Cell k="🌡️ Ar" v={`${w.air.toFixed(0)}°`} sub={<TrendBadge delta={w.airTrend} />} />
+      <Cell k="🛣️ Pista" v={`${w.track.toFixed(0)}°`} sub={<TrendBadge delta={w.trackTrend} big />} />
       <Cell k="💧 Humidade" v={`${w.humidity.toFixed(0)}%`} />
       <Cell k="💨 Vento" v={`${w.wind.toFixed(1)} m/s`} sub={`${Math.round(w.windDir)}°`} />
       <Cell k="Chuva" v={w.rain ? '🌧️ SIM' : '☀️ NÃO'} tone={w.rain ? 'bg-blue-700' : 'bg-black/30'} />

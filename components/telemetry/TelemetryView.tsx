@@ -16,6 +16,7 @@ import { TrackLimitsPanel } from './TrackLimits'
 import { RadioPanel } from './RadioPanel'
 import { RaceSetsTable } from './RaceSets'
 import { PreRace } from './PreRace'
+import { WeatherStrip } from './WeatherStrip'
 import { PitWindowChart, SafetyCarPanel, StintPaceTable, Bands } from './StrategyPanels'
 import type { TowerRow, TrackStatus, RcItem, RcKind, TelemetryState, RejoinSim } from '@/lib/telemetry/engine'
 
@@ -318,15 +319,7 @@ export default function TelemetryView({ endpoint = '/api/telemetria/state' }: { 
             </div>
           )}
         </div>
-        {s.weather && (
-          <div className="mt-3 flex flex-wrap gap-2 text-xs text-gray-300">
-            <span className="bg-black/30 rounded-md px-2 py-1">🌡️ Ar {s.weather.air.toFixed(0)}°</span>
-            <span className="bg-black/30 rounded-md px-2 py-1">🛣️ Pista {s.weather.track.toFixed(0)}°{s.weather.trackTrend !== null && s.weather.trackTrend !== 0 ? ` (${s.weather.trackTrend > 0 ? '↗' : '↘'} ${Math.abs(s.weather.trackTrend)}°/10min)` : ''}</span>
-            <span className="bg-black/30 rounded-md px-2 py-1">💧 {s.weather.humidity.toFixed(0)}%</span>
-            <span className="bg-black/30 rounded-md px-2 py-1">💨 {s.weather.wind.toFixed(1)} m/s</span>
-            <span className={`rounded-md px-2 py-1 ${s.weather.rain ? 'bg-blue-700 text-white font-bold' : 'bg-black/30'}`}>{s.weather.rain ? '🌧️ A CHOVER' : '☀️ Sem chuva'}</span>
-          </div>
-        )}
+        {s.weather && <WeatherStrip w={s.weather} />}
       </div>
 
       {data.upcoming && data.upcoming.startMs - Date.now() < 48 * 3600_000 && data.upcoming.startMs > Date.now() && (
