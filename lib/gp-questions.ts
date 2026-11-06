@@ -92,6 +92,7 @@ const PHOTO_FILES: Record<string, string> = {
   BEA: 'Bearmen',
   BOR: 'Bortoleto',
   BOT: 'Bottas',
+  CAM: 'Camara',
   COL: 'Colapinto',
   GAS: 'Gasley',
   HAD: 'Hadjar',

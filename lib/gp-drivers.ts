@@ -23,8 +23,15 @@ export function gpDrivers(round: number): { pilotos: GpDriver[]; disabled: strin
       disabled: ['OCO'],
     }
   }
+  // R20 Brasil onwards: Rafael Câmara takes the Haas seat of Esteban Ocon (Ocon is no longer on the grid)
+  if (round >= 20) {
+    return {
+      pilotos: base.map(p => (p.codigo === 'OCO' ? { codigo: 'CAM', nome: 'Rafael Câmara', equipa: 'Haas' } : p)),
+      disabled: [],
+    }
+  }
   return { pilotos: base, disabled: [] }
 }
 
 // Names for results screens: includes substitutes that are not in the season list
-export const EXTRA_DRIVER_NAMES: Record<string, string> = { HIR: 'Ryo Hirakawa', TSU: 'Yuki Tsunoda' }
+export const EXTRA_DRIVER_NAMES: Record<string, string> = { HIR: 'Ryo Hirakawa', TSU: 'Yuki Tsunoda', CAM: 'Rafael Câmara' }

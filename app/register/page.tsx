@@ -25,6 +25,7 @@ const DRIVERS = [
   { value: 'SAI', label: 'Carlos Sainz (Williams)' },
   { value: 'BEA', label: 'Oliver Bearman (Haas)' },
   { value: 'OCO', label: 'Esteban Ocon (Haas)' },
+  { value: 'CAM', label: 'Rafael Câmara (Haas)' },
   { value: 'HAD', label: 'Isack Hadjar (Racing Bulls)' },
   { value: 'LAW', label: 'Liam Lawson (Racing Bulls)' },
 ]
