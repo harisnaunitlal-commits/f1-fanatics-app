@@ -62,7 +62,7 @@ const degCls = (d: number | null) => d === null ? 'text-gray-600' : d >= 0.12 ? 
 const degTxt = (d: number) => `${d >= 0 ? '+' : '−'}${Math.abs(d).toFixed(2)}`
 
 function RaceTable({ rows, focus }: { rows: RaceSimRun[]; focus: string[] }) {
-  const best = rows[0]?.avg ?? 0
+  const best = rows[0]?.avg5 ?? 0
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-xs sm:text-sm">
@@ -70,8 +70,9 @@ function RaceTable({ rows, focus }: { rows: RaceSimRun[]; focus: string[] }) {
           <tr className="border-b border-gray-700/60">
             <th className={`${th} w-8 text-center`}>#</th>
             <th className={`${th} text-left`}>Piloto</th>
-            <th className={`${th} text-right`}>Ritmo médio</th>
+            <th className={`${th} text-right`} title="média das primeiras 5 voltas de cada stint: a mesma distância para todos">Ritmo 5 voltas</th>
             <th className={`${th} text-right`}>Gap</th>
+            <th className={`${th} text-right`} title="média de todas as voltas contadas do stint">Média do stint</th>
             <th className={`${th} text-right`} title="segundos perdidos por volta devido ao pneu (com correcção de combustível)">Degradação</th>
             <th className={`${th} text-right`}>Voltas</th>
             <th className={`${th} text-center`}>Pneu</th>
@@ -82,8 +83,9 @@ function RaceTable({ rows, focus }: { rows: RaceSimRun[]; focus: string[] }) {
             <tr key={`${r.code}-${r.lapStart}`} className={`border-b border-gray-800/50 ${focus.includes(r.code) ? 'bg-white/[0.06]' : ''}`}>
               <td className="py-1 px-2 text-center tabular-nums text-gray-400">{i + 1}</td>
               <td className="py-1 px-2"><Code code={r.code} colour={r.colour} /></td>
-              <td className="py-1 px-2 text-right tabular-nums font-semibold">{fmtLap(r.avg)}</td>
-              <td className="py-1 px-2 text-right tabular-nums text-gray-400">{i === 0 ? '—' : `+${(r.avg - best).toFixed(3)}`}</td>
+              <td className="py-1 px-2 text-right tabular-nums font-semibold">{fmtLap(r.avg5)}</td>
+              <td className="py-1 px-2 text-right tabular-nums text-gray-400">{i === 0 ? '—' : `+${(r.avg5 - best).toFixed(3)}`}</td>
+              <td className="py-1 px-2 text-right tabular-nums text-gray-500">{fmtLap(r.avg)}</td>
               <td className={`py-1 px-2 text-right tabular-nums ${degCls(r.deg)}`}>{r.deg === null ? '—' : `${degTxt(r.deg)} s/v`}</td>
               <td className="py-1 px-2 text-right tabular-nums text-gray-400" title={`voltas ${r.lapStart}–${r.lapEnd}`}>{r.laps}</td>
               <td className="py-1 px-2 text-center"><Cmp compound={r.compound} age={r.tyreAgeStart} /></td>
@@ -101,7 +103,7 @@ function Versus({ s, focus }: { s: TelemetryState; focus: string[] }) {
   const codes = focus.slice(0, 4)
   if (codes.length < 2) return <p className="text-sm text-gray-500">Escolhe 2 ou mais pilotos destacados (mesa de controlo ou janela do admin) para ver a comparação lado a lado.</p>
   const colour = (c: string) => s.tower.find(r => r.code === c)?.colour ?? '#888'
-  const bestRun = (code: string, comp: string) => ps.race.filter(r => r.code === code && r.compound === comp).sort((a, b) => b.laps - a.laps || a.avg - b.avg)[0]
+  const bestRun = (code: string, comp: string) => ps.race.filter(r => r.code === code && r.compound === comp).sort((a, b) => b.laps - a.laps || a.avg5 - b.avg5)[0]
   const compounds = Array.from(new Set(ps.race.map(r => r.compound).filter((c): c is string => !!c))).filter(c => codes.every(k => bestRun(k, c)))
   const qs = codes.map(c => ps.quali.find(q => q.code === c))
   const times = qs.filter((q): q is QualiSimRow => !!q).map(q => q.best)
@@ -132,7 +134,7 @@ function Versus({ s, focus }: { s: TelemetryState; focus: string[] }) {
           <div className="space-y-2">
             {compounds.map(comp => {
               const runs = codes.map(c => bestRun(c, comp))
-              const ref = Math.min(...runs.map(r => r.avg))
+              const ref = Math.min(...runs.map(r => r.avg5))
               return (
                 <div key={comp} className="rounded-xl bg-black/30 px-3 py-2">
                   <div className="text-xs text-gray-400 mb-1 inline-flex items-center gap-2"><Cmp compound={comp} /> {NAME[comp] ?? comp}</div>
@@ -140,8 +142,8 @@ function Versus({ s, focus }: { s: TelemetryState; focus: string[] }) {
                     {runs.map((r, i) => (
                       <div key={codes[i]} className="text-sm">
                         <b style={{ color: colour(codes[i]) }}>{codes[i]}</b>{' '}
-                        <span className="tabular-nums">{fmtLap(r.avg)}</span>{' '}
-                        <span className={`tabular-nums ${r.avg === ref ? 'text-green-400 font-bold' : 'text-gray-400'}`}>{r.avg === ref ? 'melhor' : `+${(r.avg - ref).toFixed(3)}`}</span>{' '}
+                        <span className="tabular-nums">{fmtLap(r.avg5)}</span>{' '}
+                        <span className={`tabular-nums ${r.avg5 === ref ? 'text-green-400 font-bold' : 'text-gray-400'}`}>{r.avg5 === ref ? 'melhor' : `+${(r.avg5 - ref).toFixed(3)}`}</span>{' '}
                         {r.deg !== null && <span className={`text-xs tabular-nums ${degCls(r.deg)}`}>deg {degTxt(r.deg)}</span>}{' '}
                         <span className="text-[11px] text-gray-500">{r.laps}v</span>
                       </div>
@@ -192,7 +194,7 @@ export function PracticeSimPanel({ s, focus }: { s: TelemetryState; focus: strin
       </div>
       <p className="text-[10px] text-gray-600">
         Só contam voltas completas: ficam de fora as voltas de saída e de entrada às boxes, as voltas anuladas e as lentas (mais de 7% acima da mediana do stint).
-        Simulação de qualificação = runs de até 4 voltas, até 4% da melhor volta. Simulação de corrida = 5 ou mais voltas seguidas.
+        Simulação de qualificação = runs de até 4 voltas, até 4% da melhor volta. Simulação de corrida = 5 ou mais voltas seguidas; a ordem usa a média das primeiras 5 voltas de cada stint, para comparar a mesma distância.
         Degradação = segundos perdidos por volta, já sem o efeito do combustível a queimar (estimado).
         O combustível, os modos do motor e a evolução da pista não são conhecidos: o ritmo é uma pista, não uma verdade. Compara sempre o mesmo composto e vê quantas voltas há por trás de cada número.
       </p>

@@ -22,7 +22,8 @@ export interface RaceSimRun {
   code: string; colour: string
   compound: string | null; tyreAgeStart: number | null
   lapStart: number; lapEnd: number; laps: number   // laps used (slow laps removed)
-  avg: number                  // mean lap time of the used laps
+  avg5: number                 // mean of the first 5 used laps: the same distance for every run, so runs of different length compare fairly
+  avg: number                  // mean lap time of all the used laps of the run
   deg: number | null           // s/lap lost to the tyres (slope + fuel burn correction)
 }
 export interface PracticeSim { quali: QualiSimRow[]; race: RaceSimRun[] }
@@ -107,14 +108,15 @@ export function buildPracticeSim(
     const kept = r.clean.filter(c => c.t <= med * SLOW_LAP)
     if (kept.length < RACE_RUN_MIN) continue
     const avg = kept.reduce((a, c) => a + c.t, 0) / kept.length
+    const avg5 = kept.slice(0, RACE_RUN_MIN).reduce((a, c) => a + c.t, 0) / RACE_RUN_MIN
     if (avg > sessionBest * RACE_WINDOW) continue
     const sl = slope(kept.map(c => ({ x: c.lap, y: c.t })))
     race.push({
       code: r.d.code, colour: r.d.colour,
       compound: stintAt(r.d.num, kept[0].lap)?.compound ?? null, tyreAgeStart: ageAt(r.d.num, kept[0].lap),
-      lapStart: kept[0].lap, lapEnd: kept[kept.length - 1].lap, laps: kept.length, avg, deg: sl === null ? null : sl + FUEL,
+      lapStart: kept[0].lap, lapEnd: kept[kept.length - 1].lap, laps: kept.length, avg, avg5, deg: sl === null ? null : sl + FUEL,
     })
   }
-  race.sort((a, b) => a.avg - b.avg)
+  race.sort((a, b) => a.avg5 - b.avg5)
   return { quali, race }
 }
