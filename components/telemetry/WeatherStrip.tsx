@@ -2,7 +2,7 @@ import type { WeatherInfo } from '@/lib/telemetry/engine'
 import { LineChart, type Series } from './charts'
 
 // Temperature change over the last 10 min as a pill: rising (red ▲), falling (blue ▼) or steady.
-export function TrendBadge({ delta, big }: { delta: number | null | undefined; big?: boolean }) {
+export function TrendBadge({ delta, big, label = 'em 10 min' }: { delta: number | null | undefined; big?: boolean; label?: string }) {
   if (delta === null || delta === undefined) return null
   const steady = Math.abs(delta) < 0.5
   const up = delta > 0
@@ -11,7 +11,7 @@ export function TrendBadge({ delta, big }: { delta: number | null | undefined; b
   return (
     <span className={`inline-flex items-center gap-1.5 rounded-full font-black tabular-nums ${cls} ${big ? 'px-3 py-1 text-base' : 'px-2 py-0.5 text-xs'}`}>
       <span className={big ? 'text-xl leading-none' : 'text-sm leading-none'}>{arrow}</span>
-      {steady ? 'estável' : <>{up ? '+' : '−'}{Math.abs(delta).toFixed(1)}°<span className="font-semibold opacity-70 text-[0.7em]">em 10 min</span></>}
+      {steady ? 'estável' : <>{up ? '+' : '−'}{Math.abs(delta).toFixed(1)}°<span className="font-semibold opacity-70 text-[0.7em]">{label}</span></>}
     </span>
   )
 }
@@ -26,34 +26,42 @@ function Tile({ label, value, unit, extra, tone }: { label: string; value: strin
   )
 }
 
-const TRACK_COLOUR = '#f59e0b', AIR_COLOUR = '#38bdf8'
+const TRACK_COLOUR = '#f59e0b'
 
-// Track and air temperature from the start of the session until now, on one axis.
+// Track temperature from the start of the session until now. The axis fits the session's own range, so a swing of 1-2 degrees is visible.
 export function TempChart({ w }: { w: WeatherInfo }) {
   const h = w.history ?? []
   if (h.length < 3 || !w.historyStart) return null
   const t0 = Date.parse(w.historyStart)
-  const lo = Math.floor(Math.min(...h.map(p => p.air)) - 1), hi = Math.ceil(Math.max(...h.map(p => p.track)) + 1)
-  const step = hi - lo > 14 ? 5 : 2
+  const temps = h.map(p => p.track)
+  const tMin = Math.min(...temps), tMax = Math.max(...temps)
+  const pad = Math.max(0.5, (tMax - tMin) * 0.12)
+  const lo = Math.floor((tMin - pad) * 2) / 2, hi = Math.ceil((tMax + pad) * 2) / 2
+  const step = [0.5, 1, 2, 5].find(st => (hi - lo) / st <= 6) ?? 5
   const yTicks: number[] = []
-  for (let v = Math.ceil(lo / step) * step; v <= hi; v += step) yTicks.push(v)
+  for (let v = Math.ceil(lo / step) * step; v <= hi + 1e-9; v += step) yTicks.push(Math.round(v * 10) / 10)
   const xMax = Math.max(h[h.length - 1].m, 10)
   const xStep = xMax > 90 ? 30 : xMax > 40 ? 15 : 10
   const xTicks: number[] = []
   for (let v = 0; v <= xMax; v += xStep) xTicks.push(v)
+  // a moving average over 5 samples shows the trend through the sun/cloud noise; the raw readings stay behind it
+  const smooth = temps.map((_, i) => { const win = temps.slice(Math.max(0, i - 2), i + 3); return win.reduce((x, y) => x + y, 0) / win.length })
   const series: Series[] = [
-    { key: 'track', color: TRACK_COLOUR, x: h.map(p => p.m), y: h.map(p => p.track), width: 2.2 },
-    { key: 'air', color: AIR_COLOUR, x: h.map(p => p.m), y: h.map(p => p.air), width: 2.2 },
+    { key: 'raw', color: TRACK_COLOUR, x: h.map(p => p.m), y: temps, width: 1.2, opacity: 0.35 },
+    { key: 'trend', color: TRACK_COLOUR, x: h.map(p => p.m), y: smooth, width: 2.8 },
   ]
   const clock = (m: number) => new Date(t0 + m * 60_000).toLocaleTimeString('pt', { hour: '2-digit', minute: '2-digit' })
+  const first = temps[0], d = w.track - first
   return (
     <div className="mt-3 rounded-xl bg-black/30 px-3 py-2">
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mb-1 text-xs">
-        <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Temperatura desde o início da sessão</span>
-        <span className="inline-flex items-center gap-1.5"><span className="w-3 h-1 rounded" style={{ background: TRACK_COLOUR }} /><b>Pista</b> <span className="tabular-nums text-gray-300">{w.track.toFixed(1)}°</span></span>
-        <span className="inline-flex items-center gap-1.5"><span className="w-3 h-1 rounded" style={{ background: AIR_COLOUR }} /><b>Ar</b> <span className="tabular-nums text-gray-300">{w.air.toFixed(1)}°</span></span>
+        <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500">🛣️ Temperatura da pista desde o início</span>
+        <span className="tabular-nums text-gray-300">agora <b className="text-white">{w.track.toFixed(1)}°</b></span>
+        <span className="tabular-nums text-gray-400">mín {tMin.toFixed(1)}° · máx {tMax.toFixed(1)}°</span>
+        <TrendBadge delta={Math.round(d * 10) / 10} label="desde o início" />
       </div>
-      <LineChart series={series} xMin={0} xMax={xMax} yMin={lo} yMax={hi} height={120} yTicks={yTicks} xTicks={xTicks} fmtY={v => `${v}°`} fmtX={clock} />
+      <LineChart series={series} xMin={0} xMax={xMax} yMin={lo} yMax={hi} height={130} yTicks={yTicks} xTicks={xTicks} fmtY={v => `${v}°`} fmtX={clock} />
+      <div className="text-[10px] text-gray-600">linha forte = tendência (média móvel) · linha fina = leituras reais</div>
     </div>
   )
 }
