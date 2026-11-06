@@ -10,6 +10,7 @@ import { TrackMap } from './TrackMap'
 import { TelemetryCompare } from './TelemetryCompare'
 import { PositionChart, OvertakeFeed } from './PositionChart'
 import { LapAnalysis } from './LapAnalysis'
+import { PracticeSimPanel } from './PracticeSimPanel'
 import { Championship } from './Championship'
 import { RacePace } from './RacePace'
 import { TrackLimitsPanel } from './TrackLimits'
@@ -509,6 +510,12 @@ export default function TelemetryView({ endpoint = '/api/telemetria/state' }: { 
       {panelOn(scene.panels, 'laps') && (
         <Section title={s.kind === 'race' ? 'Ritmo e pneus' : 'Análise de voltas'} hint={s.kind === 'race' ? 'últimas 5 voltas, pneu e degradação' : 'sectores, velocidades e ritmo'}>
           <LapAnalysis s={s} focus={focus} />
+        </Section>
+      )}
+
+      {s.kind === 'practice' && s.practiceSim && panelOn(scene.panels, 'practicesim') && (
+        <Section title="Simulações do treino" hint="qualificação e corrida · só voltas que contam">
+          <PracticeSimPanel s={s} focus={focus} />
         </Section>
       )}
 

@@ -18,6 +18,7 @@ import { TyreHistory } from '../TyreHistory'
 import { RaceSetsTable, RaceSetsLine } from '../RaceSets'
 import { PlayBoards } from '../PlayBoards'
 import { TrendBadge } from '../WeatherStrip'
+import { PracticeSimPanel } from '../PracticeSimPanel'
 import { PitWindowChart, SafetyCarPanel, StintPaceTable } from '../StrategyPanels'
 
 const POLL_MS = 5000
@@ -480,6 +481,7 @@ function Body({ id, data, receivedAt, drivers }: { id: string; data: StateRespon
     case 'se-parasse': return rejoinList.length === 0 ? <Empty>Sem simulação (só em corrida).</Empty> : <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{rejoinList.map(r => <RejoinCard key={r.code} sim={r} row={s.tower.find(t => t.code === r.code)} />)}</div>
     case 'boxes': return <PitLog s={s} />
     case 'ritmo': return <LapAnalysis s={s} focus={focus} />
+    case 'sim-treino': return s.practiceSim ? <PracticeSimPanel s={s} focus={focus} /> : <Empty>Só nos treinos livres (FP1, FP2, FP3).</Empty>
     case 'tempos-volta': return <LapTimesChart s={s} focus={drivers} showEmpty />
     case 'sets-corrida': return <RaceSetsTable sets={scene.race_sets} s={s} favCode={favCode} featured={focus} />
     case 'pneus-fds': return <div className="space-y-5">{scene.race_sets && <RaceSetsTable sets={scene.race_sets} s={s} favCode={favCode} featured={focus} />}<TyreHistory data={data.tyreHistory ?? null} allocation={scene.tyre_allocation} /></div>

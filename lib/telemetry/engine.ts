@@ -1,5 +1,6 @@
 // Telemetry engine: turns raw OpenF1 datasets into the state shown on /telemetria at a given instant.
-// Pure functions, no I/O and no runtime imports, so the same code serves replay and live.
+// Pure functions, no I/O, so the same code serves replay and live.
+import { buildPracticeSim, type PracticeSim } from './practice'
 
 export interface OF1Driver { driver_number: number; name_acronym: string; full_name: string; team_name: string; team_colour: string | null; headshot_url?: string | null }
 
@@ -170,6 +171,7 @@ export interface RcItem { date: string; lap: number | null; kind: RcKind; flag: 
 export interface WeatherInfo { air: number; track: number; humidity: number; wind: number; windDir: number; rain: boolean; trackTrend: number | null; airTrend: number | null }
 
 export interface TelemetryState {
+  practiceSim: PracticeSim | null   // free practice only: qualifying and race simulations
   t: string
   started: boolean
   status: TrackStatus
@@ -968,9 +970,13 @@ export function buildState(raw: RawSession, tMs: number, totalLapsHint: number |
     return { code: row?.code ?? `#${p.driver_number}`, colour: row?.colour ?? '#888888', lap, at: p.date, laneS: p.lane_duration ?? null, stopS: p.stop_duration ?? p.pit_duration ?? null, from: before?.compound ?? null, to: after?.compound ?? null }
   }).sort((a, b) => ms(b.at) - ms(a.at))
 
+  const practiceSim = kind === 'practice'
+    ? buildPracticeSim(tower.map(r => ({ num: r.num, code: r.code, colour: r.colour })), lapsBy, raw.stints, isComplete, deleted)
+    : null
+
   const resLaps = Math.max(0, ...raw.results.map(r => r.number_of_laps ?? 0))
   return {
-    kind, results, map: mapCars, overtakes, lapChart, lapTimes, fastestSectors: sessionBest, championship,
+    practiceSim, kind, results, map: mapCars, overtakes, lapChart, lapTimes, fastestSectors: sessionBest, championship,
     t: new Date(tMs).toISOString(), started, status: ts.status, yellowSectors: ts.yellow, leaderLap,
     totalLaps: totalLapsHint ?? (resLaps > 0 ? resLaps : null), tower, fastestLap: fastest,
     neutral: neutralPeriods, trackLimits, racePace, pitWindows, strategyHint: hint, pitLog, pitLoss, rejoin, undercuts, events: { sc: ts.sc, vsc: ts.vsc, red: ts.red }, raceControl, penalties, deletedLaps, weather, firstRetirement,

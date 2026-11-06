@@ -126,6 +126,7 @@ function trimToPanels(s: TelemetryState, p: Panels): TelemetryState {
     overtakes: on('positions') ? s.overtakes : [],
     lapChart: on('positions') ? s.lapChart : [],
     lapTimes: on('laps') ? s.lapTimes : [],
+    practiceSim: on('practicesim') ? s.practiceSim : null,
     fastestSectors: on('laps') ? s.fastestSectors : [null, null, null],
     championship: on('championship') ? s.championship : null,
     undercuts: on('strategy') ? s.undercuts : [],

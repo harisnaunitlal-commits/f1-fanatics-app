@@ -16,6 +16,7 @@ const PANELS: { key: PanelKey; label: string }[] = [
   { key: 'compare', label: 'Telemetria de piloto: comparar 2 pilotos (velocidade, acelerador, travão, mudança)' },
   { key: 'positions', label: 'Gráfico de posições + ultrapassagens (corridas)' },
   { key: 'laps', label: 'Análise de voltas (sectores, velocidade máxima, ritmo)' },
+  { key: 'practicesim', label: 'Treinos livres: simulação de qualificação e de corrida (voltas que contam)' },
   { key: 'control', label: 'Direcção de corrida + penalizações' },
   { key: 'limits', label: 'Track limits: infracções por piloto, aviso e penalização (corrida)' },
   { key: 'prerace', label: 'Modo pré-corrida — 3 h antes da corrida mostra só a grelha e os pneus novos (tira a qualificação)' },
