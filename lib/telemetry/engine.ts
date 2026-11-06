@@ -168,7 +168,10 @@ export interface UndercutAlert { attacker: string; target: string; intervalS: nu
 export type RcKind = 'flag' | 'safetycar' | 'penalty' | 'investigation' | 'noted' | 'cleared' | 'deleted' | 'info'
 export interface RcItem { date: string; lap: number | null; kind: RcKind; flag: string | null; code: string | null; message: string }
 
-export interface WeatherInfo { air: number; track: number; humidity: number; wind: number; windDir: number; rain: boolean; trackTrend: number | null; airTrend: number | null }
+export interface WeatherInfo { air: number; track: number; humidity: number; wind: number; windDir: number; rain: boolean; trackTrend: number | null; airTrend: number | null
+  historyStart: string | null                       // time of the first sample of the session
+  history: { m: number; air: number; track: number }[]   // minutes since the first sample (about 90 points at most)
+}
 
 export interface TelemetryState {
   practiceSim: PracticeSim | null   // free practice only: qualifying and race simulations
@@ -786,6 +789,9 @@ export function buildState(raw: RawSession, tMs: number, totalLapsHint: number |
     air: w.air_temperature, track: w.track_temperature, humidity: w.humidity, wind: w.wind_speed, windDir: w.wind_direction,
     rain: w.rainfall > 0, trackTrend: wOld ? Math.round((w.track_temperature - wOld.track_temperature) * 10) / 10 : null,
     airTrend: wOld ? Math.round((w.air_temperature - wOld.air_temperature) * 10) / 10 : null,
+    historyStart: wAll[0]?.date ?? null,
+    history: wAll.filter((_, i) => i % Math.max(1, Math.ceil(wAll.length / 90)) === 0 || i === wAll.length - 1)
+      .map(x => ({ m: Math.round((ms(x.date) - ms(wAll[0].date)) / 600) / 100, air: x.air_temperature, track: x.track_temperature })),
   } : null
 
   // ── map: latest location of every car ──

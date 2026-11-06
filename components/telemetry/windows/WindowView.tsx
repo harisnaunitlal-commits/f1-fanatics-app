@@ -17,7 +17,7 @@ import { RadioPanel } from '../RadioPanel'
 import { TyreHistory } from '../TyreHistory'
 import { RaceSetsTable, RaceSetsLine } from '../RaceSets'
 import { PlayBoards } from '../PlayBoards'
-import { TrendBadge } from '../WeatherStrip'
+import { TrendBadge, TempChart } from '../WeatherStrip'
 import { PracticeSimPanel } from '../PracticeSimPanel'
 import { PitWindowChart, SafetyCarPanel, StintPaceTable } from '../StrategyPanels'
 
@@ -325,12 +325,15 @@ function Weather({ s }: { s: TelemetryState }) {
   if (!w) return <Empty>Sem dados de meteorologia.</Empty>
   const Cell = ({ k, v, sub, tone }: { k: string; v: string; sub?: React.ReactNode; tone?: string }) => <div className={`rounded-xl px-4 py-3 ${tone ?? 'bg-black/30'}`}><div className="text-[10px] uppercase tracking-wide text-gray-400">{k}</div><div className="text-3xl font-black tabular-nums">{v}</div>{sub && <div className="text-xs text-gray-400">{sub}</div>}</div>
   return (
+    <div>
     <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
       <Cell k="🌡️ Ar" v={`${w.air.toFixed(0)}°`} sub={<TrendBadge delta={w.airTrend} />} />
       <Cell k="🛣️ Pista" v={`${w.track.toFixed(0)}°`} sub={<TrendBadge delta={w.trackTrend} big />} />
       <Cell k="💧 Humidade" v={`${w.humidity.toFixed(0)}%`} />
       <Cell k="💨 Vento" v={`${w.wind.toFixed(1)} m/s`} sub={`${Math.round(w.windDir)}°`} />
       <Cell k="Chuva" v={w.rain ? '🌧️ SIM' : '☀️ NÃO'} tone={w.rain ? 'bg-blue-700' : 'bg-black/30'} />
+    </div>
+    <TempChart w={w} />
     </div>
   )
 }
