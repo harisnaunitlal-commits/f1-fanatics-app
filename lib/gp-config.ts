@@ -10,6 +10,25 @@ function getAdminClient() {
   )
 }
 
+// From R20 (Brasil) Rafael Câmara (CAM) drives the Haas seat; Ocon and Hirakawa are no longer offered in the questions
+const GONE = new Set(['OCO', 'HIR'])
+function withoutGoneDrivers(cfg: GpQuestions | undefined, round: number): GpQuestions | undefined {
+  if (!cfg || round < 20) return cfg
+  const cam = { codigo: 'CAM', nome: 'Rafael Câmara', equipa: 'Haas' }
+  const opts = (list: GpQuestions['p13Options']) => {
+    const mapped = (list ?? []).map(o => (GONE.has(o.codigo) ? { ...o, ...cam } : o))
+    return mapped.filter((o, i) => mapped.findIndex(x => x.codigo === o.codigo) === i)
+  }
+  const duel = (d: GpQuestions['p5']): GpQuestions['p5'] => {
+    if (!d) return d
+    const next = { ...d }
+    if (GONE.has(d.driverA)) { next.driverA = cam.codigo; next.nameA = cam.nome; next.teamA = cam.equipa }
+    if (GONE.has(d.driverB)) { next.driverB = cam.codigo; next.nameB = cam.nome; next.teamB = cam.equipa }
+    return next
+  }
+  return { ...cfg, p5: duel(cfg.p5), p6: duel(cfg.p6), p7: duel(cfg.p7), p13Options: opts(cfg.p13Options), p15Options: opts(cfg.p15Options) }
+}
+
 /**
  * Fetches GP questions config — DB override first, then hardcoded fallback.
  * Stored in `gp_questions_config` table by gp_id.
@@ -34,8 +53,8 @@ export async function getEffectiveGpConfig(
         const base = getGpQuestions(round)
         if (base?.p14Options) dbConfig.p14Options = base.p14Options
       }
-      return dbConfig
+      return withoutGoneDrivers(dbConfig, round)
     }
   } catch (_) { /* table may not exist yet, fall through */ }
-  return getGpQuestions(round)
+  return withoutGoneDrivers(getGpQuestions(round), round)
 }
