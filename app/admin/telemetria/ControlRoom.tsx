@@ -16,6 +16,8 @@ const PANELS: { key: PanelKey; label: string }[] = [
   { key: 'compare', label: 'Telemetria de piloto: comparar 2 pilotos (velocidade, acelerador, travão, mudança)' },
   { key: 'positions', label: 'Gráfico de posições + ultrapassagens (corridas)' },
   { key: 'laps', label: 'Análise de voltas (sectores, velocidade máxima, ritmo)' },
+  { key: 'dotd', label: 'Botão para votar no Piloto do Dia (formula1.com)' },
+  { key: 'pits', label: 'Tabela de paragens nas boxes (tempo parado e pit lane)' },
   { key: 'practicesim', label: 'Treinos livres: simulação de qualificação e de corrida (voltas que contam)' },
   { key: 'control', label: 'Direcção de corrida + penalizações' },
   { key: 'limits', label: 'Track limits: infracções por piloto, aviso e penalização (corrida)' },

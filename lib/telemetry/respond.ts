@@ -5,6 +5,7 @@ import { resampleLap, compareLaps, type CarSample, type CompareData, type LapTra
 import type { StrategyHint } from './engine'
 import { PLAY_FIELDS, QUANTUM_MS, sceneTime, type Scene, type StateResponse, type PlayLine, type LeaderRow, type TyreHistory, type Panels, type PanelKey } from './shared'
 import { trackCorners } from './circuit'
+import { rainForecast } from './rain'
 import { getEffectiveGpConfig } from '@/lib/gp-config'
 import { P8_MARGENS } from '@/lib/gp-questions'
 import { calculatePlayScore } from '@/lib/scoring'
@@ -259,6 +260,9 @@ export async function buildStateResponse(viewer: { email: string; isAdmin: boole
       panels.tyres !== false ? buildTyreHistory(meta, raw, state).catch(() => null) : Promise.resolve(null),
     ])
     const pitLane = panels.map !== false ? await pitLanePath(sessionKey, raw, t).catch(() => null) : null
+    const rain = Math.abs(Date.now() - Date.parse(meta.date_start)) < 12 * 3600_000
+      ? await (async () => (await rainForecast(meta.location, meta.country_name, Date.now())) ?? (await rainForecast(meta.circuit_short_name, meta.country_name, Date.now())))().catch(() => null)
+      : null
     const corners = outline && meta.circuit_key ? await trackCorners(meta.circuit_key, meta.year, outline).catch(() => null) : null
     const drivers = raw.drivers.map(d => ({ code: d.name_acronym, name: d.full_name, team: d.team_name, colour: teamHex(d.team_colour) }))
     const favCode = driverFromText(viewer.pilotoFav, drivers.map(d => ({ code: d.code, name: d.name })))
@@ -341,7 +345,7 @@ export async function buildStateResponse(viewer: { email: string; isAdmin: boole
         upcoming: nextSession ? { name: nextSession.session_name, country: nextSession.country_name, startMs: Date.parse(nextSession.date_start) } : null,
         clock: (() => { const c = computeClock(raw.raceControl, sessionKindOf(meta.session_name), meta.session_name, { start: Date.parse(meta.date_start), end: Date.parse(meta.date_end) }, rawT); return c ? { ...c, endsAtMs: c.remainingMs !== null ? rawT + c.remainingMs : null } : null })(),
         serverNow: Date.now(), serverT: rawT, live: sc.mode === 'live',
-        gp, drivers, state: trimToPanels(state, panels), outline, corners, pitLane, compare, tyreHistory, favCode, play, preRace,
+        gp, drivers, state: trimToPanels(state, panels), outline, corners, pitLane, compare, tyreHistory, favCode, play, preRace, rain,
         // only for the admin: what the OpenF1 actually returned (helps when a session looks empty)
         diag: isAdmin ? {
           sessionKey, start: meta.date_start, end: meta.date_end,

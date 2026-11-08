@@ -17,7 +17,9 @@ import { RadioPanel } from '../RadioPanel'
 import { TyreHistory } from '../TyreHistory'
 import { RaceSetsTable, RaceSetsLine } from '../RaceSets'
 import { PlayBoards } from '../PlayBoards'
-import { TrendBadge, TempChart } from '../WeatherStrip'
+import { TrendBadge, TempChart, RainTile } from '../WeatherStrip'
+import { PitLogTable } from '../PitLogTable'
+import { DotdVote } from '../DotdVote'
 import { PracticeSimPanel } from '../PracticeSimPanel'
 import { PitWindowChart, SafetyCarPanel, StintPaceTable } from '../StrategyPanels'
 
@@ -182,45 +184,6 @@ function Gains({ s }: { s: TelemetryState }) {
   )
 }
 
-function PitLog({ s }: { s: TelemetryState }) {
-  if (s.pitLog.length === 0) return <Empty>Ainda sem paragens.</Empty>
-  const best = Math.min(...s.pitLog.map(p => p.stopS ?? Infinity))
-  return (
-    <table className="w-full text-sm">
-      <thead>
-        <tr className="text-[10px] text-gray-500 uppercase tracking-wider border-b border-gray-700/60">
-          <th className="py-2 px-2 text-left">Piloto</th>
-          <th className="py-2 px-2 text-center">Volta</th>
-          <th className="py-2 px-2 text-center">Pneus</th>
-          <th className="py-2 px-2 text-right">Parado</th>
-          <th className="py-2 px-2 text-right">Pit lane</th>
-        </tr>
-      </thead>
-      <tbody>
-        {s.pitLog.map((p, i) => {
-          const a = p.from ? COMPOUND[p.from] : null, b = p.to ? COMPOUND[p.to] : null
-          const fastest = p.stopS !== null && p.stopS === best
-          return (
-            <tr key={i} className="border-b border-gray-800/50">
-              <td className="py-1.5 px-2"><span className="inline-flex items-center gap-2"><span className="w-1 h-4 rounded-sm" style={{ background: p.colour }} /><b>{p.code}</b></span></td>
-              <td className="py-1.5 px-2 text-center tabular-nums text-gray-300">{p.lap ?? '—'}</td>
-              <td className="py-1.5 px-2 text-center">
-                <span className="inline-flex items-center gap-1 text-xs font-black">
-                  <span className={`inline-flex w-5 h-5 rounded-full border-2 items-center justify-center text-[10px] ${a?.cls ?? 'border-gray-600 text-gray-500'}`}>{a?.letter ?? '?'}</span>
-                  <span className="text-gray-500">→</span>
-                  <span className={`inline-flex w-5 h-5 rounded-full border-2 items-center justify-center text-[10px] ${b?.cls ?? 'border-gray-600 text-gray-500'}`}>{b?.letter ?? '?'}</span>
-                </span>
-              </td>
-              <td className={`py-1.5 px-2 text-right tabular-nums font-bold ${fastest ? 'text-purple-400' : ''}`}>{p.stopS !== null ? `${p.stopS.toFixed(1)} s` : '—'}</td>
-              <td className="py-1.5 px-2 text-right tabular-nums text-gray-400">{p.laneS !== null ? `${p.laneS.toFixed(1)} s` : '—'}</td>
-            </tr>
-          )
-        })}
-      </tbody>
-    </table>
-  )
-}
-
 const PW_LABEL: Record<string, string> = { 'sem-dados': 'sem histórico', cedo: 'ainda cedo', janela: 'JANELA ABERTA', tarde: 'ATRASADO', 'sem-mais': 'sem mais paragens', 'na-box': 'NA BOX' }
 
 function DriverCard({ s, code, data }: { s: TelemetryState; code: string | null; data: StateResponse }) {
@@ -320,7 +283,7 @@ function DriverCard({ s, code, data }: { s: TelemetryState; code: string | null;
   )
 }
 
-function Weather({ s }: { s: TelemetryState }) {
+function Weather({ s, data }: { s: TelemetryState; data: StateResponse }) {
   const w = s.weather
   if (!w) return <Empty>Sem dados de meteorologia.</Empty>
   const Cell = ({ k, v, sub, tone }: { k: string; v: string; sub?: React.ReactNode; tone?: string }) => <div className={`rounded-xl px-4 py-3 ${tone ?? 'bg-black/30'}`}><div className="text-[10px] uppercase tracking-wide text-gray-400">{k}</div><div className="text-3xl font-black tabular-nums">{v}</div>{sub && <div className="text-xs text-gray-400">{sub}</div>}</div>
@@ -331,7 +294,7 @@ function Weather({ s }: { s: TelemetryState }) {
       <Cell k="🛣️ Pista" v={`${w.track.toFixed(0)}°`} sub={<TrendBadge delta={w.trackTrend} big />} />
       <Cell k="💧 Humidade" v={`${w.humidity.toFixed(0)}%`} />
       <Cell k="💨 Vento" v={`${w.wind.toFixed(1)} m/s`} sub={`${Math.round(w.windDir)}°`} />
-      <Cell k="Chuva" v={w.rain ? '🌧️ SIM' : '☀️ NÃO'} tone={w.rain ? 'bg-blue-700' : 'bg-black/30'} />
+      <RainTile w={w} rain={data.rain} />
     </div>
     <TempChart w={w} />
     </div>
@@ -443,7 +406,7 @@ function Body({ id, data, receivedAt, drivers }: { id: string; data: StateRespon
       </div>
     )
     case 'penalizacoes': return s.penalties.length === 0 ? <Empty>Nenhuma penalização até agora.</Empty> : <ul>{s.penalties.map((r, i) => <RcRow key={i} r={r} />)}</ul>
-    case 'meteo': return <Weather s={s} />
+    case 'meteo': return <Weather s={s} data={data} />
     case 'radio': return <RadioPanel isAdmin />
     case 'torre': return s.results ? <SessionResults data={s.results} favCode={favCode} featured={featured} /> : <BigTower s={s} favCode={favCode} featured={featured} />
     case 'tabela': return s.results ? <SessionResults data={s.results} favCode={favCode} featured={featured} /> : <Tower s={s} favCode={favCode} featured={featured} />
@@ -482,7 +445,8 @@ function Body({ id, data, receivedAt, drivers }: { id: string; data: StateRespon
     case 'safety-car': return <SafetyCarPanel s={s} />
     case 'ritmo-stint': return <StintPaceTable s={s} />
     case 'se-parasse': return rejoinList.length === 0 ? <Empty>Sem simulação (só em corrida).</Empty> : <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{rejoinList.map(r => <RejoinCard key={r.code} sim={r} row={s.tower.find(t => t.code === r.code)} />)}</div>
-    case 'boxes': return <PitLog s={s} />
+    case 'boxes': return <PitLogTable s={s} />
+    case 'dotd': return <DotdVote finished={s.status === 'FINISHED'} />
     case 'ritmo': return <LapAnalysis s={s} focus={focus} />
     case 'sim-treino': return s.practiceSim ? <PracticeSimPanel s={s} focus={focus} /> : <Empty>Só nos treinos livres (FP1, FP2, FP3).</Empty>
     case 'tempos-volta': return <LapTimesChart s={s} focus={drivers} showEmpty />

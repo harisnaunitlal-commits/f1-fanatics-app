@@ -74,7 +74,7 @@ export function PreRace({ data, receivedAt, err }: { data: StateResponse; receiv
             <div className="text-5xl font-black tabular-nums leading-none tracking-tight mt-1">{fmtCountdown(left)}</div>
           </div>
         </div>
-        {s.weather && <WeatherStrip w={s.weather} />}
+        {s.weather && <WeatherStrip w={s.weather} rain={data.rain} />}
       </div>
 
       {scene.banner && <div className="rounded-xl border-2 border-yellow-400/70 bg-yellow-400/10 px-4 py-3 text-yellow-100 font-semibold">📣 {scene.banner}</div>}

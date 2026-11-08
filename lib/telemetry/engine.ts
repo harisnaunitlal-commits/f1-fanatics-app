@@ -656,7 +656,7 @@ export function buildState(raw: RawSession, tMs: number, totalLapsHint: number |
     const iv = ivBy.get(num)
     let g = parseGap(iv?.gap_to_leader); const itv = parseGap(iv?.interval)
     // after the flag the live intervals stop: use the classification (gap to the winner, laps behind) so the winning margin and the lapped cars survive the finish
-    if (!iv && finishedNow && num !== undefined) {
+    if ((!iv || (g.sec === null && !g.lapsDown)) && finishedNow && num !== undefined) {
       const res = resultBy.get(num)
       if (res) {
         const fromRes = parseGap(res.gap_to_leader)
@@ -681,6 +681,35 @@ export function buildState(raw: RawSession, tMs: number, totalLapsHint: number |
       tyre: cur?.compound ?? null, tyreAge, stops: myPits.length, inPit, out: outSet.has(num), stints, degPerLap: deg,
     })
   }
+  // after the flag the live feeds can be empty and the classification may not be published yet: rebuild the gaps from the laps themselves
+  // (time each car crossed the line on its last lap, against the winner's), then the intervals from the gaps
+  if (finishedNow) {
+    const fin = new Map<number, { cross: number; laps: number }>()
+    for (const r of rows) {
+      const done = (lapsBy.get(r.num) ?? []).filter(isComplete)
+      const l = done[done.length - 1]
+      if (l) fin.set(r.num, { cross: ms(l.date_start as string) + (l.lap_duration as number) * 1000, laps: l.lap_number })
+    }
+    const winner = rows.find(r => r.pos === 1)
+    const win = winner ? fin.get(winner.num) : undefined
+    if (win && tMs - win.cross > 150_000) {   // give the cars still on their last lap time to cross the line
+      for (const r of rows) {
+        if (r.pos === 1 || outSet.has(r.num) || r.gapS !== null || r.lapsDown) continue
+        const f = fin.get(r.num); if (!f) continue
+        const behind = win.laps - f.laps
+        if (behind > 0) { r.lapsDown = behind; r.gapLabel = `+${behind}V` }
+        else { r.gapS = Math.max(0, (f.cross - win.cross) / 1000); r.gapLabel = `+${r.gapS.toFixed(1)}` }
+      }
+    }
+    const order = rows.filter(r => !outSet.has(r.num)).sort((a, b) => a.pos - b.pos)
+    order.forEach((r, i) => {
+      if (i === 0 || r.intervalS !== null || r.intervalLabel !== '—') return
+      const p = order[i - 1]
+      if (r.lapsDown) { const d = r.lapsDown - p.lapsDown; if (d > 0) r.intervalLabel = `+${d}V`; return }
+      if (r.gapS !== null && p.gapS !== null) { r.intervalS = Math.max(0, r.gapS - p.gapS); r.intervalLabel = `+${r.intervalS.toFixed(1)}` }
+    })
+  }
+
   // running cars by position first, retired ones at the back (latest retirement first)
   const running = rows.filter(r => !r.out).sort((a, b) => a.pos - b.pos)
   const retired = rows.filter(r => r.out).sort((a, b) => (lastStart.get(b.num) ?? 0) - (lastStart.get(a.num) ?? 0))

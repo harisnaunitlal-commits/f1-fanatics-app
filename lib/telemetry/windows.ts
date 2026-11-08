@@ -48,6 +48,7 @@ export const WINDOWS: WindowDef[] = [
   { id: 'safety-car', group: 'estrategia', icon: '🚗', title: 'Safety Car — o que deu', desc: 'Períodos de SC/VSC/bandeira vermelha e o efeito nas paragens.', w: 760, h: 560, race: true },
   { id: 'ritmo-stint', group: 'estrategia', icon: '⏱️', title: 'Ritmo por stint (top 10)', desc: 'O que cada mudança de pneu fez ao ritmo, com e sem combustível.', w: 900, h: 560, race: true },
   { id: 'se-parasse', group: 'estrategia', icon: '🎯', title: 'Se parasse agora', desc: 'Onde cada piloto (destacados, ou top 8) voltaria à pista.', w: 900, h: 520, race: true },
+  { id: 'dotd', group: 'sessao', icon: '🏆', title: 'Votar Piloto do Dia', desc: 'Botão grande que abre a votação oficial da F1 (formula1.com).', w: 620, h: 200 },
   { id: 'boxes', group: 'estrategia', icon: '🔧', title: 'Registo de paragens', desc: 'Todas as paragens: volta, tempo na pit lane, tempo parado e pneus trocados.', w: 700, h: 800, race: true },
   { id: 'ritmo', group: 'estrategia', icon: '📊', title: 'Ritmo e degradação', desc: 'Últimas 5 voltas com delta, pneu e degradação (corrida) ou análise de voltas (treinos).', w: 900, h: 900 },
   { id: 'sim-treino', group: 'estrategia', icon: '🧪', title: 'Simulações do treino', desc: 'Treinos livres: simulação de qualificação, simulação de corrida (ritmo e degradação por composto) e comparação lado a lado.', w: 900, h: 900, needsDrivers: 2 },

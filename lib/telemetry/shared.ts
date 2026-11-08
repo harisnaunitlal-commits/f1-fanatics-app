@@ -1,6 +1,7 @@
+import type { RainForecast } from './rain'
 // Types and constants shared by the telemetry API routes and the UI (no server-only imports).
 
-export const PANEL_KEYS = ['tower', 'strategy', 'control', 'ours', 'map', 'compare', 'positions', 'laps', 'championship', 'tyres', 'limits', 'radio', 'prerace', 'practicesim'] as const
+export const PANEL_KEYS = ['tower', 'strategy', 'control', 'ours', 'map', 'compare', 'positions', 'laps', 'championship', 'tyres', 'limits', 'radio', 'prerace', 'practicesim', 'dotd', 'pits'] as const
 export type PanelKey = typeof PANEL_KEYS[number]
 export type Panels = Partial<Record<PanelKey, boolean>>
 // every panel is on unless switched off; the radio text panel is the opposite (off until the admin switches it on)
@@ -129,6 +130,7 @@ export interface StateResponse {
   tyreHistory?: TyreHistory | null
   favCode?: string | null
   // 3 h before the race: the page drops the finished session and shows the grid and the new tyre sets (auto-follow only)
+  rain?: RainForecast | null   // chance of rain from Open-Meteo (forecast, not a measurement)
   preRace?: { startMs: number; name: string; gridImage: string | null } | null
   play?: { closed: boolean; answers: Record<string, string | null>; leaderboard: LeaderRow[]; aggregate: AggRow[]; participants: number; me: { total: number; rank: number | null; lines: PlayLine[] } | null }
 }

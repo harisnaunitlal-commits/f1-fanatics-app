@@ -18,6 +18,8 @@ import { RadioPanel } from './RadioPanel'
 import { RaceSetsTable } from './RaceSets'
 import { PreRace } from './PreRace'
 import { WeatherStrip } from './WeatherStrip'
+import { DotdVote } from './DotdVote'
+import { PitLogTable } from './PitLogTable'
 import { PitWindowChart, SafetyCarPanel, StintPaceTable, Bands } from './StrategyPanels'
 import type { TowerRow, TrackStatus, RcItem, RcKind, TelemetryState, RejoinSim } from '@/lib/telemetry/engine'
 
@@ -320,7 +322,7 @@ export default function TelemetryView({ endpoint = '/api/telemetria/state' }: { 
             </div>
           )}
         </div>
-        {s.weather && <WeatherStrip w={s.weather} />}
+        {s.weather && <WeatherStrip w={s.weather} rain={data.rain} />}
       </div>
 
       {data.upcoming && data.upcoming.startMs - Date.now() < 48 * 3600_000 && data.upcoming.startMs > Date.now() && (
@@ -426,6 +428,14 @@ export default function TelemetryView({ endpoint = '/api/telemetria/state' }: { 
       {panelOn(scene.panels, 'championship') && s.championship && (
         <Section title="Campeonato em directo" hint="se a corrida acabasse agora">
           <Championship data={s.championship} favCode={favCode ?? null} featured={featured} />
+        </Section>
+      )}
+
+      {s.kind === 'race' && s.started && panelOn(scene.panels, 'dotd') && <DotdVote finished={s.status === 'FINISHED'} />}
+
+      {s.kind === 'race' && s.pitLog.length > 0 && panelOn(scene.panels, 'pits') && (
+        <Section title="Paragens nas boxes" hint="tempo parado e tempo na pit lane · actualiza a cada paragem">
+          <PitLogTable s={s} />
         </Section>
       )}
 

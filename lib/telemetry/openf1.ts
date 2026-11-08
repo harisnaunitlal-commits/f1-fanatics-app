@@ -108,7 +108,7 @@ async function fetchUpstream<T>(endpoint: string, url: string, ttlSec: number, s
   return data
 }
 
-export interface SessionMeta { session_key: number; session_name: string; session_type: string; date_start: string; date_end: string; meeting_key: number; circuit_key: number; country_name: string; circuit_short_name: string; year: number }
+export interface SessionMeta { session_key: number; session_name: string; session_type: string; date_start: string; date_end: string; meeting_key: number; circuit_key: number; country_name: string; circuit_short_name: string; year: number; location?: string }
 
 export async function listSessions(year: number): Promise<SessionMeta[]> {
   const rows = await of1<SessionMeta>('sessions', [['year', '', year]], 600)
@@ -141,7 +141,16 @@ export async function loadRaw(sessionKey: number, tMs: number, live: boolean, se
     isRace ? of1<OF1ChampDriver>('championship_drivers', [sk], live ? 900 : 3600) : Promise.resolve([] as OF1ChampDriver[]),
     isRace ? of1<OF1ChampTeam>('championship_teams', [sk], live ? 900 : 3600) : Promise.resolve([] as OF1ChampTeam[]),
   ])
-  return { drivers, positions, intervals, stints, pits, raceControl, weather, laps, results, overtakes, locations, champDrivers, champTeams }
+  // the live intervals stop at the chequered flag and the window above then comes back empty: keep the ones from the finish
+  let ivs = intervals
+  if (isRace && ivs.length === 0) {
+    const flag = raceControl.find(r => r.category === 'Flag' && (r.flag ?? '').toUpperCase() === 'CHEQUERED')
+    const f = flag ? Date.parse(flag.date) : NaN
+    if (Number.isFinite(f) && tMs > f) {
+      ivs = await of1<OF1Interval>('intervals', [sk, ['date', '>=', isoNoZ(f - 30_000)], ['date', '<=', isoNoZ(Math.min(tMs, f + 6 * 60_000))]], 3600).catch(() => [] as OF1Interval[])
+    }
+  }
+  return { drivers, positions, intervals: ivs, stints, pits, raceControl, weather, laps, results, overtakes, locations, champDrivers, champTeams }
 }
 
 // Lighter load for the public championship page: only what the running order, retirements and the

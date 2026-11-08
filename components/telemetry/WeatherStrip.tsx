@@ -1,5 +1,6 @@
 import type { WeatherInfo } from '@/lib/telemetry/engine'
 import { LineChart, type Series } from './charts'
+import type { RainForecast } from '@/lib/telemetry/rain'
 
 // Temperature change over the last 10 min as a pill: rising (red ▲), falling (blue ▼) or steady.
 export function TrendBadge({ delta, big, label = 'em 10 min' }: { delta: number | null | undefined; big?: boolean; label?: string }) {
@@ -66,7 +67,34 @@ export function TempChart({ w }: { w: WeatherInfo }) {
   )
 }
 
-export function WeatherStrip({ w }: { w: WeatherInfo }) {
+const hourLabel = (ms: number) => new Date(ms).toLocaleTimeString('pt', { hour: '2-digit', minute: '2-digit' })
+
+// Rain: the live fact (raining or not, from the timing feed) plus the chance for this hour and the next ones (forecast).
+export function RainTile({ w, rain, compact }: { w: WeatherInfo; rain?: RainForecast | null; compact?: boolean }) {
+  const p = rain?.probNow ?? null
+  const hot = w.rain || (p !== null && p >= 60)
+  const tone = w.rain ? 'bg-blue-700 text-white' : p !== null && p >= 60 ? 'bg-blue-900/70' : p !== null && p >= 30 ? 'bg-sky-900/50' : 'bg-black/30'
+  return (
+    <div className={`rounded-xl px-4 py-3 flex flex-col gap-1 ${tone}`}>
+      <div className="text-[11px] uppercase tracking-widest text-gray-300 font-semibold">{hot ? '🌧️' : '☀️'} Chuva</div>
+      <div className="text-3xl sm:text-4xl font-black tabular-nums leading-none">{p !== null ? `${Math.round(p)}%` : w.rain ? 'SIM' : 'NÃO'}</div>
+      <div className="text-xs font-semibold">{w.rain ? '🌧️ A chover agora' : '☀️ Sem chuva agora'}{p !== null && <span className="text-gray-300 font-normal"> · probabilidade esta hora</span>}</div>
+      {p !== null && rain && rain.hours.length > 0 && !compact && (
+        <div className="mt-1 flex gap-1.5">
+          {rain.hours.map(h => (
+            <div key={h.atMs} className="flex-1 min-w-0">
+              <div className="h-1.5 rounded bg-black/40 overflow-hidden"><div className="h-full bg-sky-400" style={{ width: `${Math.max(3, h.prob)}%` }} /></div>
+              <div className="text-[10px] tabular-nums text-gray-300 mt-0.5">{hourLabel(h.atMs)} · {Math.round(h.prob)}%</div>
+            </div>
+          ))}
+        </div>
+      )}
+      {p !== null && <div className="text-[9px] text-gray-400">previsão {rain?.source}</div>}
+    </div>
+  )
+}
+
+export function WeatherStrip({ w, rain }: { w: WeatherInfo; rain?: RainForecast | null }) {
   return (
     <div className="mt-3 text-gray-100">
     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
@@ -74,7 +102,7 @@ export function WeatherStrip({ w }: { w: WeatherInfo }) {
       <Tile label="🛣️ Pista" value={w.track.toFixed(0)} unit="°C" extra={<TrendBadge delta={w.trackTrend} big />} />
       <Tile label="💧 Humidade" value={w.humidity.toFixed(0)} unit="%" />
       <Tile label="💨 Vento" value={w.wind.toFixed(1)} unit="m/s" />
-      <Tile label="Chuva" value={w.rain ? '🌧️ SIM' : '☀️ NÃO'} tone={w.rain ? 'bg-blue-700 text-white' : undefined} />
+      <RainTile w={w} rain={rain} />
     </div>
     <TempChart w={w} />
     </div>
