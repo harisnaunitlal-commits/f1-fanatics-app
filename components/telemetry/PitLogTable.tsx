@@ -52,17 +52,14 @@ export function PitLogTable({ s }: { s: TelemetryState }) {
           <span className="text-[10px] text-gray-500 w-full">{s.pitLog.length} paragens · {nDrivers} pilotos</span>
         </div>
         {fastestStop && (
-          <div className="ml-auto rounded-xl border border-yellow-400/50 bg-yellow-400/10 px-4 py-3 flex items-center gap-4" style={{ borderLeft: `4px solid ${fastestStop.colour}` }}>
-            <div className="relative shrink-0">
-              {getDriverPhoto(fastestStop.code)
-                ? <Img src={getDriverPhoto(fastestStop.code)} alt={fastestStop.code} className="w-16 h-16 rounded-full object-cover object-top border-2 bg-black/40" />
-                : <span className="text-3xl">⚡</span>}
-              {fastestStop.team && <Img src={[`/logos/teams/${teamKey(fastestStop.team)}.jpeg`, `/logos/teams/${teamKey(fastestStop.team)}.png`]} alt={fastestStop.team} className="absolute -bottom-1 -right-2 w-8 h-8 object-contain rounded-full bg-white/90 p-1" />}
-            </div>
+          <div className="ml-auto rounded-xl border border-yellow-400/50 bg-yellow-400/10 px-4 py-3 flex flex-wrap items-center gap-4" style={{ borderLeft: `4px solid ${fastestStop.colour}` }}>
+            {getDriverPhoto(fastestStop.code)
+              ? <Img src={getDriverPhoto(fastestStop.code)} alt={fastestStop.code} className="w-20 h-20 rounded-full object-cover object-top border-2 bg-black/40 shrink-0" />
+              : <span className="text-4xl">⚡</span>}
             <div>
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-bold uppercase tracking-widest text-yellow-300">⚡ Pit stop mais rápido do dia</span>
-                <Img src={['/logos/pirelli.png', '/logos/pirelli.jpeg']} alt="Pirelli" className="h-4 object-contain" />
+              <div className="flex items-center gap-3 mb-1">
+                <Img src={['/logos/teams/pirelli.jpeg', '/logos/pirelli.jpeg', '/logos/pirelli.png']} alt="Pit stop mais rápido" className="h-9 rounded object-contain" />
+                <span className="text-[10px] font-bold uppercase tracking-widest text-yellow-300">Pit stop mais rápido do dia</span>
               </div>
               <div className="flex items-baseline gap-3">
                 <span className="text-4xl font-black tabular-nums leading-none">{fastestStop.stopS === null ? '≈ ' : ''}{(stopOf(fastestStop) as number).toFixed(1)}<span className="text-lg text-gray-300"> s</span></span>
@@ -70,6 +67,7 @@ export function PitLogTable({ s }: { s: TelemetryState }) {
               </div>
               <div className="text-[11px] text-gray-400">volta {fastestStop.lap ?? '—'} · {fastestStop.stopS !== null ? 'tempo oficial parado na box' : 'estimado pela velocidade do carro'}</div>
             </div>
+            {fastestStop.team && <Img src={[`/logos/teams/${teamKey(fastestStop.team)}.jpeg`, `/logos/teams/${teamKey(fastestStop.team)}.png`]} alt={fastestStop.team} className="hidden md:block h-24 rounded-lg object-cover" />}
           </div>
         )}
       </div>
