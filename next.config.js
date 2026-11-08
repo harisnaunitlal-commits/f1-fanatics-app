@@ -6,6 +6,14 @@ const withPWA = require('@ducanh2912/next-pwa').default({
   reloadOnOnline: true,
   disable: process.env.NODE_ENV === 'development',
   customWorkerSrc: 'worker',
+  // The telemetry page is live and carries the guide card: never serve it from the app's cache, or members see the previous
+  // version (without the latest panels or the updated guide) on the first visit after each deploy.
+  extendDefaultRuntimeCaching: true,
+  workboxOptions: {
+    runtimeCaching: [
+      { urlPattern: ({ url }) => url.pathname.startsWith('/telemetria'), handler: 'NetworkOnly' },
+    ],
+  },
 })
 
 const nextConfig = {
