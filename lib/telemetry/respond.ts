@@ -6,6 +6,7 @@ import type { StrategyHint } from './engine'
 import { PLAY_FIELDS, QUANTUM_MS, sceneTime, type Scene, type StateResponse, type PlayLine, type LeaderRow, type TyreHistory, type Panels, type PanelKey } from './shared'
 import { trackCorners } from './circuit'
 import { rainForecast } from './rain'
+import { estimateStops } from './pitstop'
 import { getEffectiveGpConfig } from '@/lib/gp-config'
 import { P8_MARGENS } from '@/lib/gp-questions'
 import { calculatePlayScore } from '@/lib/scoring'
@@ -252,6 +253,14 @@ export async function buildStateResponse(viewer: { email: string; isAdmin: boole
     raw.pits = raw.pits.filter(p => { const pt = Date.parse(p.date); return pt >= winA && pt <= winB })
     const hint = sc.gp_id ? await loadStrategyHint(sc.gp_id) : null
     const state = buildState(raw, t, sc.total_laps, meta.session_name, hint)
+    // stops whose stationary time OpenF1 has not published yet: estimate it from the car's speed (a few per poll)
+    const stopNeed = state.pitLog.filter(p => p.stopS === null)
+    if (stopNeed.length) {
+      const numByCode = new Map(raw.drivers.map(d => [d.name_acronym, d.driver_number]))
+      const refs = stopNeed.map(p => ({ key: `${p.code}|${p.at}`, num: numByCode.get(p.code) ?? -1, at: p.at, laneS: p.laneS })).filter(r => r.num >= 0)
+      const est = await estimateStops(sessionKey, refs, 3).catch(() => new Map<string, number | null>())
+      for (const p of state.pitLog) { const v = est.get(`${p.code}|${p.at}`); if (v !== undefined) p.estS = v }
+    }
     const panels: Panels = full ? {} : (sc.panels ?? {})
     const featured = full && opts?.drivers?.length ? opts.drivers : sc.featured
     const [outline, compare, tyreHistory] = await Promise.all([
