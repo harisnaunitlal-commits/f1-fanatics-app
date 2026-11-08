@@ -94,7 +94,7 @@ export function PitLogTable({ s }: { s: TelemetryState }) {
                   <td className="py-1.5 px-2 text-center tabular-nums text-gray-300">{p.lap ?? '—'}</td>
                   <td className="py-1.5 px-2 text-center"><Tyres p={p} /></td>
                   <td className={`py-1.5 px-2 text-right tabular-nums ${top ? 'text-purple-400 font-black' : p.stopS !== null ? 'font-bold' : 'text-gray-300'}`} title={p.stopS === null && v !== null ? 'estimado pela velocidade do carro (±0.3 s)' : undefined}>
-                    {v === null ? <span className="text-gray-600">a calcular…</span> : <>{p.stopS === null && <span className="text-gray-500">≈ </span>}{v.toFixed(1)} s</>}
+                    {v === null ? <span className="text-gray-600">{p.estPending ? 'a calcular…' : '—'}</span> : <>{p.stopS === null && <span className="text-gray-500">≈ </span>}{v.toFixed(1)} s</>}
                   </td>
                   <td className="py-1.5 px-2 text-right tabular-nums text-gray-400">{p.laneS !== null ? `${p.laneS.toFixed(1)} s` : '—'}</td>
                 </tr>

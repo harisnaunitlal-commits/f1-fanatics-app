@@ -160,7 +160,7 @@ export interface TrackLimitRow {
   penaltySecs: number            // seconds of time penalty for track limits
   status: TrackLimitStatus
 }
-export interface PitStopItem { code: string; colour: string; team: string | null; lap: number | null; at: string; laneS: number | null; stopS: number | null; estS: number | null; from: string | null; to: string | null }
+export interface PitStopItem { code: string; colour: string; team: string | null; lap: number | null; at: string; laneS: number | null; stopS: number | null; estS: number | null; estPending: boolean; from: string | null; to: string | null }
 export interface StrategyHint { typicalStops: number; firstStopLap: number | null }
 
 export interface UndercutAlert { attacker: string; target: string; intervalS: number; attackerAge: number; targetAge: number; strength: 'forte' | 'possível' }
@@ -1002,7 +1002,7 @@ export function buildState(raw: RawSession, tMs: number, totalLapsHint: number |
     const lap = p.lap_number
     const before = lap == null ? null : [...sts].reverse().find(x => x.lapStart <= lap) ?? null
     const after = before ? sts[sts.indexOf(before) + 1] ?? null : null
-    return { code: row?.code ?? `#${p.driver_number}`, colour: row?.colour ?? '#888888', team: row?.team ?? null, lap, at: p.date, laneS: p.lane_duration ?? null, stopS: p.stop_duration ?? null, estS: null, from: before?.compound ?? null, to: after?.compound ?? null }
+    return { code: row?.code ?? `#${p.driver_number}`, colour: row?.colour ?? '#888888', team: row?.team ?? null, lap, at: p.date, laneS: p.lane_duration ?? null, stopS: p.stop_duration ?? null, estS: null, estPending: false, from: before?.compound ?? null, to: after?.compound ?? null }
   }).sort((a, b) => ms(b.at) - ms(a.at))
 
   const practiceSim = kind === 'practice'
