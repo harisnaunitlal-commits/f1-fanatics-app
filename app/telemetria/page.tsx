@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import TelemetryView from '@/components/telemetry/TelemetryView'
+import GuiaTelemetria from '@/components/telemetry/GuiaTelemetria'
 
 export default async function TelemetriaPage() {
   const supabase = await createClient()
@@ -15,6 +16,7 @@ export default async function TelemetriaPage() {
         <h1 className="text-3xl font-bold">📡 Telemetria</h1>
         <p className="text-gray-500 text-sm">Só para ver — a transmissão é montada pelo admin</p>
       </div>
+      <GuiaTelemetria />
       <TelemetryView />
     </div>
   )

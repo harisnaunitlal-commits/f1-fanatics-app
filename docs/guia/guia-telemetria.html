@@ -1,0 +1,439 @@
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<title>Como ler a Telemetria — Beira F1 Fanatics</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap">
+<style>
+  @page { size: A4; margin: 0; }
+  :root { --bg:#0c0c0e; --card:#1b1c21; --card2:#26272d; --line:rgba(255,255,255,.09); --red:#e10600; --gold:#f5c518; --green:#4ade80; --redt:#f87171; --blue:#60a5fa; --purple:#c084fc; --fg:#f0f0f2; --muted:#9a9aa8; }
+  * { box-sizing: border-box; margin: 0; }
+  html, body { background: var(--bg); color: var(--fg); font-family: 'DM Sans', system-ui, sans-serif; font-size: 11.5px; line-height: 1.5; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .page { width: 210mm; height: 297mm; padding: 13mm 14mm 12mm; position: relative; overflow: hidden; page-break-after: always; background: radial-gradient(900px 420px at 50% -10%, rgba(225,6,0,.22), transparent 70%), var(--bg); display: flex; flex-direction: column; gap: 9px; }
+  .page:last-child { page-break-after: auto; }
+  .eyebrow { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: .16em; text-transform: uppercase; color: var(--red); }
+  h1 { font-family: 'Barlow Condensed'; font-weight: 900; font-size: 54px; line-height: .95; text-transform: uppercase; letter-spacing: -.01em; }
+  h1 span { color: var(--red); }
+  h2 { font-family: 'Barlow Condensed'; font-weight: 800; font-size: 27px; line-height: 1; text-transform: uppercase; letter-spacing: .02em; }
+  h2 .n { color: var(--red); font-family: 'DM Mono'; font-size: 11px; letter-spacing: .12em; display: block; margin-bottom: 3px; }
+  h3 { font-family: 'Barlow Condensed'; font-weight: 800; font-size: 15px; text-transform: uppercase; letter-spacing: .06em; color: var(--gold); }
+  p { color: #d4d4dc; }
+  .lead { font-size: 13px; color: #e6e6ec; max-width: 150mm; }
+  b, strong { color: #fff; }
+  .muted { color: var(--muted); }
+  .head { display: flex; align-items: flex-end; justify-content: space-between; border-bottom: 1px solid var(--line); padding-bottom: 8px; margin-bottom: 2px; }
+  .head .pg { font-family: 'DM Mono'; font-size: 9px; color: var(--muted); }
+  .foot { margin-top: auto; display: flex; justify-content: space-between; font-size: 8.5px; color: #6f6f7d; border-top: 1px solid var(--line); padding-top: 6px; }
+
+  /* the app's own look, redrawn for the examples */
+  .app { background: #3a3b41; border: 1px solid rgba(255,255,255,.07); border-radius: 12px; overflow: hidden; color: #f0f0f2; }
+  .app .t { display: flex; justify-content: space-between; padding: 6px 12px; border-bottom: 1px solid rgba(255,255,255,.08); background: rgba(255,255,255,.04); font-family: 'Barlow Condensed'; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; color: #facc15; font-size: 12px; }
+  .app .t small { font-family: 'DM Sans'; letter-spacing: 0; text-transform: none; color: #8d8d99; font-weight: 400; font-size: 9px; }
+  .app .b { padding: 8px 12px 10px; }
+  table { width: 100%; border-collapse: collapse; font-size: 10.5px; }
+  th { font-size: 8px; letter-spacing: .08em; text-transform: uppercase; color: #8d8d99; font-weight: 600; padding: 4px 6px; text-align: right; border-bottom: 1px solid rgba(255,255,255,.1); }
+  th:first-child, td:first-child, .l { text-align: left; }
+  td { padding: 4px 6px; text-align: right; border-bottom: 1px solid rgba(255,255,255,.05); font-variant-numeric: tabular-nums; }
+  .car { display: inline-flex; align-items: center; gap: 6px; font-weight: 800; }
+  .car i { width: 3px; height: 13px; border-radius: 2px; display: inline-block; }
+  .g { color: var(--green); } .r { color: var(--redt); } .pu { color: var(--purple); font-weight: 800; } .y { color: #fde047; } .gr { color: #8d8d99; }
+  .tyre { display: inline-flex; width: 17px; height: 17px; border-radius: 50%; border: 2px solid; align-items: center; justify-content: center; font-size: 8px; font-weight: 900; vertical-align: middle; }
+  .S { color: #ef4444; border-color: #ef4444; } .M { color: #facc15; border-color: #facc15; } .H { color: #f4f4f5; border-color: #f4f4f5; } .I { color: #22c55e; border-color: #22c55e; } .W { color: #60a5fa; border-color: #60a5fa; }
+  .chip { display: inline-block; font-weight: 900; border-radius: 99px; padding: 3px 12px; font-size: 12px; }
+  .live { background: #b91c1c; color: #fff; } .green { background: #16a34a; color: #fff; } .sc { background: #f97316; color: #111; } .vsc { background: #facc15; color: #111; } .redf { background: #dc2626; color: #fff; } .chq { background: #fff; color: #111; }
+
+  /* call-outs */
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; }
+  .box { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 9px 11px; }
+  .box h3 { margin-bottom: 3px; }
+  .key { display: flex; gap: 8px; align-items: flex-start; margin: 3px 0; }
+  .key .dot { flex: none; width: 17px; height: 17px; border-radius: 50%; background: var(--red); color: #fff; font-weight: 800; font-size: 9px; display: flex; align-items: center; justify-content: center; margin-top: 1px; }
+  .tip { background: rgba(245,197,24,.09); border: 1px solid rgba(245,197,24,.4); border-radius: 10px; padding: 8px 11px; color: #fdf2c0; }
+  .tip b { color: var(--gold); }
+  .warn { background: rgba(225,6,0,.1); border: 1px solid rgba(225,6,0,.45); border-radius: 10px; padding: 8px 11px; color: #ffd9d6; }
+  .warn b { color: #ff8a84; }
+  .num { display: inline-flex; width: 15px; height: 15px; border-radius: 50%; background: var(--red); color: #fff; font-size: 8.5px; font-weight: 800; align-items: center; justify-content: center; vertical-align: middle; margin-right: 3px; }
+  ul { padding-left: 15px; color: #d4d4dc; } li { margin: 2px 0; }
+  .bar { height: 7px; border-radius: 4px; background: rgba(0,0,0,.4); overflow: hidden; } .bar > i { display: block; height: 100%; }
+  .cover { justify-content: center; gap: 14px; }
+  .toc { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 16px; margin-top: 8px; }
+  .toc div { display: flex; gap: 8px; color: #d4d4dc; border-bottom: 1px dashed var(--line); padding: 3px 0; }
+  .toc span { font-family: 'DM Mono'; color: var(--red); font-size: 9.5px; }
+  .big3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 9px; margin-top: 8px; }
+  .big3 .box { padding: 12px; } .big3 .q { font-family: 'Barlow Condensed'; font-weight: 800; font-size: 19px; line-height: 1.05; text-transform: uppercase; color: #fff; margin-bottom: 4px; }
+</style>
+</head>
+<body>
+
+<!-- ───────────── 1 · CAPA ───────────── -->
+<section class="page cover">
+  <div class="eyebrow">Beira F1 Fanatics · Temporada 2026</div>
+  <h1>Como ler a<br><span>Telemetria</span></h1>
+  <p class="lead">A página de Telemetria mostra, ao vivo, o que os comentadores só têm tempo de dizer em meia frase. Este guia explica cada painel, como ler os números e o que fazer com eles enquanto a corrida decorre.</p>
+  <div class="big3">
+    <div class="box"><div class="q">Quem está à frente?</div><p>A <b>torre de tempos</b>, os intervalos e o mapa dizem-te a ordem de verdade, volta a volta.</p></div>
+    <div class="box"><div class="q">Quem tem ritmo?</div><p>O <b>ritmo, os pneus e a degradação</b> mostram quem está a ganhar tempo e quem o está a perder.</p></div>
+    <div class="box"><div class="q">O que vem a seguir?</div><p>A <b>estratégia</b>, as janelas de paragem e as bandeiras antecipam as grandes viragens.</p></div>
+  </div>
+  <div class="eyebrow" style="margin-top:14px">Neste guia</div>
+  <div class="toc">
+    <div><span>02</span>O cabeçalho: estado da pista e meteorologia</div>
+    <div><span>03</span>Torre de tempos</div>
+    <div><span>04</span>Pneus e stints</div>
+    <div><span>05</span>Estratégia: paragens, undercut, Safety Car</div>
+    <div><span>06</span>Ritmo, combustível e degradação</div>
+    <div><span>07</span>Paragens nas boxes</div>
+    <div><span>08</span>Treinos livres: simulações</div>
+    <div><span>09</span>Mapa, ultrapassagens e comparação</div>
+    <div><span>10</span>Direcção de corrida e F1 Play em directo</div>
+    <div><span>11</span>O que a telemetria não diz · checklist</div>
+  </div>
+  <div class="foot" style="margin-top:22px"><span>Dados: OpenF1 (openf1.org) · projecto não-oficial, sem ligação à Fórmula 1</span><span>app.beiraf1fanatics.com/telemetria</span></div>
+</section>
+
+<!-- ───────────── 2 · CABEÇALHO ───────────── -->
+<section class="page">
+  <div class="head"><h2><span class="n">02 · PRIMEIRO OLHAR</span>O cabeçalho</h2><span class="pg">Guia da Telemetria</span></div>
+  <p class="lead">No topo vês, de relance, <b>em que estado está a sessão</b> e <b>o que o tempo está a fazer</b>. É a primeira coisa a olhar sempre que voltas à página.</p>
+
+  <div class="app"><div class="b">
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="chip live">● AO VIVO</span><span class="chip green">PISTA LIVRE</span><span style="background:#17171c;border-radius:10px;padding:3px 12px;font-weight:900;font-size:13px">VOLTA 38/71</span><span class="gr" style="font-size:10px">21:08:45</span></div>
+    <div class="gr" style="font-size:9px;letter-spacing:.14em;margin-top:6px">BRAZIL</div><div style="font-family:'Barlow Condensed';font-weight:900;font-size:24px">GP Brasil · Race</div>
+  </div></div>
+
+  <div class="grid2">
+    <div class="box"><h3>Estado da pista</h3>
+      <div style="display:flex;gap:5px;flex-wrap:wrap;margin:5px 0"><span class="chip green">PISTA LIVRE</span><span class="chip" style="background:#facc15;color:#111">AMARELA</span><span class="chip vsc">VSC</span><span class="chip sc">SAFETY CAR</span><span class="chip redf">VERMELHA</span><span class="chip chq">XADREZ</span></div>
+      <p>Muda de cor sozinho. <b>VSC</b> e <b>Safety Car</b> aparecem também num banner grande: é o momento em que as estratégias mudam.</p>
+    </div>
+    <div class="box"><h3>● Ao vivo ou ↺ Replay</h3><p><b>Ao vivo</b> é a corrida a acontecer. <b>Replay</b> é uma repetição montada pelo admin (aparece a velocidade, ex. 2×). A hora ao lado é a do último dado recebido.</p></div>
+  </div>
+
+  <h3 style="margin-top:2px">Meteorologia</h3>
+  <div class="app"><div class="b">
+    <div class="grid3" style="grid-template-columns:repeat(5,1fr);gap:6px">
+      <div style="background:rgba(0,0,0,.3);border-radius:9px;padding:7px 9px"><div class="gr" style="font-size:8px;letter-spacing:.1em">🌡️ AR</div><div style="font-size:22px;font-weight:900">16<small class="gr" style="font-size:11px"> °C</small></div><span style="background:rgba(120,120,120,.25);border-radius:99px;padding:1px 7px;font-size:8.5px;font-weight:800" class="gr">▬ estável</span></div>
+      <div style="background:rgba(0,0,0,.3);border-radius:9px;padding:7px 9px"><div class="gr" style="font-size:8px;letter-spacing:.1em">🛣️ PISTA</div><div style="font-size:22px;font-weight:900">38<small class="gr" style="font-size:11px"> °C</small></div><span style="background:rgba(239,68,68,.25);border-radius:99px;padding:1px 7px;font-size:8.5px;font-weight:800" class="r">▲ +2.4° em 10 min</span></div>
+      <div style="background:rgba(0,0,0,.3);border-radius:9px;padding:7px 9px"><div class="gr" style="font-size:8px;letter-spacing:.1em">💧 HUMIDADE</div><div style="font-size:22px;font-weight:900">62<small class="gr" style="font-size:11px"> %</small></div></div>
+      <div style="background:rgba(0,0,0,.3);border-radius:9px;padding:7px 9px"><div class="gr" style="font-size:8px;letter-spacing:.1em">💨 VENTO</div><div style="font-size:22px;font-weight:900">3.0<small class="gr" style="font-size:11px"> m/s</small></div></div>
+      <div style="background:rgba(30,58,138,.6);border-radius:9px;padding:7px 9px"><div style="font-size:8px;letter-spacing:.1em">🌧️ CHUVA</div><div style="font-size:22px;font-weight:900">65%</div><div style="font-size:8px">☀️ sem chuva agora</div></div>
+    </div>
+    <svg viewBox="0 0 640 90" style="width:100%;margin-top:8px"><g stroke="#fff" stroke-opacity=".07"><line x1="38" x2="606" y1="15" y2="15"/><line x1="38" x2="606" y1="45" y2="45"/><line x1="38" x2="606" y1="75" y2="75"/></g><polyline fill="none" stroke="#f59e0b" stroke-opacity=".35" stroke-width="1.2" points="38,70 80,66 120,60 170,50 210,56 260,40 310,34 350,42 400,28 450,32 500,24 560,30 606,22"/><polyline fill="none" stroke="#f59e0b" stroke-width="2.8" points="38,68 120,62 210,52 310,38 400,31 500,26 606,23"/><g fill="#8a8a98" font-size="9"><text x="30" y="18" text-anchor="end">42°</text><text x="30" y="48" text-anchor="end">38°</text><text x="30" y="78" text-anchor="end">34°</text><text x="38" y="88">14:00</text><text x="320" y="88">14:45</text><text x="590" y="88">15:30</text></g></svg>
+  </div></div>
+
+  <div class="grid2">
+    <div class="box"><h3>Como ler a tendência</h3>
+      <div class="key"><span class="dot" style="background:#ef4444">▲</span><p><b>Vermelho</b>: a temperatura <b>sobe</b> nos últimos 10 minutos. Pista a aquecer = pneus a trabalhar mais, mais desgaste.</p></div>
+      <div class="key"><span class="dot" style="background:#0ea5e9">▼</span><p><b>Azul</b>: <b>desce</b>. Pista a arrefecer ou nuvens: o ritmo cai e os pneus duros demoram a entrar.</p></div>
+      <div class="key"><span class="dot" style="background:#6b7280">▬</span><p><b>Cinzento</b>: estável (menos de 0.5° de variação).</p></div>
+    </div>
+    <div class="box"><h3>Gráfico da pista</h3><p>Linha <b>forte</b> = tendência (média de 5 leituras). Linha <b>fina</b> = leituras reais, que saltam com o sol e as nuvens. O eixo ajusta-se à variação da sessão: 1 a 2 graus já se vêem. Mostra ainda mínimo, máximo e a variação <b>desde o início</b>.</p></div>
+  </div>
+  <div class="tip"><b>Chuva em %</b> é a <b>previsão</b> para a hora actual e as três seguintes (serviço Open-Meteo), não uma medição. O texto "a chover agora / sem chuva agora" é o que o carro realmente apanha, vindo do cronometrista. Uma previsão de 65% sem chuva agora quer dizer: <b>atenção</b>, pode vir aí uma mudança para pneus de chuva.</div>
+  <div class="foot"><span>Beira F1 Fanatics · Guia da Telemetria</span><span>02</span></div>
+</section>
+
+<!-- ───────────── 3 · TORRE ───────────── -->
+<section class="page">
+  <div class="head"><h2><span class="n">03 · A ORDEM DA CORRIDA</span>Torre de tempos</h2><span class="pg">Guia da Telemetria</span></div>
+  <p class="lead">É a tabela principal: <b>quem está em que posição, a que distância do líder e do carro da frente</b>, com que pneu e quantas paragens fez.</p>
+
+  <div class="app"><div class="t">Tabela de tempos <small>Volta mais rápida: ANT 1:12.689 (V55)</small></div><div class="b"><table>
+    <tr><th>#</th><th class="l">Piloto</th><th>Líder</th><th>Int.</th><th>Última</th><th>Pneu</th><th>Box</th></tr>
+    <tr><td>1</td><td class="l"><span class="car"><i style="background:#f97316"></i>NOR</span> <span class="gr">NORRIS</span></td><td>LÍDER</td><td class="gr">—</td><td>1:27.621</td><td><span class="tyre I">I</span> <span class="gr">9</span></td><td>3</td></tr>
+    <tr style="background:rgba(245,197,24,.12)"><td>2</td><td class="l"><span class="car"><i style="background:#3b82f6"></i>VER</span> <span class="y" style="font-size:8px;font-weight:800">★ TEU</span></td><td>+0.8</td><td>+0.8</td><td>1:27.947</td><td><span class="tyre I">I</span> <span class="gr">8</span></td><td>3</td></tr>
+    <tr><td>3</td><td class="l"><span class="car"><i style="background:#3b82f6"></i>HAD</span></td><td>+4.0</td><td>+3.2</td><td>1:28.206</td><td><span class="tyre I">I</span> <span class="gr">8</span></td><td>3</td></tr>
+    <tr><td>4</td><td class="l"><span class="car"><i style="background:#14b8a6"></i>ANT</span> <span class="pu">⏱</span></td><td>+10.7</td><td>+6.7</td><td class="pu">1:12.689</td><td><span class="tyre S">S</span> <span class="gr">4</span></td><td>2</td></tr>
+    <tr><td>5</td><td class="l"><span class="car"><i style="background:#ef4444"></i>LEC</span></td><td>+1V</td><td>+1V</td><td>1:32.037</td><td><span class="tyre M">M</span> <span class="gr">9</span></td><td>2</td></tr>
+  </table></div></div>
+
+  <div class="grid2">
+    <div class="box"><h3>Colunas</h3>
+      <div class="key"><span class="dot">1</span><p><b>#</b> posição na pista agora. A faixa de cor é a da equipa.</p></div>
+      <div class="key"><span class="dot">2</span><p><b>Líder</b>: segundos de atraso até ao primeiro. <b>+1V</b> = uma volta de atraso (apanhado).</p></div>
+      <div class="key"><span class="dot">3</span><p><b>Int.</b>: o intervalo para o carro <b>da frente</b>. É o que decide um ataque ou uma defesa.</p></div>
+      <div class="key"><span class="dot">4</span><p><b>Última</b>: tempo da última volta completa.</p></div>
+      <div class="key"><span class="dot">5</span><p><b>Pneu</b>: composto e idade em voltas. <b>Box</b>: paragens já feitas.</p></div>
+    </div>
+    <div class="box"><h3>Cores e símbolos</h3>
+      <p><span class="pu">Roxo</span> = o melhor tempo da corrida. <span class="g">Verde</span> = melhor pessoal. Branco/amarelo = normal.</p>
+      <p style="margin-top:4px"><span class="pu">⏱</span> ao lado do piloto = detém a <b>volta mais rápida</b> da corrida (por isso a coluna "Última" fica roxa quando é essa volta).</p>
+      <p style="margin-top:4px"><span class="y">★ TEU</span> marca o <b>teu piloto favorito</b>; a linha fica realçada.</p>
+      <p style="margin-top:4px">A tabela <b>não pára</b> nas bandeiras: durante Safety Car os intervalos encolhem para ~1 s, e a seguir ao <b>xadrez</b> os gaps ficam fixos na classificação final.</p>
+    </div>
+  </div>
+  <div class="tip"><b>Dica:</b> não olhes só para a posição. Um piloto a <b>+1.2 s</b> do da frente com pneus <b>5 voltas mais novos</b> é uma ameaça. Um a <b>+1.2 s</b> com pneus muito gastos vai provavelmente cair para trás. O resto do guia ensina a juntar estas peças.</div>
+  <div class="foot"><span>Beira F1 Fanatics · Guia da Telemetria</span><span>03</span></div>
+</section>
+
+<!-- ───────────── 4 · PNEUS ───────────── -->
+<section class="page">
+  <div class="head"><h2><span class="n">04 · A VARIÁVEL QUE DECIDE TUDO</span>Pneus e stints</h2><span class="pg">Guia da Telemetria</span></div>
+  <p class="lead">Quase todas as ultrapassagens e paragens se explicam pelos pneus. A telemetria mostra <b>o que cada piloto tem</b>, há quanto tempo, e <b>o que ainda lhe resta</b>.</p>
+
+  <div class="grid2">
+    <div class="box"><h3>Os compostos</h3>
+      <div style="display:grid;grid-template-columns:auto 1fr;gap:5px 9px;align-items:center;margin-top:4px">
+        <span class="tyre S">S</span><p><b>Macio (vermelho)</b>: o mais rápido e o que menos dura.</p>
+        <span class="tyre M">M</span><p><b>Médio (amarelo)</b>: o equilíbrio.</p>
+        <span class="tyre H">H</span><p><b>Duro (branco)</b>: o mais lento, aguenta mais voltas.</p>
+        <span class="tyre I">I</span><p><b>Intermédio (verde)</b>: pista húmida.</p>
+        <span class="tyre W">W</span><p><b>Chuva (azul)</b>: pista encharcada.</p>
+      </div>
+    </div>
+    <div class="box"><h3>O número ao lado</h3><p>É a <b>idade do conjunto em voltas</b>, e não a idade do piloto. <span class="tyre S">S</span> <span class="gr">4</span> significa um macio com 4 voltas. Idade alta com ritmo a cair é sinal de que a paragem está próxima.</p>
+      <p style="margin-top:6px"><b>Cuidado:</b> um conjunto <b>usado</b> pode ser montado com idade já maior que 0. Por isso a idade pode "começar" em 6 ou 8 numa paragem.</p></div>
+  </div>
+
+  <h3>Pneus e stints · todos os pilotos</h3>
+  <div class="app"><div class="b">
+    <div style="display:grid;grid-template-columns:34px 1fr;gap:5px 8px;align-items:center;font-size:10px">
+      <b>NOR</b><div style="display:flex;height:16px;border-radius:4px;overflow:hidden;font-size:8px;font-weight:900;text-align:center"><div style="flex:17;background:#166534;color:#bbf7d0">I · 1–17</div><div style="flex:33;background:#7f1d1d;color:#fecaca">S · 18–50</div><div style="flex:21;background:#713f12;color:#fef08a">M · 51–71</div></div>
+      <b>VER</b><div style="display:flex;height:16px;border-radius:4px;overflow:hidden;font-size:8px;font-weight:900;text-align:center"><div style="flex:18;background:#166534;color:#bbf7d0">I · 1–18</div><div style="flex:28;background:#7f1d1d;color:#fecaca">S · 19–46</div><div style="flex:25;background:#713f12;color:#fef08a">M · 47–71</div></div>
+      <b>HAM</b><div style="display:flex;height:16px;border-radius:4px;overflow:hidden;font-size:8px;font-weight:900;text-align:center"><div style="flex:30;background:#7f1d1d;color:#fecaca">S · 1–30</div><div style="flex:41;background:#e5e7eb;color:#111">H · 31–71</div></div>
+    </div>
+  </div></div>
+  <p>Cada barra é um <b>stint</b> (período com o mesmo conjunto), por ordem das voltas. Dá para ver de uma vez <b>quem parou cedo, quem alongou e quem tem uma estratégia diferente</b>. Quem estica o stint tem pneus mais gastos no final, mas ganha pista livre.</p>
+
+  <div class="grid2">
+    <div class="box"><h3>Pneus para a corrida (sets novos)</h3><p>Folha da Pirelli: quantos conjuntos <b>novos</b> de cada composto cada piloto ainda tem. Na corrida, <b>cada paragem risca</b> um dos novos. Quem chega a uma fase decisiva só com usados tem menos opções de estratégia.</p></div>
+    <div class="box"><h3>Pneus do fim-de-semana</h3><p>O que cada piloto <b>já gastou</b> nos treinos e na qualificação e o que lhe resta. Mostra a lógica da equipa: quem poupou macios novos para a corrida está a guardar um trunfo.</p></div>
+  </div>
+  <div class="tip"><b>Regra de bolso:</b> pneu macio dura 15 a 25 voltas, médio 25 a 35, duro 35 ou mais (varia com a pista e o calor). Quando alguém passa estes limites <b>e</b> o tempo por volta sobe, espera uma paragem.</div>
+  <div class="foot"><span>Beira F1 Fanatics · Guia da Telemetria</span><span>04</span></div>
+</section>
+
+<!-- ───────────── 5 · ESTRATÉGIA ───────────── -->
+<section class="page">
+  <div class="head"><h2><span class="n">05 · ANTECIPAR O QUE VAI ACONTECER</span>Estratégia</h2><span class="pg">Guia da Telemetria</span></div>
+  <p class="lead">Estes painéis são <b>contas feitas com os tempos reais da corrida</b>, não palpites. Servem para perceber quem está na altura de parar e quem pode ganhar posições pela box.</p>
+
+  <h3>Janela de paragem · top 10</h3>
+  <div class="app"><div class="b" style="display:grid;grid-template-columns:34px 1fr 90px;gap:6px 8px;align-items:center;font-size:10px">
+    <b>NOR</b><div style="position:relative;height:14px;background:rgba(0,0,0,.4);border-radius:4px"><div style="position:absolute;left:34%;width:18%;top:0;bottom:0;border:2px dashed #4ade80;background:rgba(74,222,128,.15);border-radius:3px"></div><div style="position:absolute;left:0;width:34%;top:2px;bottom:2px;background:#7f1d1d;border-radius:2px"></div></div><span class="gr">ainda cedo</span>
+    <b>VER</b><div style="position:relative;height:14px;background:rgba(0,0,0,.4);border-radius:4px"><div style="position:absolute;left:34%;width:18%;top:0;bottom:0;border:2px dashed #4ade80;background:rgba(74,222,128,.15);border-radius:3px"></div><div style="position:absolute;left:0;width:45%;top:2px;bottom:2px;background:#7f1d1d;border-radius:2px"></div></div><b class="g">JANELA ABERTA</b>
+    <b>HAM</b><div style="position:relative;height:14px;background:rgba(0,0,0,.4);border-radius:4px"><div style="position:absolute;left:34%;width:18%;top:0;bottom:0;border:2px dashed #4ade80;background:rgba(74,222,128,.15);border-radius:3px"></div><div style="position:absolute;left:0;width:62%;top:2px;bottom:2px;background:#7f1d1d;border-radius:2px"></div></div><b class="r">ATRASADO</b>
+  </div></div>
+  <p>A caixa verde tracejada é a <b>janela onde os outros costumam parar neste circuito</b>. <b>Cedo</b> = ainda não chegou lá. <b>Janela aberta</b> = pode parar já. <b>Atrasado</b> = passou o ponto habitual: ou vai fazer um stint longo de propósito ou tem um problema.</p>
+
+  <div class="grid2">
+    <div class="box"><h3>Perda numa paragem</h3><div style="font-size:24px;font-weight:900;color:#fde047;line-height:1">22.4 s</div><p>Tempo que se perde ao entrar na box, medido nas paragens desta corrida. <b>Sob Safety Car baixa para ~50%</b>: quem para nessa altura perde menos e é por isso que o SC "baralha" a ordem.</p></div>
+    <div class="box"><h3>Janela de undercut</h3>
+      <p><span style="background:#15803d;color:#fff;font-size:8px;font-weight:900;padding:1px 6px;border-radius:4px">FORTE</span> <b>HAM</b> sobre <b>LEC</b> · 1.1 s · pneus 14v vs 17v</p>
+      <p style="margin-top:4px"><b>Undercut</b> = parar antes do rival para ganhar tempo com pneus novos e passá-lo quando ele parar. Aparece quando o intervalo é ≤ 2,5 s e o piloto já tem 8 ou mais voltas no conjunto.</p></div>
+  </div>
+  <div class="grid2">
+    <div class="box"><h3>Onde voltaria se parasse agora</h3><p>Para os pilotos destacados: <b>em que posição saíam da box</b> se parassem neste instante, contando a perda e o trânsito. Dá para ver se uma paragem é "barata" (sai em pista livre) ou "cara" (sai no meio do pelotão).</p></div>
+    <div class="box"><h3>Safety Car — o que deu</h3><p>Resume cada período de <b>SC, VSC ou bandeira vermelha</b> e o que fez às paragens: quem parou "de graça", quem ficou fora e ganhou posições, e quem perdeu o comboio.</p></div>
+  </div>
+  <div class="warn"><b>Atenção ao Safety Car:</b> quando aparece, o ecrã fica laranja e a regra muda. Os intervalos encolhem, as janelas de undercut deixam de contar e o painel "perda numa paragem" desce. É o momento mais volátil de uma corrida.</div>
+  <div class="foot"><span>Beira F1 Fanatics · Guia da Telemetria</span><span>05</span></div>
+</section>
+
+<!-- ───────────── 6 · RITMO ───────────── -->
+<section class="page">
+  <div class="head"><h2><span class="n">06 · O PAINEL MAIS ENGANADOR (E MAIS ÚTIL)</span>Ritmo, combustível e degradação</h2><span class="pg">Guia da Telemetria</span></div>
+  <p class="lead">Este painel mostra <b>o que cada mudança de pneu fez ao ritmo</b>. É poderoso, mas só se lê bem com <b>contexto</b>. Vamos ler um caso real, o do GP do Brasil.</p>
+
+  <div class="app"><div class="t">O que cada mudança de pneu fez ao ritmo · top 10</div><div class="b"><table>
+    <tr><th>Piloto</th><th class="l">Mudança</th><th>Voltas</th><th>Ritmo</th><th>Δ ritmo</th><th>Δ sem combustível</th><th>Degr. s/v</th></tr>
+    <tr><td><span class="car"><i style="background:#f97316"></i>NOR</span></td><td class="l">Intermédio → <b>Macio</b></td><td class="gr">17–49</td><td>75.15</td><td class="g"><b>−11.72</b></td><td class="g">−10.86</td><td class="gr">−0.12</td></tr>
+    <tr><td><span class="car"><i style="background:#f97316"></i>NOR</span></td><td class="l">Macio → <b>Macio</b></td><td class="gr">50–62</td><td>73.82</td><td class="g"><b>−1.33</b></td><td class="g">−0.53</td><td class="gr">+0.35</td></tr>
+    <tr><td><span class="car"><i style="background:#f97316"></i>NOR</span></td><td class="l">Macio → <b>Intermédio</b></td><td class="gr">63–71</td><td>84.92</td><td class="r"><b>+11.10</b></td><td class="r">+11.50</td><td class="gr">+0.28</td></tr>
+  </table></div></div>
+
+  <div class="grid2">
+    <div class="box"><h3>Como ler cada coluna</h3>
+      <div class="key"><span class="dot">1</span><p><b>Mudança</b>: do pneu antigo para o novo, sempre por ordem de stint.</p></div>
+      <div class="key"><span class="dot">2</span><p><b>Voltas</b>: onde o stint começou e acabou. Poucas voltas = números pouco fiáveis.</p></div>
+      <div class="key"><span class="dot">3</span><p><b>Ritmo</b>: a <b>mediana</b> das voltas limpas do stint (sem voltas de box nem de Safety Car).</p></div>
+      <div class="key"><span class="dot">4</span><p><b>Δ ritmo</b>: ritmo do stint novo menos o anterior. <span class="g">Verde/negativo = mais rápido</span>, <span class="r">vermelho/positivo = mais lento</span>.</p></div>
+      <div class="key"><span class="dot">5</span><p><b>Δ sem combustível</b>: o mesmo, mas tirando o efeito de o carro ficar mais leve (~0,035 s por volta de corrida). Mostra melhor o efeito <b>do pneu</b>.</p></div>
+      <div class="key"><span class="dot">6</span><p><b>Degr. s/v</b>: segundos que o pneu faz perder <b>por volta</b>. Positivo = a gastar; negativo = a melhorar (pista a secar).</p></div>
+    </div>
+    <div class="box"><h3>O que este exemplo ensina</h3>
+      <p><b>Linha 1:</b> de intermédios para macios, <b class="g">−11.72 s</b> por volta! Não foi só o pneu. A pista <b>estava a secar</b>, e mudar para macios abriu a janela de ritmo. A degradação negativa (−0.12) confirma: a pista melhorava mais do que o pneu gastava.</p>
+      <p style="margin-top:5px"><b>Linha 2:</b> macio para macio, <b class="g">−1.33</b>: um conjunto novo, mais 0.5 s tirando o combustível. Degradação <b>+0.35</b> s/volta: aqui o pneu já estava a desgastar-se com força.</p>
+      <p style="margin-top:5px"><b>Linha 3:</b> de volta aos intermédios, <b class="r">+11.10</b>. Choveu outra vez e o ritmo caiu 11 segundos. <b>Um Δ enorme, positivo ou negativo, quase sempre é mudança de condições</b>, não de pneu.</p></div>
+  </div>
+
+  <div class="grid2">
+    <div class="box"><h3>Ritmo e pneus (últimas voltas)</h3><p>Mostra, por piloto, as <b>últimas 5 voltas</b> com a diferença para a anterior, a média de 5 voltas e a <b>degradação</b>. Serve para ver <b>quem está a perder ritmo neste momento</b>, antes de aparecer na torre.</p></div>
+    <div class="warn"><b>Armadilhas comuns:</b>
+      <ul style="margin-top:3px;color:#ffd9d6"><li>Poucas voltas no stint (menos de 5) ⇒ ignora.</li><li>Tráfego, bandeiras e Safety Car distorcem o ritmo.</li><li>Pista a secar ou a molhar mexe com tudo.</li><li>O combustível é uma estimativa média.</li></ul></div>
+  </div>
+  <div class="tip"><b>Truque:</b> compara sempre <b>a degradação de quem tem o mesmo composto</b>. Se dois pilotos têm macios e um perde 0.35 s/volta e o outro 0.10 s/volta, o segundo vai conseguir alongar o stint e tem uma carta estratégica por jogar.</div>
+  <div class="foot"><span>Beira F1 Fanatics · Guia da Telemetria</span><span>06</span></div>
+</section>
+
+<!-- ───────────── 7 · PARAGENS ───────────── -->
+<section class="page">
+  <div class="head"><h2><span class="n">07 · A CORRIDA GANHA-SE NA BOX</span>Paragens nas boxes</h2><span class="pg">Guia da Telemetria</span></div>
+  <p class="lead">Uma tabela que ganha uma linha <b>a cada paragem</b>, com a volta, a troca de pneus e dois tempos diferentes que convém não confundir.</p>
+
+  <div class="app"><div class="t">Paragens nas boxes <small>actualiza a cada paragem</small></div><div class="b">
+    <div style="display:flex;gap:10px;align-items:center;margin-bottom:6px">
+      <div style="flex:1;border:1px solid rgba(250,204,21,.5);background:rgba(250,204,21,.1);border-radius:10px;padding:7px 10px;display:flex;gap:10px;align-items:center">
+        <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#334155,#0f172a);border:2px solid #ef4444;display:flex;align-items:center;justify-content:center;font-weight:900">HUL</div>
+        <div><div style="font-size:8px;letter-spacing:.14em;font-weight:700;color:#fde047">PIT STOP MAIS RÁPIDO DO DIA</div><div style="font-size:24px;font-weight:900;line-height:1">2.0<small class="gr" style="font-size:12px"> s</small></div><div class="gr" style="font-size:8.5px">HUL · volta 44 · tempo oficial parado na box</div></div>
+      </div>
+    </div>
+    <table><tr><th class="l">Piloto</th><th>Volta</th><th>Pneus</th><th>Troca de pneus</th><th>Pit lane</th></tr>
+    <tr><td><span class="car"><i style="background:#2563eb"></i>SAI</span></td><td>61</td><td><span class="tyre S">S</span> <span class="gr">→</span> <span class="tyre I">I</span></td><td><b>2.6 s</b></td><td class="gr">24.4 s</td></tr>
+    <tr><td><span class="car"><i style="background:#ef4444"></i>HAM</span></td><td>62</td><td><span class="tyre S">S</span> <span class="gr">→</span> <span class="tyre I">I</span></td><td><b class="pu">2.2 s</b></td><td class="gr">25.5 s</td></tr>
+    <tr><td><span class="car"><i style="background:#06b6d4"></i>GAS</span></td><td>61</td><td><span class="tyre S">S</span> <span class="gr">→</span> <span class="tyre I">I</span></td><td class="gr">≈ 3.2 s</td><td class="gr">31.1 s</td></tr>
+    </table>
+  </div></div>
+
+  <div class="grid2">
+    <div class="box"><h3>Troca de pneus</h3><p>O tempo em que o carro está <b>parado na box</b>, só a troca de pneus. É o que decide o <b>prémio DHL de paragem mais rápida</b>. Uma boa paragem demora entre 2 e 3 segundos.</p></div>
+    <div class="box"><h3>Pit lane</h3><p>O tempo <b>total</b> da entrada à saída da pit lane (inclui a travagem, a velocidade limitada e o arranque). Ronda os 20 a 25 s e é o que realmente custa na corrida.</p></div>
+  </div>
+  <div class="grid2">
+    <div class="box"><h3>Valor oficial vs ≈ estimado</h3><p>O valor <b>oficial</b> sai do cronometrista, por vezes só depois da corrida. Até lá mostramos uma <b>estimativa (≈)</b>, pelo tempo em que a velocidade do carro foi zero na pit lane. Tem uma margem de cerca de ±0.3 s e é substituída pelo oficial quando existir.</p></div>
+    <div class="box"><h3>Ordem e ranking</h3><p>Por defeito vês as paragens <b>mais recentes primeiro</b>. O botão <b>Mais rápidas</b> reordena todas pelo tempo de troca de pneus. O cartão amarelo destaca o <b>pit stop mais rápido do dia</b>, com a foto do piloto.</p></div>
+  </div>
+  <div class="tip"><b>Como usar:</b> uma paragem lenta (4 s ou mais) <b>muda corridas</b>: o piloto cai atrás de quem estava a 2 s dele. Se vires um piloto a perder tempo na box, verifica a coluna "Int." na torre nas voltas seguintes: a posição provavelmente já mudou.</div>
+  <div class="foot"><span>Beira F1 Fanatics · Guia da Telemetria</span><span>07</span></div>
+</section>
+
+<!-- ───────────── 8 · TREINOS ───────────── -->
+<section class="page">
+  <div class="head"><h2><span class="n">08 · FP1, FP2 E FP3</span>Treinos livres: simulações</h2><span class="pg">Guia da Telemetria</span></div>
+  <p class="lead">Nos treinos ninguém mostra o jogo. Mas cada treino tem <b>dois tipos de volta</b> que revelam muito: a <b>simulação de qualificação</b> e a <b>simulação de corrida</b>. A telemetria separa-as por ti e mostra <b>só as voltas que contam</b>.</p>
+
+  <h3>Simulação de qualificação</h3>
+  <div class="app"><div class="b"><table>
+    <tr><th>#</th><th class="l">Piloto</th><th>Melhor volta</th><th>Gap</th><th>Pneu</th><th>Voltas fortes</th></tr>
+    <tr><td>1</td><td class="l"><span class="car"><i style="background:#14b8a6"></i>ANT</span></td><td class="pu">1:10.763</td><td class="gr">—</td><td><span class="tyre S">S</span> <span class="gr">1v</span></td><td>2</td></tr>
+    <tr><td>2</td><td class="l"><span class="car"><i style="background:#f97316"></i>NOR</span></td><td>1:11.016</td><td class="gr">+0.253</td><td><span class="tyre S">S</span> <span class="gr">1v</span></td><td>1</td></tr>
+    <tr><td>3</td><td class="l"><span class="car"><i style="background:#3b82f6"></i>VER</span></td><td>1:11.022</td><td class="gr">+0.259</td><td><span class="tyre S">S</span> <span class="gr">1v</span></td><td>4</td></tr>
+  </table></div></div>
+  <p>São os <b>runs curtos (até 4 voltas) com macios</b>, nos quais o piloto procura uma volta lançada. O gap mostra <b>quem está mais perto do tempo de qualificação</b>. "Voltas fortes" são as que ficaram a menos de 2% da melhor.</p>
+
+  <h3>Simulação de corrida</h3>
+  <div class="app"><div class="b"><table>
+    <tr><th>#</th><th class="l">Piloto</th><th>Ritmo 5 voltas</th><th>Gap</th><th>Média do stint</th><th>Degradação</th><th>Voltas</th><th>Pneu</th></tr>
+    <tr><td>1</td><td class="l"><span class="car"><i style="background:#3b82f6"></i>HAD</span></td><td><b>1:15.503</b></td><td class="gr">—</td><td class="gr">1:15.611</td><td class="y">+0.10 s/v</td><td>7</td><td><span class="tyre S">S</span></td></tr>
+    <tr><td>2</td><td class="l"><span class="car"><i style="background:#14b8a6"></i>RUS</span></td><td><b>1:15.504</b></td><td class="gr">+0.001</td><td class="gr">1:15.790</td><td class="r"><b>+0.13 s/v</b></td><td>9</td><td><span class="tyre S">S</span></td></tr>
+    <tr><td>3</td><td class="l"><span class="car"><i style="background:#14b8a6"></i>ANT</span></td><td><b>1:15.553</b></td><td class="gr">+0.049</td><td class="gr">1:15.980</td><td class="g">+0.04 s/v</td><td>11</td><td><span class="tyre S">S</span></td></tr>
+  </table></div></div>
+  <div class="grid2">
+    <div class="box"><h3>Ritmo 5 voltas</h3><p>É a média das <b>5 primeiras voltas de cada stint</b>: todos são comparados na mesma distância, por isso ninguém ganha só por ter feito um stint mais curto. Só entram stints de <b>5 ou mais voltas seguidas</b>.</p></div>
+    <div class="box"><h3>Degradação</h3><p>Segundos perdidos por volta devido ao pneu. <span class="g">Verde</span> = baixa (pneu aguenta), <span class="y">amarelo</span> = média, <span class="r">vermelho</span> = pneu a morrer. Vê quem tem o <b>melhor ritmo com a menor degradação</b>: é o candidato à corrida.</p></div>
+  </div>
+  <div class="grid2">
+    <div class="box"><h3>Comparação lado a lado</h3><p>Com 2 ou mais pilotos destacados, vês a volta lançada e o ritmo de corrida <b>no mesmo composto</b> lado a lado, com quem é melhor e por quanto.</p></div>
+    <div class="warn"><b>Sem combustível conhecido:</b> não sabemos com que depósito cada um rodou nem em que modo de motor. O ritmo de treino é <b>uma pista, não uma verdade</b>. Compara sempre o mesmo composto e vê quantas voltas há por trás de cada número.</div>
+  </div>
+  <div class="foot"><span>Beira F1 Fanatics · Guia da Telemetria</span><span>08</span></div>
+</section>
+
+<!-- ───────────── 9 · MAPA ───────────── -->
+<section class="page">
+  <div class="head"><h2><span class="n">09 · VER A CORRIDA</span>Mapa, ultrapassagens e comparação</h2><span class="pg">Guia da Telemetria</span></div>
+  <p class="lead">Os números contam a história; o mapa e os gráficos mostram-na.</p>
+
+  <div class="grid2">
+    <div class="box"><h3>Mapa da pista</h3>
+      <svg viewBox="0 0 300 170" style="width:100%;background:rgba(0,0,0,.25);border-radius:8px;margin:5px 0"><path d="M40,120 C20,60 70,20 130,35 C190,50 170,95 230,90 C280,85 290,130 240,145 C190,160 90,150 40,120 Z" fill="none" stroke="#6b7280" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/><path d="M40,120 C20,60 70,20 130,35 C190,50 170,95 230,90 C280,85 290,130 240,145 C190,160 90,150 40,120 Z" fill="none" stroke="#1f2937" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><g font-size="8" font-weight="800" fill="#fff"><circle cx="70" cy="30" r="6" fill="#3b82f6"/><text x="63" y="33">VER</text><circle cx="95" cy="28" r="6" fill="#f97316"/><text x="88.5" y="31">NOR</text><circle cx="235" cy="92" r="6" fill="#ef4444"/><text x="228" y="95">HAM</text></g><g font-size="7" fill="#fde047"><text x="125" y="25">1</text><text x="195" y="70">2</text><text x="280" y="115">3</text><text x="60" y="148">4</text></g></svg>
+      <p>Os carros movem-se em <b>tempo real</b> sobre o traçado. Os <b>números amarelos</b> são as curvas; a <b>pit lane</b> aparece desenhada. As etiquetas afastam-se entre si para não se tapar. O teu piloto vem destacado.</p></div>
+    <div class="box"><h3>Gráfico de posições</h3>
+      <svg viewBox="0 0 300 120" style="width:100%;background:rgba(0,0,0,.25);border-radius:8px;margin:5px 0"><g fill="none" stroke-width="2"><polyline stroke="#f97316" points="10,20 70,20 120,20 170,25 230,20 290,20"/><polyline stroke="#3b82f6" points="10,40 70,35 120,30 170,20 230,25 290,25"/><polyline stroke="#ef4444" points="10,60 70,70 120,85 170,70 230,45 290,35"/></g><g font-size="7" fill="#8a8a98"><text x="10" y="116">V1</text><text x="140" y="116">V35</text><text x="270" y="116">V71</text></g></svg>
+      <p>Cada linha é um piloto, volta a volta. <b>Linhas que se cruzam</b> = ultrapassagens. <b>Quedas bruscas</b> = paragens na box (voltam a subir se os rivais também pararem). Os teus pilotos vêm realçados.</p></div>
+  </div>
+
+  <div class="grid2">
+    <div class="box"><h3>Ultrapassagens</h3><p>Lista <b>quem passou quem</b>, com o <b>pneu e a idade</b> de cada um. Ajuda a perceber <b>porque</b> aconteceu: uma diferença grande de pneus explica quase tudo.</p>
+      <div style="margin-top:5px;font-size:10px"><b>HAM</b> sobre <b>LEC</b> · <span class="tyre S">S</span> 8v vs <span class="tyre M">M</span> 19v</div></div>
+    <div class="box"><h3>Telemetria de piloto (comparar 2)</h3><p>Compara a <b>melhor volta ou a última</b> de dois pilotos: <b>velocidade, acelerador, travão e mudança</b> ao longo da volta. Onde um trava mais tarde ou acelera mais cedo está o tempo ganho. Ex.: se o travão de A termina antes do de B na mesma curva, B está a travar demasiado.</p></div>
+  </div>
+  <div class="grid2">
+    <div class="box"><h3>Track limits</h3><p>Conta as <b>infracções de limites de pista</b> por piloto (tempos anulados). O sistema mostra <b>aviso</b> e <b>penalização</b> quando chegam. Um piloto com muitos avisos está a arriscar uma penalização de 5 s.</p></div>
+    <div class="box"><h3>O teu piloto</h3><p>Escolhe o teu favorito no perfil e a página junta num cartão tudo dele: <b>posição, gaps, pneu, voltas, sectores, paragens e previsão</b> de onde sairia da box.</p></div>
+  </div>
+  <div class="tip"><b>Dica:</b> usa o mapa e o gráfico de posições para ver se uma ultrapassagem foi <b>pela pista</b> ou <b>pela box</b>. Se a linha cai e volta a subir, foi pela estratégia.</div>
+  <div class="foot"><span>Beira F1 Fanatics · Guia da Telemetria</span><span>09</span></div>
+</section>
+
+<!-- ───────────── 10 · DIRECÇÃO + PLAY ───────────── -->
+<section class="page">
+  <div class="head"><h2><span class="n">10 · AS REGRAS E OS TEUS PONTOS</span>Direcção de corrida e F1 Play em directo</h2><span class="pg">Guia da Telemetria</span></div>
+
+  <div class="grid2">
+    <div class="box"><h3>Direcção de corrida</h3><p>Todas as <b>mensagens oficiais</b>: bandeiras, Safety Car, investigações, penalizações e tempos anulados. É onde primeiro aparece <b>"incidente sob investigação"</b>, antes de qualquer decisão. Passa de "investigação" para "5 s de penalização" ou "sem acção".</p></div>
+    <div class="box"><h3>Penalizações e incidentes</h3><p>Só o que muda a classificação: <b>penalizações, investigações e avisos</b>. Uma penalização de tempo só é aplicada no fim ou na paragem; na torre a ordem pode ainda não a mostrar.</p></div>
+  </div>
+
+  <h3>Os teus pontos F1 Play, em directo</h3>
+  <div class="app"><div class="t">Os teus pontos F1 Play <small>provisórios — se a corrida acabasse agora</small></div><div class="b">
+    <div style="display:flex;align-items:baseline;gap:8px"><span style="font-family:'Barlow Condensed';font-weight:900;font-size:40px;color:#facc15">34</span><span class="gr">pts · #5 de 26</span></div>
+    <table><tr><td class="l">1º lugar</td><td><b>VER</b></td><td class="g">✓ NOR</td></tr><tr><td class="l">Equipa (3.ª a pontuar)</td><td><b>Mercedes</b></td><td class="gr">Mercedes</td></tr><tr><td class="l">1º a desistir</td><td><b>ALO</b></td><td class="gr">—</td></tr></table>
+  </div></div>
+  <div class="grid2">
+    <div class="box"><h3>Como ler</h3><p>A 1.ª coluna é <b>o teu palpite</b>; a 2.ª é <b>o que acontece agora</b>. Quando coincidem, ganhas esses pontos. O total é <b>provisório</b>: muda a cada volta, a cada paragem, a cada bandeira.</p></div>
+    <div class="box"><h3>Classificação dos membros</h3><p>Depois do arranque (palpites fechados) vês o <b>top 10 do GP</b> e a tua posição, mais a tabela acumulada da época. Empates partilham a mesma posição.</p></div>
+  </div>
+  <div class="warn"><b>Os pontos provisórios mudam até ao fim.</b> Algumas respostas só se decidem no fim (volta mais rápida, desistências, Piloto do Dia, margem de vitória). Os pontos oficiais só se confirmam depois de o admin publicar os resultados.</div>
+
+  <div class="grid3">
+    <div class="box"><h3>Campeonato em directo</h3><p>Pilotos e equipas: os pontos e a posição <b>se a corrida acabasse agora</b>. Sem pontos pela volta mais rápida (regra desde 2025).</p></div>
+    <div class="box"><h3>Rádios das equipas</h3><p>Mensagens de rádio <b>transcritas em inglês e traduzidas para português</b>, de todos os pilotos. Os mais recentes ficam no topo.</p></div>
+    <div class="box"><h3>🏆 Piloto do Dia</h3><p>Quando a votação da F1 abre, aparece um botão <b>no topo da página</b>. Depois de encerrada, mostra o <b>vencedor e a percentagem</b> dos mais votados.</p></div>
+  </div>
+  <div class="foot"><span>Beira F1 Fanatics · Guia da Telemetria</span><span>10</span></div>
+</section>
+
+<!-- ───────────── 11 · LIMITES + CHECKLIST ───────────── -->
+<section class="page">
+  <div class="head"><h2><span class="n">11 · PARA TERMINAR</span>O que a telemetria não diz</h2><span class="pg">Guia da Telemetria</span></div>
+  <p class="lead">Os dados são de grande qualidade, mas têm <b>limites</b>. Conhecê-los evita conclusões erradas.</p>
+
+  <div class="grid2">
+    <div class="warn"><b>Não temos:</b>
+      <ul style="margin-top:3px;color:#ffd9d6"><li><b>Combustível</b> de cada carro (usamos uma estimativa média).</li><li><b>Modos do motor</b> e uso da bateria.</li><li><b>Temperatura e desgaste reais</b> dos pneus: só a idade em voltas.</li><li><b>Penalizações da FIA na grelha</b> e trocas de componentes.</li></ul></div>
+    <div class="box"><h3>Atrasos e tempos</h3><ul><li>Há um pequeno <b>atraso</b> em relação à televisão: confirma sempre com o que estás a ver.</li><li>Os dados vêm do OpenF1 e podem demorar a ser corrigidos.</li><li>Os <b>tempos oficiais</b> de paragem e a classificação final saem às vezes só depois do xadrez.</li></ul></div>
+  </div>
+
+  <h3>Checklist para ver uma corrida</h3>
+  <div class="grid3">
+    <div class="box"><h3 style="color:#fff">Antes</h3><ul><li>Pré-corrida: <b>grelha oficial</b> e <b>sets novos</b> de cada piloto.</li><li>Quantas paragens costumam fazer neste circuito?</li><li>Previsão de <b>chuva</b> para as horas da corrida.</li></ul></div>
+    <div class="box"><h3 style="color:#fff">Durante</h3><ul><li>Cabeçalho: <b>bandeira</b> e <b>temperatura</b>.</li><li>Torre: <b>intervalos</b> pequenos e <b>idade</b> dos pneus.</li><li>Estratégia: <b>janela</b> e <b>undercut</b>.</li><li>Ritmo: quem perde tempo por volta?</li></ul></div>
+    <div class="box"><h3 style="color:#fff">Depois</h3><ul><li><b>Pit stop mais rápido</b> e tabela de paragens.</li><li>Gráfico de posições: onde se decidiu a corrida?</li><li><b>Piloto do Dia</b> e os teus pontos provisórios.</li></ul></div>
+  </div>
+
+  <h3>Glossário rápido</h3>
+  <div class="grid2" style="gap:4px 14px;font-size:10.5px">
+    <div><b>Gap / Líder:</b> atraso para o primeiro.</div><div><b>Intervalo:</b> atraso para o carro da frente.</div>
+    <div><b>Stint:</b> período com o mesmo conjunto de pneus.</div><div><b>Degradação:</b> tempo perdido por volta pelo desgaste.</div>
+    <div><b>Undercut:</b> parar mais cedo para passar na box.</div><div><b>Overcut:</b> ficar mais tempo e passar com pista livre.</div>
+    <div><b>SC / VSC:</b> Safety Car / Virtual Safety Car.</div><div><b>Volta lançada:</b> volta rápida depois de uma volta de saída.</div>
+    <div><b>Volta limpa:</b> sem box, SC nem tráfego forte.</div><div><b>Δ (delta):</b> diferença entre dois valores.</div>
+  </div>
+  <div class="tip" style="margin-top:6px"><b>Vê o vídeo</b> que acompanha este guia na página da Telemetria. Mostra os mesmos painéis em movimento, passo a passo, e o que perceber de cada um enquanto a corrida decorre.</div>
+  <div class="foot"><span>Dados: OpenF1 (openf1.org) · projecto não-oficial, sem ligação à Fórmula 1</span><span>11</span></div>
+</section>
+
+<script>
+// Fill each A4 page: scale the content (not the header and footer) as large as fits above the footer.
+document.fonts.ready.then(() => {
+  document.querySelectorAll('.page').forEach(p => {
+    const kids = Array.from(p.children).filter(k => !k.classList.contains('foot'))
+    const foot = p.querySelector('.foot')
+    const limit = (foot ? foot.getBoundingClientRect().top - p.getBoundingClientRect().top : p.clientHeight) - 16
+    let lo = 1, hi = 1.4
+    for (let i = 0; i < 12; i++) {
+      const z = (lo + hi) / 2
+      kids.forEach(k => { k.style.zoom = k.classList.contains('head') ? 1 : z })
+      const top = p.getBoundingClientRect().top
+      const bottom = Math.max(...kids.map(k => k.getBoundingClientRect().bottom)) - top
+      if (bottom <= limit && p.scrollWidth <= p.clientWidth + 1) lo = z; else hi = z
+    }
+    kids.forEach(k => { k.style.zoom = k.classList.contains('head') ? 1 : lo })
+  })
+  document.documentElement.dataset.fit = '1'
+})
+</script>
+</body>
+</html>

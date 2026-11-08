@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<title>Como ler a Telemetria — vídeo</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap">
+<style>
+  /* 1280x720, deterministic: window.render(t) positions everything for time t (seconds), so every frame can be captured exactly. */
+  :root { --bg:#0c0c0e; --red:#e10600; --gold:#f5c518; --green:#4ade80; --redt:#f87171; --purple:#c084fc; --fg:#f0f0f2; --muted:#9a9aa8; }
+  * { box-sizing: border-box; margin: 0; }
+  html, body { width: 1280px; height: 720px; overflow: hidden; background: var(--bg); color: var(--fg); font-family: 'DM Sans', system-ui, sans-serif; }
+  .bg { position: absolute; inset: 0; background: radial-gradient(900px 500px at 50% -10%, rgba(225,6,0,.30), transparent 70%), radial-gradient(700px 400px at 100% 110%, rgba(225,6,0,.14), transparent 70%); }
+  .scene { position: absolute; inset: 0; opacity: 0; }
+  .top { position: absolute; left: 48px; top: 30px; right: 48px; display: flex; align-items: baseline; gap: 14px; }
+  .kick { font-family: 'DM Mono'; font-size: 15px; letter-spacing: .16em; color: var(--red); text-transform: uppercase; }
+  .ttl { font-family: 'Barlow Condensed'; font-weight: 900; font-size: 46px; text-transform: uppercase; letter-spacing: .01em; line-height: 1; }
+  .stage { position: absolute; left: 48px; top: 104px; width: 720px; height: 470px; display: flex; align-items: flex-start; }
+  .mock { zoom: 1.35; width: 533px; transform-origin: top left; }
+  .steps { position: absolute; left: 800px; top: 104px; width: 432px; display: flex; flex-direction: column; gap: 10px; }
+  .step { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1); border-radius: 14px; padding: 11px 14px; opacity: 0; display: flex; gap: 12px; }
+  .step .n { flex: none; width: 28px; height: 28px; border-radius: 50%; background: var(--red); font-weight: 800; font-size: 15px; display: flex; align-items: center; justify-content: center; margin-top: 1px; }
+  .step h4 { font-family: 'Barlow Condensed'; font-size: 22px; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; color: var(--gold); line-height: 1.05; }
+  .step p { font-size: 15.5px; color: #dcdce4; line-height: 1.38; margin-top: 2px; }
+  .step.cur { background: rgba(245,197,24,.10); border-color: rgba(245,197,24,.55); }
+  .cap { position: absolute; left: 0; right: 0; bottom: 0; height: 118px; background: linear-gradient(0deg, rgba(0,0,0,.92), rgba(0,0,0,.0)); display: flex; align-items: flex-end; justify-content: center; padding: 0 90px 26px; }
+  .cap span { font-size: 26px; font-weight: 600; line-height: 1.32; text-align: center; text-shadow: 0 2px 8px #000; opacity: 0; max-width: 1100px; }
+  .take { position: absolute; left: 48px; width: 720px; background: rgba(245,197,24,.10); border: 1px solid rgba(245,197,24,.45); border-radius: 12px; padding: 10px 16px; font-size: 20px; line-height: 1.3; color: #fdf2c0; opacity: 0; }
+  .take b { color: var(--gold); }
+  .prog { position: absolute; left: 0; bottom: 0; height: 5px; background: var(--red); width: 0; }
+  [data-s].hl { outline: 3px solid var(--gold); outline-offset: 2px; border-radius: 6px; background-color: rgba(245,197,24,.16) !important; }
+  [data-s].dim { opacity: .55; }
+
+  /* the app's look, redrawn */
+  .app { background: #3a3b41; border: 1px solid rgba(255,255,255,.07); border-radius: 12px; overflow: hidden; color: #f0f0f2; }
+  .app .t { display: flex; justify-content: space-between; padding: 6px 12px; border-bottom: 1px solid rgba(255,255,255,.08); background: rgba(255,255,255,.04); font-family: 'Barlow Condensed'; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; color: #facc15; font-size: 12px; }
+  .app .t small { font-family: 'DM Sans'; letter-spacing: 0; text-transform: none; color: #8d8d99; font-weight: 400; font-size: 9px; }
+  .app .b { padding: 8px 12px 10px; }
+  table { width: 100%; border-collapse: collapse; font-size: 10.5px; }
+  th { font-size: 8px; letter-spacing: .08em; text-transform: uppercase; color: #8d8d99; font-weight: 600; padding: 4px 6px; text-align: right; border-bottom: 1px solid rgba(255,255,255,.1); }
+  th:first-child, td:first-child, .l { text-align: left; }
+  td { padding: 4px 6px; text-align: right; border-bottom: 1px solid rgba(255,255,255,.05); font-variant-numeric: tabular-nums; }
+  .car { display: inline-flex; align-items: center; gap: 6px; font-weight: 800; } .car i { width: 3px; height: 13px; border-radius: 2px; display: inline-block; }
+  .g { color: var(--green); } .r { color: var(--redt); } .pu { color: var(--purple); font-weight: 800; } .y { color: #fde047; } .gr { color: #8d8d99; }
+  .tyre { display: inline-flex; width: 17px; height: 17px; border-radius: 50%; border: 2px solid; align-items: center; justify-content: center; font-size: 8px; font-weight: 900; vertical-align: middle; }
+  .S { color: #ef4444; border-color: #ef4444; } .M { color: #facc15; border-color: #facc15; } .H { color: #f4f4f5; border-color: #f4f4f5; } .I { color: #22c55e; border-color: #22c55e; } .W { color: #60a5fa; border-color: #60a5fa; }
+  .chip { display: inline-block; font-weight: 900; border-radius: 99px; padding: 3px 12px; font-size: 12px; }
+  .live { background: #b91c1c; color: #fff; } .green { background: #16a34a; color: #fff; } .sc { background: #f97316; color: #111; } .vsc { background: #facc15; color: #111; } .redf { background: #dc2626; color: #fff; } .chq { background: #fff; color: #111; }
+  .tile { background: rgba(0,0,0,.3); border-radius: 9px; padding: 7px 9px; } .tile .k { font-size: 8px; letter-spacing: .1em; color: #8d8d99; } .tile .v { font-size: 22px; font-weight: 900; }
+
+  /* intro / outro */
+  .center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 18px; }
+  .big { font-family: 'Barlow Condensed'; font-weight: 900; font-size: 128px; line-height: .9; text-transform: uppercase; }
+  .big span { color: var(--red); }
+  .sub { font-size: 30px; color: #d9d9e1; max-width: 900px; line-height: 1.3; }
+  .three { display: flex; gap: 16px; margin-top: 10px; }
+  .three div { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1); border-radius: 16px; padding: 16px 20px; width: 290px; text-align: left; font-size: 21px; line-height: 1.3; }
+  .three b { display: block; font-family: 'Barlow Condensed'; text-transform: uppercase; font-size: 26px; color: var(--gold); letter-spacing: .04em; }
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<div id="root"></div>
+<div class="cap"><span id="cap"></span></div>
+<div class="prog" id="prog"></div>
+
+<script>
+const T = (s) => s
+// ───── the mock panels (same ones as in the PDF guide), with data-s marking what each step points at ─────
+const M = {}
+M.header = `
+<div class="app"><div class="b">
+  <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="chip live">● AO VIVO</span><span class="chip green" data-s="1">PISTA LIVRE</span><span style="background:#17171c;border-radius:10px;padding:3px 12px;font-weight:900;font-size:13px" data-s="2">VOLTA 38/71</span><span class="gr" style="font-size:10px">21:08:45</span></div>
+  <div style="font-family:'Barlow Condensed';font-weight:900;font-size:22px;margin-top:4px">GP Brasil · Race</div>
+  <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:8px">
+    <div class="tile"><div class="k">🌡️ AR</div><div class="v">16<small class="gr" style="font-size:11px"> °C</small></div></div>
+    <div class="tile" data-s="3"><div class="k">🛣️ PISTA</div><div class="v">38<small class="gr" style="font-size:11px"> °C</small></div><span style="background:rgba(239,68,68,.25);border-radius:99px;padding:1px 7px;font-size:8.5px;font-weight:800" class="r">▲ +2.4° em 10 min</span></div>
+    <div class="tile"><div class="k">💧 HUMIDADE</div><div class="v">62<small class="gr" style="font-size:11px"> %</small></div></div>
+    <div class="tile"><div class="k">💨 VENTO</div><div class="v">3.0<small class="gr" style="font-size:11px"> m/s</small></div></div>
+    <div class="tile" data-s="4" style="background:rgba(30,58,138,.6)"><div class="k" style="color:#fff">🌧️ CHUVA</div><div class="v">65%</div><div style="font-size:8px">☀️ sem chuva agora</div></div>
+  </div>
+  <svg viewBox="0 0 640 90" style="width:100%;margin-top:8px"><g stroke="#fff" stroke-opacity=".07"><line x1="38" x2="606" y1="15" y2="15"/><line x1="38" x2="606" y1="45" y2="45"/><line x1="38" x2="606" y1="75" y2="75"/></g><polyline fill="none" stroke="#f59e0b" stroke-opacity=".35" stroke-width="1.2" points="38,70 80,66 120,60 170,50 210,56 260,40 310,34 350,42 400,28 450,32 500,24 560,30 606,22"/><polyline fill="none" stroke="#f59e0b" stroke-width="2.8" points="38,68 120,62 210,52 310,38 400,31 500,26 606,23"/><g fill="#8a8a98" font-size="9"><text x="30" y="18" text-anchor="end">42°</text><text x="30" y="78" text-anchor="end">34°</text><text x="38" y="88">14:00</text><text x="590" y="88">15:30</text></g></svg>
+</div></div>
+<div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:8px"><span class="chip green">PISTA LIVRE</span><span class="chip" style="background:#facc15;color:#111">AMARELA</span><span class="chip vsc">VSC</span><span class="chip sc">SAFETY CAR</span><span class="chip redf">VERMELHA</span><span class="chip chq">XADREZ</span></div>`
+
+M.tower = `
+<div class="app"><div class="t">Tabela de tempos <small>Volta mais rápida: ANT 1:12.689 (V55)</small></div><div class="b"><table>
+  <tr><th>#</th><th class="l">Piloto</th><th data-s="2">Líder</th><th data-s="2">Int.</th><th data-s="3">Última</th><th data-s="4">Pneu</th><th data-s="4">Box</th></tr>
+  <tr data-s="1"><td>1</td><td class="l"><span class="car"><i style="background:#f97316"></i>NOR</span> <span class="gr">NORRIS</span></td><td>LÍDER</td><td class="gr">—</td><td>1:27.621</td><td><span class="tyre I">I</span> <span class="gr">9</span></td><td>3</td></tr>
+  <tr style="background:rgba(245,197,24,.12)"><td>2</td><td class="l"><span class="car"><i style="background:#3b82f6"></i>VER</span> <span class="y" style="font-size:8px;font-weight:800">★ TEU</span></td><td data-s="2">+0.8</td><td data-s="2">+0.8</td><td>1:27.947</td><td><span class="tyre I">I</span> <span class="gr">8</span></td><td>3</td></tr>
+  <tr><td>3</td><td class="l"><span class="car"><i style="background:#3b82f6"></i>HAD</span></td><td>+4.0</td><td>+3.2</td><td>1:28.206</td><td><span class="tyre I">I</span> <span class="gr">8</span></td><td>3</td></tr>
+  <tr><td>4</td><td class="l"><span class="car"><i style="background:#14b8a6"></i>ANT</span> <span class="pu">⏱</span></td><td>+10.7</td><td>+6.7</td><td class="pu" data-s="3">1:12.689</td><td><span class="tyre S">S</span> <span class="gr">4</span></td><td>2</td></tr>
+  <tr><td>5</td><td class="l"><span class="car"><i style="background:#ef4444"></i>LEC</span></td><td data-s="5">+1V</td><td>+1V</td><td>1:32.037</td><td><span class="tyre M">M</span> <span class="gr">9</span></td><td>2</td></tr>
+</table></div></div>`
+
+M.tyres = `
+<div class="app"><div class="b">
+  <div style="display:grid;grid-template-columns:auto 1fr;gap:5px 9px;align-items:center;font-size:11px" data-s="1">
+    <span class="tyre S">S</span><span><b>Macio</b> · mais rápido, dura menos</span><span class="tyre M">M</span><span><b>Médio</b> · o equilíbrio</span><span class="tyre H">H</span><span><b>Duro</b> · mais lento, dura mais</span><span class="tyre I">I</span><span><b>Intermédio</b> · pista húmida</span><span class="tyre W">W</span><span><b>Chuva</b> · pista encharcada</span>
+  </div>
+  <div style="margin-top:10px;font-size:11px" data-s="2">Idade: <span class="tyre S">S</span> <b>4</b> = macio com 4 voltas</div>
+</div></div>
+<div class="app" style="margin-top:8px" data-s="3"><div class="b">
+  <div style="display:grid;grid-template-columns:34px 1fr;gap:6px 8px;align-items:center;font-size:10px">
+    <b>NOR</b><div style="display:flex;height:16px;border-radius:4px;overflow:hidden;font-size:8px;font-weight:900;text-align:center"><div style="flex:17;background:#166534;color:#bbf7d0">I · 1–17</div><div style="flex:33;background:#7f1d1d;color:#fecaca">S · 18–50</div><div style="flex:21;background:#713f12;color:#fef08a">M · 51–71</div></div>
+    <b>VER</b><div style="display:flex;height:16px;border-radius:4px;overflow:hidden;font-size:8px;font-weight:900;text-align:center"><div style="flex:18;background:#166534;color:#bbf7d0">I · 1–18</div><div style="flex:28;background:#7f1d1d;color:#fecaca">S · 19–46</div><div style="flex:25;background:#713f12;color:#fef08a">M · 47–71</div></div>
+    <b>HAM</b><div style="display:flex;height:16px;border-radius:4px;overflow:hidden;font-size:8px;font-weight:900;text-align:center"><div style="flex:30;background:#7f1d1d;color:#fecaca">S · 1–30</div><div style="flex:41;background:#e5e7eb;color:#111">H · 31–71</div></div>
+  </div></div></div>
+<div class="app" style="margin-top:8px" data-s="4"><div class="t">Sets novos para a corrida <small>folha da Pirelli</small></div><div class="b" style="font-size:10.5px">HAM · <span class="tyre H">H</span> 1 · <span class="tyre M">M</span> 1 · <span class="tyre S" style="text-decoration:line-through">S</span> <b>4</b> &nbsp;&nbsp; <span class="gr">(cada paragem risca um novo)</span></div></div>`
+
+M.strategy = `
+<div class="app"><div class="t">Janela de paragem · top 10</div><div class="b" style="display:grid;grid-template-columns:34px 1fr 96px;gap:7px 8px;align-items:center;font-size:10px" data-s="1">
+  <b>NOR</b><div style="position:relative;height:14px;background:rgba(0,0,0,.4);border-radius:4px"><div style="position:absolute;left:34%;width:18%;top:0;bottom:0;border:2px dashed #4ade80;background:rgba(74,222,128,.15);border-radius:3px"></div><div style="position:absolute;left:0;width:34%;top:2px;bottom:2px;background:#7f1d1d;border-radius:2px"></div></div><span class="gr">ainda cedo</span>
+  <b>VER</b><div style="position:relative;height:14px;background:rgba(0,0,0,.4);border-radius:4px"><div style="position:absolute;left:34%;width:18%;top:0;bottom:0;border:2px dashed #4ade80;background:rgba(74,222,128,.15);border-radius:3px"></div><div style="position:absolute;left:0;width:45%;top:2px;bottom:2px;background:#7f1d1d;border-radius:2px"></div></div><b class="g">JANELA ABERTA</b>
+  <b>HAM</b><div style="position:relative;height:14px;background:rgba(0,0,0,.4);border-radius:4px"><div style="position:absolute;left:34%;width:18%;top:0;bottom:0;border:2px dashed #4ade80;background:rgba(74,222,128,.15);border-radius:3px"></div><div style="position:absolute;left:0;width:62%;top:2px;bottom:2px;background:#7f1d1d;border-radius:2px"></div></div><b class="r">ATRASADO</b>
+</div></div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
+  <div class="app" data-s="2"><div class="b"><div class="gr" style="font-size:8px;letter-spacing:.12em">PERDA NUMA PARAGEM</div><div style="font-size:26px;font-weight:900;color:#fde047;line-height:1.1">22.4 s</div><div class="gr" style="font-size:9px">sob Safety Car: ~50%</div></div></div>
+  <div class="app" data-s="3"><div class="b" style="font-size:10px"><span style="background:#15803d;color:#fff;font-size:8px;font-weight:900;padding:1px 6px;border-radius:4px">FORTE</span> <b>HAM</b> sobre <b>LEC</b><div class="gr" style="margin-top:3px">1.1 s · pneus 14v vs 17v</div></div></div>
+</div>
+<div class="app" style="margin-top:8px" data-s="4"><div class="b" style="display:flex;gap:10px;align-items:center"><span class="chip sc">SAFETY CAR</span><span style="font-size:11px">Intervalos encolhem · a box custa metade</span></div></div>`
+
+M.pace = `
+<div class="app"><div class="t">O que cada mudança de pneu fez ao ritmo · top 10</div><div class="b"><table>
+  <tr><th>Piloto</th><th class="l">Mudança</th><th>Voltas</th><th>Ritmo</th><th data-s="4">Δ ritmo</th><th>Δ sem comb.</th><th data-s="5">Degr.</th></tr>
+  <tr data-s="1"><td><span class="car"><i style="background:#f97316"></i>NOR</span></td><td class="l">Intermédio → <b>Macio</b></td><td class="gr">17–49</td><td>75.15</td><td class="g"><b>−11.72</b></td><td class="g">−10.86</td><td class="gr">−0.12</td></tr>
+  <tr data-s="2"><td><span class="car"><i style="background:#f97316"></i>NOR</span></td><td class="l">Macio → <b>Macio</b></td><td class="gr">50–62</td><td>73.82</td><td class="g"><b>−1.33</b></td><td class="g">−0.53</td><td class="gr">+0.35</td></tr>
+  <tr data-s="3"><td><span class="car"><i style="background:#f97316"></i>NOR</span></td><td class="l">Macio → <b>Intermédio</b></td><td class="gr">63–71</td><td>84.92</td><td class="r"><b>+11.10</b></td><td class="r">+11.50</td><td class="gr">+0.28</td></tr>
+  <tr><td><span class="car"><i style="background:#3b82f6"></i>VER</span></td><td class="l">Intermédio → <b>Macio</b></td><td class="gr">18–45</td><td>75.38</td><td class="g"><b>−11.53</b></td><td class="g">−10.74</td><td class="gr">−0.11</td></tr>
+  <tr><td><span class="car"><i style="background:#3b82f6"></i>HAD</span></td><td class="l">Macio → <b>Intermédio</b></td><td class="gr">63–71</td><td>84.74</td><td class="r"><b>+10.78</b></td><td class="r">+11.17</td><td class="gr">+0.53</td></tr>
+</table></div></div>`
+
+M.pits = `
+<div class="app"><div class="b">
+  <div style="border:1px solid rgba(250,204,21,.5);background:rgba(250,204,21,.1);border-radius:10px;padding:7px 10px;display:flex;gap:10px;align-items:center" data-s="3">
+    <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#334155,#0f172a);border:2px solid #ef4444;display:flex;align-items:center;justify-content:center;font-weight:900">HUL</div>
+    <div><div style="font-size:8px;letter-spacing:.14em;font-weight:700;color:#fde047">PIT STOP MAIS RÁPIDO DO DIA</div><div style="font-size:26px;font-weight:900;line-height:1">2.0<small class="gr" style="font-size:12px"> s</small></div><div class="gr" style="font-size:8.5px">HUL · volta 44 · oficial</div></div>
+  </div>
+  <table style="margin-top:6px"><tr><th class="l">Piloto</th><th>Volta</th><th>Pneus</th><th data-s="1">Troca de pneus</th><th data-s="2">Pit lane</th></tr>
+  <tr><td><span class="car"><i style="background:#2563eb"></i>SAI</span></td><td>61</td><td><span class="tyre S">S</span> <span class="gr">→</span> <span class="tyre I">I</span></td><td data-s="1"><b>2.6 s</b></td><td class="gr" data-s="2">24.4 s</td></tr>
+  <tr><td><span class="car"><i style="background:#ef4444"></i>HAM</span></td><td>62</td><td><span class="tyre S">S</span> <span class="gr">→</span> <span class="tyre I">I</span></td><td data-s="1"><b class="pu">2.2 s</b></td><td class="gr" data-s="2">25.5 s</td></tr>
+  <tr><td><span class="car"><i style="background:#06b6d4"></i>GAS</span></td><td>61</td><td><span class="tyre S">S</span> <span class="gr">→</span> <span class="tyre I">I</span></td><td class="gr" data-s="4">≈ 3.2 s</td><td class="gr" data-s="2">31.1 s</td></tr></table>
+</div></div>`
+
+M.practice = `
+<div class="app" data-s="1"><div class="t">Simulação de qualificação</div><div class="b"><table>
+  <tr><th>#</th><th class="l">Piloto</th><th>Melhor volta</th><th>Gap</th><th>Pneu</th></tr>
+  <tr><td>1</td><td class="l"><span class="car"><i style="background:#14b8a6"></i>ANT</span></td><td class="pu">1:10.763</td><td class="gr">—</td><td><span class="tyre S">S</span> <span class="gr">1v</span></td></tr>
+  <tr><td>2</td><td class="l"><span class="car"><i style="background:#f97316"></i>NOR</span></td><td>1:11.016</td><td class="gr">+0.253</td><td><span class="tyre S">S</span> <span class="gr">1v</span></td></tr></table></div></div>
+<div class="app" style="margin-top:8px" data-s="2"><div class="t">Simulação de corrida</div><div class="b"><table>
+  <tr><th>#</th><th class="l">Piloto</th><th data-s="2">Ritmo 5 voltas</th><th>Gap</th><th data-s="3">Degradação</th><th>Voltas</th></tr>
+  <tr><td>1</td><td class="l"><span class="car"><i style="background:#3b82f6"></i>HAD</span></td><td><b>1:15.503</b></td><td class="gr">—</td><td class="y" data-s="3">+0.10 s/v</td><td>7</td></tr>
+  <tr><td>2</td><td class="l"><span class="car"><i style="background:#14b8a6"></i>RUS</span></td><td><b>1:15.504</b></td><td class="gr">+0.001</td><td class="r" data-s="3"><b>+0.13 s/v</b></td><td>9</td></tr>
+  <tr><td>3</td><td class="l"><span class="car"><i style="background:#14b8a6"></i>ANT</span></td><td><b>1:15.553</b></td><td class="gr">+0.049</td><td class="g" data-s="3">+0.04 s/v</td><td>11</td></tr></table></div></div>`
+
+M.map = `
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+<div class="app" data-s="1"><div class="t">Mapa da pista</div><div class="b"><svg viewBox="0 0 300 170" style="width:100%"><path d="M40,120 C20,60 70,20 130,35 C190,50 170,95 230,90 C280,85 290,130 240,145 C190,160 90,150 40,120 Z" fill="none" stroke="#6b7280" stroke-width="9" stroke-linecap="round"/><path d="M40,120 C20,60 70,20 130,35 C190,50 170,95 230,90 C280,85 290,130 240,145 C190,160 90,150 40,120 Z" fill="none" stroke="#1f2937" stroke-width="5" stroke-linecap="round"/><g font-size="8" font-weight="800" fill="#fff"><circle cx="70" cy="30" r="6" fill="#3b82f6"/><text x="63" y="33">VER</text><circle cx="95" cy="28" r="6" fill="#f97316"/><text x="88.5" y="31">NOR</text><circle cx="235" cy="92" r="6" fill="#ef4444"/><text x="228" y="95">HAM</text></g><g font-size="7" fill="#fde047"><text x="125" y="25">1</text><text x="195" y="70">2</text><text x="280" y="115">3</text></g></svg></div></div>
+<div class="app" data-s="2"><div class="t">Gráfico de posições</div><div class="b"><svg viewBox="0 0 300 170" style="width:100%"><g fill="none" stroke-width="2.4"><polyline stroke="#f97316" points="10,30 80,30 130,30 180,38 230,30 290,30"/><polyline stroke="#3b82f6" points="10,60 80,52 130,44 180,30 230,38 290,38"/><polyline stroke="#ef4444" points="10,90 80,104 130,128 180,106 230,70 290,50"/></g><g font-size="8" fill="#8a8a98"><text x="10" y="162">V1</text><text x="270" y="162">V71</text></g></svg></div></div></div>`
+
+M.play = `
+<div class="app" data-s="1"><div class="t">Os teus pontos F1 Play <small>provisórios — se a corrida acabasse agora</small></div><div class="b">
+  <div style="display:flex;align-items:baseline;gap:8px"><span style="font-family:'Barlow Condensed';font-weight:900;font-size:44px;color:#facc15">34</span><span class="gr">pts · #5 de 26</span></div>
+  <table><tr><td class="l">1º lugar</td><td><b>VER</b></td><td class="g">✓ VER</td></tr><tr><td class="l">Equipa (3.ª a pontuar)</td><td><b>Mercedes</b></td><td class="gr">Mercedes</td></tr><tr><td class="l">1º a desistir</td><td><b>ALO</b></td><td class="gr">—</td></tr></table></div></div>
+<div class="app" style="margin-top:8px;border:2px solid rgba(250,204,21,.7);background:rgba(250,204,21,.1)" data-s="2"><div class="b" style="display:flex;align-items:center;gap:12px"><span style="font-size:30px">🏆</span><div><div style="font-weight:900;font-size:16px">Vota no Piloto do Dia</div><div class="gr" style="font-size:9.5px">A votação oficial da F1 está aberta</div></div><span style="margin-left:auto;background:#facc15;color:#000;font-weight:900;border-radius:99px;padding:5px 14px;font-size:12px">Votar ↗</span></div></div>`
+
+// ───── the script: scenes with steps; each step shows a card, highlights its target in the mock and says one caption ─────
+const SCENES = [
+  { id: 'intro', len: 9, intro: true,
+    caps: [{ at: 0.6, len: 8, text: 'A telemetria da nossa app tem muita informação. Neste vídeo aprendes a ler cada painel, passo a passo, e a usá-la enquanto a corrida decorre.' }] },
+
+  { id: 'cabecalho', kick: '01 · primeiro olhar', title: 'O cabeçalho', len: 30, mock: M.header, steps: [
+    { at: 1.0, n: 1, h: 'Estado da pista', p: 'Verde, amarela, VSC, Safety Car, vermelha ou xadrez.', cap: 'Em cima vês o estado da sessão: verde, amarela, VSC, Safety Car, vermelha ou xadrez. Quando a cor muda, a estratégia muda.' },
+    { at: 8.5, n: 2, h: 'Volta e relógio', p: 'Quantas voltas faltam. Ao vivo ou replay.', cap: 'A volta mostra quanto falta para o fim. Ao vivo é a corrida a acontecer; replay é uma repetição montada pelo admin.' },
+    { at: 15, n: 3, h: 'Pista e tendência', p: '▲ sobe, ▼ desce, ▬ estável, nos últimos 10 minutos.', cap: 'A temperatura da pista traz uma seta: vermelha se está a subir, azul se desce. Pista a aquecer significa mais desgaste nos pneus.' },
+    { at: 22.5, n: 4, h: 'Chuva em %', p: 'Previsão para esta hora e as seguintes.', cap: 'A percentagem de chuva é uma previsão. Mesmo sem chuva agora, 65% pede atenção: pode vir aí uma mudança para pneus de chuva.' },
+  ] },
+
+  { id: 'torre', kick: '02 · a ordem da corrida', title: 'Torre de tempos', len: 36, mock: M.tower, steps: [
+    { at: 1.0, n: 1, h: 'Posição e equipa', p: 'A faixa de cor é a da equipa.', cap: 'A torre de tempos é a tabela principal: quem está em que posição, com a cor da equipa ao lado.' },
+    { at: 8.5, n: 2, h: 'Líder e intervalo', p: 'O intervalo é para o carro da frente.', cap: 'Líder é o atraso para o primeiro; intervalo é o atraso para o carro da frente. É o intervalo que decide um ataque ou uma defesa.' },
+    { at: 17, n: 3, h: 'Última volta', p: 'Roxo = o melhor tempo da corrida.', cap: 'A última volta fica roxa quando é a mais rápida da corrida, e o relógio roxo marca o piloto que a detém.' },
+    { at: 24.5, n: 4, h: 'Pneu e paragens', p: 'Composto, idade em voltas e paragens feitas.', cap: 'Ao lado vês o pneu, a idade em voltas e quantas paragens já fez. Um ponto de ataque: pneus mais novos com intervalo pequeno.' },
+    { at: 31, n: 5, h: '+1V = apanhado', p: 'Uma volta de atraso.', cap: 'Mais um V quer dizer uma volta de atraso: o piloto foi apanhado pelo líder.' },
+  ] },
+
+  { id: 'pneus', kick: '03 · a variável que decide tudo', title: 'Pneus e stints', len: 32, mock: M.tyres, steps: [
+    { at: 1.0, n: 1, h: 'Os compostos', p: 'Macio, médio, duro, intermédio, chuva.', cap: 'O macio é o mais rápido mas dura menos. O duro é o contrário. Intermédio e chuva são para a pista molhada.' },
+    { at: 8.5, n: 2, h: 'A idade', p: 'Em voltas do conjunto.', cap: 'O número ao lado é a idade do conjunto, em voltas. Idade alta com ritmo a cair quer dizer paragem à porta.' },
+    { at: 16, n: 3, h: 'Stints', p: 'Cada barra é um período com o mesmo conjunto.', cap: 'Cada barra é um stint. Dá para ver de relance quem parou cedo, quem alongou e quem tem uma estratégia diferente.' },
+    { at: 24, n: 4, h: 'Sets novos', p: 'Cada paragem risca um conjunto novo.', cap: 'Os sets novos vêm da folha da Pirelli. Cada paragem risca um deles. Quem só tem usados fica com menos opções.' },
+  ] },
+
+  { id: 'estrategia', kick: '04 · antecipar o que vem aí', title: 'Estratégia', len: 34, mock: M.strategy, steps: [
+    { at: 1.0, n: 1, h: 'Janela de paragem', p: 'Cedo · Janela aberta · Atrasado.', cap: 'A caixa verde é a janela onde os outros costumam parar neste circuito. Cedo, janela aberta ou atrasado.' },
+    { at: 9, n: 2, h: 'Perda na box', p: 'Quanto custa parar agora.', cap: 'A perda numa paragem é medida nas paragens desta corrida. Sob Safety Car baixa para metade.' },
+    { at: 17, n: 3, h: 'Undercut', p: 'Parar antes e passar com pneus novos.', cap: 'Undercut é parar antes do rival e passá-lo quando ele parar. O painel avisa quando o intervalo é pequeno e os pneus estão gastos.' },
+    { at: 26, n: 4, h: 'Safety Car', p: 'O momento mais volátil da corrida.', cap: 'Com Safety Car os intervalos encolhem e a paragem custa metade. É aqui que as corridas se viram.' },
+  ] },
+
+  { id: 'ritmo', kick: '05 · o painel mais enganador', title: 'Ritmo e degradação', len: 48, mock: M.pace, steps: [
+    { at: 1.0, n: 1, h: '−11.72 s por volta!', p: 'Intermédio → macio: a pista estava a secar.', cap: 'Primeira linha: de intermédios para macios, menos 11.72 segundos por volta. Mas não foi só o pneu: a pista estava a secar.' },
+    { at: 11, n: 2, h: 'Pneu novo, mesmo composto', p: 'Δ −1.33; sem combustível −0.53.', cap: 'Segunda linha: macio para macio, menos 1.33. Tirando o combustível, a vantagem do pneu novo é de cerca de meio segundo.' },
+    { at: 20, n: 3, h: '+11.10 s', p: 'Macio → intermédio: voltou a chover.', cap: 'Terceira linha: de volta aos intermédios, mais 11 segundos. Choveu outra vez. Um delta enorme é quase sempre mudança de condições.' },
+    { at: 30, n: 4, h: 'Δ ritmo', p: 'Negativo e verde = mais rápido.', cap: 'Delta ritmo é o stint novo menos o anterior: negativo e verde é mais rápido, positivo e vermelho é mais lento.' },
+    { at: 38.5, n: 5, h: 'Degradação', p: 'Segundos perdidos por volta pelo pneu.', cap: 'A degradação mostra quanto o pneu faz perder por volta. Negativa quer dizer que a pista estava a melhorar mais do que o pneu gastava.' },
+  ] },
+
+  { id: 'paragens', kick: '06 · a corrida ganha-se na box', title: 'Paragens nas boxes', len: 34, mock: M.pits, steps: [
+    { at: 1.0, n: 1, h: 'Troca de pneus', p: 'O tempo parado na box.', cap: 'A troca de pneus é o tempo em que o carro está parado na box. É o que decide o prémio da paragem mais rápida.' },
+    { at: 9, n: 2, h: 'Pit lane', p: 'Da entrada à saída: 20 a 25 s.', cap: 'A pit lane é o tempo total, da entrada à saída. É o que realmente custa posições na corrida.' },
+    { at: 17, n: 3, h: 'Mais rápida do dia', p: 'Foto, tempo e volta.', cap: 'O cartão amarelo destaca o pit stop mais rápido do dia, com a foto do piloto.' },
+    { at: 25, n: 4, h: 'Valor ≈ estimado', p: 'Até sair o oficial, margem de ±0.3 s.', cap: 'Quando o valor oficial ainda não saiu, mostramos uma estimativa com o sinal de aproximado, calculada pela velocidade do carro.' },
+  ] },
+
+  { id: 'treinos', kick: '07 · fp1, fp2 e fp3', title: 'Treinos livres', len: 30, mock: M.practice, steps: [
+    { at: 1.0, n: 1, h: 'Simulação de qualificação', p: 'Runs curtos, volta lançada.', cap: 'Nos treinos, a simulação de qualificação mostra quem está mais perto do tempo de qualificação, em voltas lançadas com macios.' },
+    { at: 10, n: 2, h: 'Ritmo 5 voltas', p: 'A mesma distância para todos.', cap: 'Na simulação de corrida comparamos as primeiras 5 voltas de cada stint, para ninguém ganhar só por ter feito um stint mais curto.' },
+    { at: 19.5, n: 3, h: 'Degradação', p: 'Verde baixa, vermelha alta.', cap: 'A degradação diz quem aguenta o pneu. Procura o melhor ritmo com a menor degradação: é o candidato à corrida.' },
+  ] },
+
+  { id: 'mapa', kick: '08 · ver a corrida', title: 'Mapa e posições', len: 22, mock: M.map, steps: [
+    { at: 1.0, n: 1, h: 'Mapa da pista', p: 'Carros em tempo real, curvas e pit lane.', cap: 'O mapa mostra os carros em tempo real sobre o traçado, com as curvas numeradas e a pit lane desenhada.' },
+    { at: 11, n: 2, h: 'Gráfico de posições', p: 'Linhas que se cruzam = ultrapassagens.', cap: 'No gráfico, cada linha é um piloto. Quedas bruscas são paragens, e linhas que se cruzam são ultrapassagens.' },
+  ] },
+
+  { id: 'play', kick: '09 · os teus pontos', title: 'F1 Play em directo', len: 26, mock: M.play, steps: [
+    { at: 1.0, n: 1, h: 'Pontos provisórios', p: 'O teu palpite vs o que acontece agora.', cap: 'Aqui vês os teus pontos em directo: o teu palpite de um lado, o que acontece agora do outro. O total muda a cada volta.' },
+    { at: 14, n: 2, h: 'Piloto do Dia', p: 'Botão no topo quando a votação abre.', cap: 'Quando a votação do Piloto do Dia abre, aparece um botão no topo da página. Depois de encerrada, mostra o vencedor.' },
+  ] },
+
+  { id: 'fim', len: 22, outro: true,
+    caps: [{ at: 0.6, len: 10, text: 'Os dados são ótimos, mas têm limites: não sabemos o combustível, os modos do motor nem a temperatura real dos pneus.' }, { at: 11.5, len: 10, text: 'Usa a telemetria como uma pista, e combina-a com o que vês na televisão. Há um guia em PDF na página da Telemetria.' }] },
+]
+// scene start times
+let acc = 0; for (const s of SCENES) { s.start = acc; acc += s.len }
+const TOTAL = acc
+
+const root = document.getElementById('root')
+for (const s of SCENES) {
+  const el = document.createElement('div'); el.className = 'scene'; s.el = el
+  if (s.intro) {
+    el.innerHTML = `<div class="center"><div class="kick">Beira F1 Fanatics · Temporada 2026</div><div class="big">Como ler a<br><span>Telemetria</span></div><div class="sub">Guia em vídeo, passo a passo</div>
+      <div class="three"><div><b>Quem está à frente?</b>Torre, intervalos e mapa</div><div><b>Quem tem ritmo?</b>Pneus e degradação</div><div><b>O que vem a seguir?</b>Estratégia e bandeiras</div></div></div>`
+  } else if (s.outro) {
+    el.innerHTML = `<div class="center"><div class="big" style="font-size:96px">Tira <span>partido</span><br>da corrida</div><div class="three"><div><b>Antes</b>Grelha, sets novos, previsão de chuva</div><div><b>Durante</b>Bandeira, intervalos, pneus, ritmo</div><div><b>Depois</b>Paragens, posições, Piloto do Dia</div></div><div class="sub" style="font-size:24px;color:#9a9aa8">Guia em PDF e este vídeo: página da Telemetria · app.beiraf1fanatics.com</div></div>`
+  } else {
+    el.innerHTML = `<div class="top"><span class="kick">${s.kick}</span><span class="ttl">${s.title}</span></div><div class="stage"><div class="mock">${s.mock}</div></div><div class="steps">${s.steps.map(st => `<div class="step"><span class="n">${st.n}</span><div><h4>${st.h}</h4><p>${st.p}</p></div></div>`).join('')}</div>`
+    s.stepEls = Array.from(el.querySelectorAll('.step'))
+  }
+  root.appendChild(el)
+}
+const TAKES = {
+  cabecalho: 'a primeira coisa a olhar é a bandeira e a temperatura da pista.',
+  torre: 'não olhes só para a posição: intervalo pequeno com pneus mais novos é uma ameaça.',
+  pneus: 'quando o ritmo cai e o pneu já passou da idade habitual, espera uma paragem.',
+  estrategia: 'o Safety Car muda tudo: intervalos, janelas de paragem e o custo da box.',
+  ritmo: 'um delta enorme, positivo ou negativo, quase sempre é mudança de condições, não de pneu.',
+  paragens: 'uma paragem de 4 segundos ou mais muda corridas: confirma a posição na torre.',
+  treinos: 'o ritmo de treino é uma pista, não uma verdade: combustível e motor são desconhecidos.',
+  mapa: 'se a linha cai e volta a subir, a ultrapassagem foi pela estratégia e não pela pista.',
+  play: 'os pontos provisórios mudam até ao fim: só os oficiais contam.',
+}
+document.fonts.ready.then(() => {
+  for (const s of SCENES) {
+    if (!TAKES[s.id]) continue
+    const d = document.createElement('div'); d.className = 'take'; d.innerHTML = '<b>Em resumo:</b> ' + TAKES[s.id]
+    s.el.appendChild(d); s.take = d
+    const m = s.el.querySelector('.mock').getBoundingClientRect()
+    d.style.top = Math.min(m.bottom + 14, 528) + 'px'
+  }
+  window.render(window.__t ?? 0)
+})
+const capEl = document.getElementById('cap'), prog = document.getElementById('prog')
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x))
+const ease = x => 1 - Math.pow(1 - x, 3)
+
+window.render = function (t) {
+  window.__t = t
+  prog.style.width = `${clamp(t / TOTAL) * 100}%`
+  let capText = '', capA = 0
+  for (const s of SCENES) {
+    const local = t - s.start
+    const on = local >= 0 && local < s.len
+    s.el.style.opacity = on ? String(clamp(local / 0.45) * clamp((s.len - local) / 0.45)) : '0'
+    s.el.style.visibility = on ? 'visible' : 'hidden'
+    if (!on) continue
+    const caps = s.caps ?? (s.steps ?? []).map((st, i) => ({ at: st.at + 0.3, len: ((s.steps[i + 1]?.at ?? s.len - 0.5) - st.at) - 0.4, text: st.cap }))
+    for (const c of caps) {
+      if (local >= c.at && local < c.at + c.len) { capText = c.text; capA = clamp((local - c.at) / 0.3) * clamp((c.at + c.len - local) / 0.3) }
+    }
+    if (s.take) { const at = s.steps[s.steps.length - 1].at + 3.5; const p = ease(clamp((local - at) / 0.6)); s.take.style.opacity = String(p); s.take.style.transform = `translateY(${(1 - p) * 14}px)` }
+    if (s.steps) {
+      let cur = -1
+      s.steps.forEach((st, i) => { if (local >= st.at) cur = i })
+      s.stepEls.forEach((el, i) => {
+        const p = ease(clamp((local - s.steps[i].at) / 0.5))
+        el.style.opacity = String(p); el.style.transform = `translateX(${(1 - p) * 40}px)`
+        el.classList.toggle('cur', i === cur)
+      })
+      const hl = cur >= 0 ? String(s.steps[cur].n) : null
+      s.el.querySelectorAll('[data-s]').forEach(n => {
+        const on2 = hl !== null && n.dataset.s === hl
+        n.classList.toggle('hl', on2)
+        n.classList.remove('dim')
+      })
+    }
+  }
+  capEl.textContent = capText; capEl.style.opacity = String(capA)
+}
+window.TOTAL = TOTAL
+window.render(0)
+</script>
+</body>
+</html>
