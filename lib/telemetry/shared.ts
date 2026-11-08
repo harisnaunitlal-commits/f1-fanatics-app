@@ -16,6 +16,23 @@ export type RaceSets = Record<string, RaceSetsRow>
 // Reads the table as it appears in the race-set flyer / Pirelli sheet, one driver per line:
 //   "1 HAM 1 0 1 0 0 4"  = Hard new/used, Medium new/used, Soft new/used   (the leading position is optional)
 //   "HAM 1 1 0"          = only the NEW sets: Hard, Medium, Soft
+export type DotdResult = { results: { code: string; pct: number }[] }
+
+// "VER 20.6, PER 18.6, HAM 15.4" (commas, semicolons or one per line; % optional) -> sorted from the most voted
+export function parseDotd(text: string): { dotd: DotdResult; bad: string[] } {
+  const results: { code: string; pct: number }[] = []
+  const bad: string[] = []
+  for (const part of text.split(/[\n;]+|,\s*(?=[A-Za-z]{3}\b)/).map(x => x.trim()).filter(Boolean)) {
+    const m = /^([A-Za-z]{3})\b\D{0,3}(\d+(?:[.,]\d+)?)\s*%?$/.exec(part)
+    const pct = m ? parseFloat(m[2].replace(',', '.')) : NaN
+    if (!m || !Number.isFinite(pct) || pct < 0 || pct > 100) { bad.push(part); continue }
+    const code = m[1].toUpperCase()
+    if (!results.some(r => r.code === code)) results.push({ code, pct })
+  }
+  results.sort((a, b) => b.pct - a.pct)
+  return { dotd: { results: results.slice(0, 10) }, bad }
+}
+
 export function parseRaceSets(text: string): { sets: RaceSets; bad: string[] } {
   const sets: RaceSets = {}
   const bad: string[] = []
@@ -50,6 +67,7 @@ export interface Scene {
   compare_mode: 'best' | 'last'
   tyre_allocation: TyreAllocation | null
   race_sets?: RaceSets | null
+  dotd?: DotdResult | null   // Driver of the Day result, once the F1 vote has closed (typed in by the admin)
   auto_follow: boolean
   featured: string[]
   banner: string | null
@@ -113,7 +131,7 @@ export interface StateResponse {
   message?: string
   isAdmin?: boolean
   diag?: { sessionKey: number; start: string; end: string; counts: Record<string, number>; lastRc: string[]; errors?: string[]; token?: boolean; probes?: string[]; firstLap: string | null }
-  scene?: Pick<Scene, 'mode' | 'banner' | 'featured' | 'panels' | 'members_enabled' | 'total_laps' | 'replay_playing' | 'replay_speed' | 'compare_mode' | 'tyre_allocation' | 'race_sets' | 'auto_follow'>
+  scene?: Pick<Scene, 'mode' | 'banner' | 'featured' | 'panels' | 'members_enabled' | 'total_laps' | 'replay_playing' | 'replay_speed' | 'compare_mode' | 'tyre_allocation' | 'race_sets' | 'dotd' | 'auto_follow'>
   session?: { name: string; country: string; date_start: string; date_end: string }
   upcoming?: { name: string; country: string; startMs: number } | null   // next session of the calendar (auto-follow only)
   gp?: { nome: string; emoji: string | null; round: number } | null

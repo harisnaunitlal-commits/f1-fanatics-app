@@ -286,8 +286,12 @@ export default function TelemetryView({ endpoint = '/api/telemetria/state' }: { 
 
   if (data.preRace) return <PreRace data={data} receivedAt={receivedAt} err={err} />
 
+  // Driver of the Day: on top as soon as the F1 vote is open (the Grand Prix itself, not the sprint) and until the result is shown
+  const dotdOn = /^race$/i.test(session.name) && s.started && panelOn(scene.panels, 'dotd')
+
   return (
     <div className="space-y-4">
+      {dotdOn && <DotdVote finished={s.status === 'FINISHED'} result={scene.dotd} drivers={data.drivers} />}
       {err && <div className="text-xs text-orange-300 bg-orange-900/20 border border-orange-700/30 rounded-lg px-3 py-2">⚠️ {err} — a mostrar os últimos dados recebidos.</div>}
       {!scene.members_enabled && data.isAdmin && <div className="text-xs text-yellow-300 bg-yellow-900/20 border border-yellow-700/30 rounded-lg px-3 py-2">👁️ Pré-visualização: os membros ainda não vêem esta página.</div>}
 
@@ -430,8 +434,6 @@ export default function TelemetryView({ endpoint = '/api/telemetria/state' }: { 
           <Championship data={s.championship} favCode={favCode ?? null} featured={featured} />
         </Section>
       )}
-
-      {s.kind === 'race' && s.started && panelOn(scene.panels, 'dotd') && <DotdVote finished={s.status === 'FINISHED'} />}
 
       {s.kind === 'race' && s.pitLog.length > 0 && panelOn(scene.panels, 'pits') && (
         <Section title="Paragens nas boxes" hint="tempo parado e tempo na pit lane · actualiza a cada paragem">

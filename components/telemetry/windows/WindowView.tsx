@@ -446,7 +446,7 @@ function Body({ id, data, receivedAt, drivers }: { id: string; data: StateRespon
     case 'ritmo-stint': return <StintPaceTable s={s} />
     case 'se-parasse': return rejoinList.length === 0 ? <Empty>Sem simulação (só em corrida).</Empty> : <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{rejoinList.map(r => <RejoinCard key={r.code} sim={r} row={s.tower.find(t => t.code === r.code)} />)}</div>
     case 'boxes': return <PitLogTable s={s} />
-    case 'dotd': return <DotdVote finished={s.status === 'FINISHED'} />
+    case 'dotd': return <DotdVote finished={s.status === 'FINISHED'} result={scene.dotd} drivers={data.drivers} />
     case 'ritmo': return <LapAnalysis s={s} focus={focus} />
     case 'sim-treino': return s.practiceSim ? <PracticeSimPanel s={s} focus={focus} /> : <Empty>Só nos treinos livres (FP1, FP2, FP3).</Empty>
     case 'tempos-volta': return <LapTimesChart s={s} focus={drivers} showEmpty />

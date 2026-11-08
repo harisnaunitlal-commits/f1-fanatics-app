@@ -237,6 +237,7 @@ export async function buildStateResponse(viewer: { email: string; isAdmin: boole
         if (g.laps) patch.total_laps = g.laps
         patch.tyre_allocation = null   // Pirelli allocation belongs to the weekend that just ended
         patch.race_sets = null
+        patch.dotd = null
       }
       try { await createServiceClient().from('telemetry_scene').update(patch).eq('id', 1) } catch { /* next request tries again */ }
       sc = { ...sc, ...patch } as Scene
@@ -349,7 +350,7 @@ export async function buildStateResponse(viewer: { email: string; isAdmin: boole
       status: 200,
       body: {
         ready: true, isAdmin,
-        scene: { mode: sc.mode, banner: sc.banner, featured, panels: full ? {} : sc.panels, members_enabled: sc.members_enabled, total_laps: sc.total_laps, replay_playing: sc.replay_playing, replay_speed: Number(sc.replay_speed), compare_mode: sc.compare_mode ?? 'best', tyre_allocation: sc.tyre_allocation ?? null, race_sets: sc.race_sets ?? null, auto_follow: !!sc.auto_follow },
+        scene: { mode: sc.mode, banner: sc.banner, featured, panels: full ? {} : sc.panels, members_enabled: sc.members_enabled, total_laps: sc.total_laps, replay_playing: sc.replay_playing, replay_speed: Number(sc.replay_speed), compare_mode: sc.compare_mode ?? 'best', tyre_allocation: sc.tyre_allocation ?? null, race_sets: sc.race_sets ?? null, dotd: sc.dotd ?? null, auto_follow: !!sc.auto_follow },
         session: { name: meta.session_name, country: meta.country_name, date_start: meta.date_start, date_end: meta.date_end },
         upcoming: nextSession ? { name: nextSession.session_name, country: nextSession.country_name, startMs: Date.parse(nextSession.date_start) } : null,
         clock: (() => { const c = computeClock(raw.raceControl, sessionKindOf(meta.session_name), meta.session_name, { start: Date.parse(meta.date_start), end: Date.parse(meta.date_end) }, rawT); return c ? { ...c, endsAtMs: c.remainingMs !== null ? rawT + c.remainingMs : null } : null })(),

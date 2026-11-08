@@ -61,6 +61,18 @@ export async function POST(req: NextRequest) {
     }
     patch.race_sets = Object.keys(out).length ? out : null
   }
+  if ('dotd' in body) {
+    const d = body.dotd as { results?: unknown } | null
+    const list = d && Array.isArray(d.results) ? d.results : []
+    const out: { code: string; pct: number }[] = []
+    for (const x of list.slice(0, 10)) {
+      const r = x as { code?: unknown; pct?: unknown }
+      if (typeof r?.code !== 'string' || !/^[A-Z]{3}$/.test(r.code) || typeof r.pct !== 'number' || !Number.isFinite(r.pct) || r.pct < 0 || r.pct > 100) continue
+      if (!out.some(o => o.code === r.code)) out.push({ code: r.code, pct: Math.round(r.pct * 10) / 10 })
+    }
+    out.sort((a, b) => b.pct - a.pct)
+    patch.dotd = out.length ? { results: out } : null
+  }
   if (typeof body.auto_follow === 'boolean') patch.auto_follow = body.auto_follow
   if (body.compare_mode === 'best' || body.compare_mode === 'last') patch.compare_mode = body.compare_mode
 

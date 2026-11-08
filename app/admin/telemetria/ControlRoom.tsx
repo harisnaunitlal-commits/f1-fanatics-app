@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { sceneTime, panelOn, parseRaceSets, type PanelKey, type Scene, type StateResponse } from '@/lib/telemetry/shared'
+import { sceneTime, panelOn, parseRaceSets, parseDotd, type PanelKey, type Scene, type StateResponse } from '@/lib/telemetry/shared'
 
 export interface SessionOpt { key: number; label: string; start: string; end: string; gpGuess: number | null }
 export interface GpOpt { id: number; label: string }
@@ -42,6 +42,7 @@ export default function ControlRoom({ initialScene, sessions, gps, liveReady }: 
   const [drag, setDrag] = useState<number | null>(null)
   const [alloc, setAlloc] = useState({ SOFT: String(initialScene.tyre_allocation?.SOFT ?? ''), MEDIUM: String(initialScene.tyre_allocation?.MEDIUM ?? ''), HARD: String(initialScene.tyre_allocation?.HARD ?? '') })
   const [setsText, setSetsText] = useState('')
+  const [dotdText, setDotdText] = useState('')
   const [checking, setChecking] = useState(false)
   const [checkMsg, setCheckMsg] = useState('')
 
@@ -201,6 +202,23 @@ export default function ControlRoom({ initialScene, sessions, gps, liveReady }: 
             <button disabled={busy} className="btn-secondary" onClick={() => call('set', { tyre_allocation: { SOFT: Number(alloc.SOFT) || 0, MEDIUM: Number(alloc.MEDIUM) || 0, HARD: Number(alloc.HARD) || 0 } })}>Aplicar</button>
             <button disabled={busy} className="btn-secondary" onClick={() => { setAlloc({ SOFT: '', MEDIUM: '', HARD: '' }); call('set', { tyre_allocation: null }) }}>Limpar</button>
           </div>
+        </div>
+        <div>
+          <label className="label">Resultado do <b>Piloto do Dia</b> (quando a votação da F1 fechar)</label>
+          <p className="text-xs text-gray-500 mb-2">Escreve os mais votados com a percentagem, por exemplo <code className="text-gray-300">VER 20.6, PER 18.6, HAM 15.4, ANT 11.3, LEC 5.6</code>. Enquanto estiver vazio, a página mostra o botão para votar; depois de aplicar, mostra o resultado.</p>
+          <input className="input font-mono text-xs" placeholder="VER 20.6, PER 18.6, HAM 15.4…" value={dotdText} disabled={busy} onChange={e => setDotdText(e.target.value)} />
+          {(() => {
+            const parsed = dotdText.trim() ? parseDotd(dotdText) : null
+            const n = parsed ? parsed.dotd.results.length : 0
+            const cur = scene.dotd?.results ?? []
+            return (
+              <div className="flex flex-wrap items-center gap-3 mt-2">
+                <button disabled={busy || n === 0} className="btn-secondary" onClick={() => { if (parsed) { call('set', { dotd: parsed.dotd }); setDotdText('') } }}>Aplicar resultado{n ? ` (${n} pilotos)` : ''}</button>
+                <button disabled={busy || cur.length === 0} className="btn-secondary" onClick={() => call('set', { dotd: null })}>Limpar</button>
+                <span className="text-xs text-gray-400">{cur.length ? `Guardado: ${cur.map(r => `${r.code} ${r.pct}%`).join(', ')}` : 'Ainda sem resultado.'}{parsed && parsed.bad.length > 0 ? ` · não percebi: ${parsed.bad.slice(0, 2).join(' | ')}` : ''}</span>
+              </div>
+            )
+          })()}
         </div>
         <div>
           <label className="label">Sets de pneus <b>para a corrida</b>, por piloto (folha da Pirelli / o teu Race Set) — actualiza todos os domingos</label>
