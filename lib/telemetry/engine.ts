@@ -76,7 +76,7 @@ export interface SessionResults {
 }
 export interface MapCar { code: string; colour: string; x: number; y: number; out: boolean; inPit: boolean }
 export interface OvertakeTyre { compound: string | null; age: number | null }
-export interface OvertakeItem { date: string; lap: number | null; by: string; over: string; pos: number; byTyre: OvertakeTyre; overTyre: OvertakeTyre }
+export interface OvertakeItem { date: string; lap: number | null; by: string; over: string; byColour: string; overColour: string; pos: number; byTyre: OvertakeTyre; overTyre: OvertakeTyre }
 export interface PositionLine { code: string; colour: string; pos: (number | null)[] }
 export interface LapTimeLine { code: string; colour: string; laps: { lap: number; t: number }[] }
 export interface ChampRow { code: string; name: string; colour: string; posStart: number; pointsStart: number; pointsNow: number; posNow: number; delta: number }
@@ -845,6 +845,7 @@ export function buildState(raw: RawSession, tMs: number, totalLapsHint: number |
   const overtakes: OvertakeItem[] = raw.overtakes.filter(o => ms(o.date) <= tMs).sort((a, b) => ms(a.date) - ms(b.date)).slice(-10).reverse().map(o => ({
     date: o.date, lap: lapAt(o.overtaking_driver_number, ms(o.date)), pos: o.position,
     by: drivers.get(o.overtaking_driver_number)?.name_acronym ?? '?', over: drivers.get(o.overtaken_driver_number)?.name_acronym ?? '?',
+    byColour: teamHex(drivers.get(o.overtaking_driver_number)?.team_colour), overColour: teamHex(drivers.get(o.overtaken_driver_number)?.team_colour),
     byTyre: tyreAtLap(o.overtaking_driver_number, ms(o.date)), overTyre: tyreAtLap(o.overtaken_driver_number, ms(o.date)),
   }))
 

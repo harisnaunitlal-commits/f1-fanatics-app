@@ -28,41 +28,57 @@ export function PositionChart({ lines, highlight, totalLaps, leaderLap }: { line
 
 const SOFTNESS: Record<string, number> = { SOFT: 3, MEDIUM: 2, HARD: 1, INTERMEDIATE: 0, WET: -1 }
 
-// Tyre delta = difference in tyre age (laps); offset = compound step (softer = faster, but wears out sooner). Positive = the overtaker has the advantage.
-function TyreDuel({ o }: { o: OvertakeItem }) {
+// One driver of the move: arrow, team colour, code and the tyre he was on (compound + age in laps)
+function Side({ up, code, colour, tyre }: { up: boolean; code: string; colour: string; tyre: OvertakeItem['byTyre'] }) {
+  const c = tyre.compound ? COMPOUND[tyre.compound] : null
+  return (
+    <div className="flex items-center gap-2 leading-none">
+      <span className={`w-3 text-[10px] ${up ? 'text-green-400' : 'text-red-400'}`}>{up ? '▲' : '▼'}</span>
+      <span className="w-1 h-4 rounded-sm shrink-0" style={{ background: colour }} />
+      <b className={`w-9 text-sm ${up ? 'text-white' : 'text-gray-300'}`}>{code}</b>
+      {c ? <span className={`inline-flex w-5 h-5 rounded-full border-2 items-center justify-center text-[9px] font-black shrink-0 ${c.cls}`}>{c.letter}</span> : <span className="w-5 text-gray-600">—</span>}
+      <span className="text-xs tabular-nums text-gray-300 whitespace-nowrap">{tyre.age !== null ? `${tyre.age} voltas` : ''}</span>
+    </div>
+  )
+}
+
+// What the tyres say about the move, in two short pills: compound (softer = faster but wears out sooner) and age (younger tyres = fresher)
+function Verdict({ o }: { o: OvertakeItem }) {
   const a = o.byTyre, b = o.overTyre
-  if (!a.compound || !b.compound) return null
-  const ca = COMPOUND[a.compound], cb = COMPOUND[b.compound]
-  const delta = a.age !== null && b.age !== null ? b.age - a.age : null   // + = the overtaken car has older tyres
-  const step = (SOFTNESS[a.compound] ?? 0) - (SOFTNESS[b.compound] ?? 0)   // + = the overtaker is on the softer tyre
-  const chip = (t: typeof a, c: typeof ca) => (
-    <span className="inline-flex items-center gap-0.5">
-      <span className={`inline-flex w-4 h-4 rounded-full border-2 items-center justify-center text-[8px] font-black ${c?.cls ?? ''}`}>{c?.letter ?? '?'}</span>
-      <span className="text-[10px] text-gray-400 tabular-nums">{t.age ?? ''}</span>
-    </span>
+  const step = a.compound && b.compound ? (SOFTNESS[a.compound] ?? 0) - (SOFTNESS[b.compound] ?? 0) : null
+  const age = a.age !== null && b.age !== null ? b.age - a.age : null   // + = the overtaker has the fresher tyres
+  const pill = (txt: string, tone: 'good' | 'bad' | 'even') => (
+    <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold whitespace-nowrap ${tone === 'good' ? 'bg-green-500/20 text-green-300' : tone === 'bad' ? 'bg-red-500/20 text-red-300' : 'bg-white/10 text-gray-300'}`}>{txt}</span>
   )
   return (
-    <span className="ml-auto flex flex-wrap items-center justify-end gap-x-2 gap-y-0.5 text-[10px]">
-      {chip(a, ca)}<span className="text-gray-600">vs</span>{chip(b, cb)}
-      {delta !== null && <span className={`font-bold tabular-nums ${delta > 0 ? 'text-green-400' : delta < 0 ? 'text-red-400' : 'text-gray-400'}`} title="Diferença de idade dos pneus (voltas). Positivo: o ultrapassado tinha pneus mais gastos">Δ idade {delta > 0 ? '+' : ''}{delta}v</span>}
-      <span className={`font-bold ${step > 0 ? 'text-green-400' : step < 0 ? 'text-red-400' : 'text-gray-400'}`} title="Diferença de composto: mais macio = mais rápido mas gasta mais">{step === 0 ? 'mesmo composto' : step > 0 ? `offset +${step} (mais macio)` : `offset ${step} (mais duro)`}</span>
-    </span>
+    <div className="flex flex-col items-end gap-1 shrink-0">
+      {step !== null && (step === 0 ? pill('mesmo composto', 'even') : step > 0 ? pill('pneu mais macio', 'good') : pill('pneu mais duro', 'bad'))}
+      {age !== null && (age === 0 ? pill('idade igual', 'even') : age > 0 ? pill(`${age}v mais novo`, 'good') : pill(`${-age}v mais velho`, 'bad'))}
+    </div>
   )
 }
 
 export function OvertakeFeed({ items }: { items: OvertakeItem[] }) {
   if (items.length === 0) return <p className="text-xs text-gray-500">Sem ultrapassagens registadas ainda.</p>
   return (
-    <ul>
-      {items.map((o, i) => (
-        <li key={i} className="flex items-center gap-2 py-1.5 border-b border-gray-800/50 text-xs">
-          <span className="text-gray-500 tabular-nums w-[88px] shrink-0">{o.lap ? `V${o.lap} · ` : ''}{clock(o.date)}</span>
-          <span className="shrink-0"><b>{o.by}</b> passa <b>{o.over}</b></span>
-          <TyreDuel o={o} />
-          <span className="text-gray-400 w-6 text-right shrink-0">P{o.pos}</span>
-        </li>
-      ))}
-      <li className="text-[10px] text-gray-600 pt-1.5">O OpenF1 avisa que esta lista pode estar incompleta. Pneus de cada um no momento da manobra: <b className="text-gray-400">Δ idade</b> = voltas de diferença (verde: o ultrapassado tinha pneus mais gastos); <b className="text-gray-400">offset</b> = degraus de composto (verde: quem passa tinha o pneu mais macio).</li>
-    </ul>
+    <div>
+      <ul className="space-y-1.5">
+        {items.map((o, i) => (
+          <li key={i} className="flex items-center gap-3 rounded-lg bg-black/20 px-2.5 py-2">
+            <div className="w-[52px] shrink-0 text-center leading-tight">
+              <div className="text-sm font-black text-gray-100 tabular-nums">P{o.pos}</div>
+              <div className="text-[10px] text-gray-500 tabular-nums">{o.lap ? `V${o.lap}` : ''}</div>
+              <div className="text-[9px] text-gray-600 tabular-nums">{clock(o.date)}</div>
+            </div>
+            <div className="flex flex-col gap-1.5 min-w-0 flex-1">
+              <Side up code={o.by} colour={o.byColour} tyre={o.byTyre} />
+              <Side up={false} code={o.over} colour={o.overColour} tyre={o.overTyre} />
+            </div>
+            <Verdict o={o} />
+          </li>
+        ))}
+      </ul>
+      <p className="text-[10px] text-gray-600 pt-2">▲ quem passou · ▼ quem foi passado, cada um com o pneu e as voltas que tinha na altura. <span className="text-green-400">Verde</span> = vantagem de pneus para quem passou. O OpenF1 avisa que esta lista pode estar incompleta.</p>
+    </div>
   )
 }
