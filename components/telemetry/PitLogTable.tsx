@@ -2,6 +2,8 @@
 
 import { useState } from 'react'
 import type { TelemetryState, PitStopItem } from '@/lib/telemetry/engine'
+import { teamKey } from '@/lib/telemetry/engine'
+import { getDriverPhoto } from '@/lib/gp-questions'
 import { COMPOUND } from './ui'
 
 const th = 'py-2 px-2 text-[10px] text-gray-500 uppercase tracking-wider'
@@ -15,6 +17,14 @@ function Tyres({ p }: { p: PitStopItem }) {
       <span className={`inline-flex w-5 h-5 rounded-full border-2 items-center justify-center text-[10px] ${b?.cls ?? 'border-gray-600 text-gray-500'}`}>{b?.letter ?? '?'}</span>
     </span>
   )
+}
+
+// Image that simply disappears when the file is not there yet (team logos and the Pirelli logo are dropped into /public/logos).
+function Img({ src, alt, className }: { src: string; alt: string; className?: string }) {
+  const [bad, setBad] = useState(false)
+  if (!src || bad) return null
+  // eslint-disable-next-line @next/next/no-img-element
+  return <img src={src} alt={alt} className={className} onError={() => setBad(true)} />
 }
 
 // Time standing in the box (the DHL Fastest Pit Stop Award measures this): official when OpenF1 has it, otherwise an estimate from the car's speed.
@@ -40,15 +50,23 @@ export function PitLogTable({ s }: { s: TelemetryState }) {
           <span className="text-[10px] text-gray-500 w-full">{s.pitLog.length} paragens · {nDrivers} pilotos</span>
         </div>
         {fastestStop && (
-          <div className="ml-auto rounded-xl border border-yellow-400/50 bg-yellow-400/10 px-4 py-2 flex items-center gap-3">
-            <span className="text-2xl leading-none">⚡</span>
+          <div className="ml-auto rounded-xl border border-yellow-400/50 bg-yellow-400/10 px-4 py-3 flex items-center gap-4" style={{ borderLeft: `4px solid ${fastestStop.colour}` }}>
+            <div className="relative shrink-0">
+              {getDriverPhoto(fastestStop.code)
+                ? <Img src={getDriverPhoto(fastestStop.code)} alt={fastestStop.code} className="w-16 h-16 rounded-full object-cover object-top border-2 bg-black/40" />
+                : <span className="text-3xl">⚡</span>}
+              {fastestStop.team && <Img src={`/logos/teams/${teamKey(fastestStop.team)}.png`} alt={fastestStop.team} className="absolute -bottom-1 -right-2 w-8 h-8 object-contain rounded-full bg-white/90 p-1" />}
+            </div>
             <div>
-              <div className="text-[10px] font-bold uppercase tracking-widest text-yellow-300">Pit stop mais rápido do dia</div>
-              <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-black tabular-nums leading-none">{fastestStop.stopS === null ? '≈ ' : ''}{(stopOf(fastestStop) as number).toFixed(1)}<span className="text-lg text-gray-300"> s</span></span>
-                <span className="inline-flex items-center gap-1.5 text-sm"><span className="w-1 h-4 rounded-sm" style={{ background: fastestStop.colour }} /><b>{fastestStop.code}</b> · volta {fastestStop.lap ?? '—'}</span>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-yellow-300">⚡ Pit stop mais rápido do dia</span>
+                <Img src="/logos/pirelli.png" alt="Pirelli" className="h-4 object-contain" />
               </div>
-              <div className="text-[10px] text-gray-400">{fastestStop.stopS !== null ? 'tempo oficial parado na box' : 'estimado pela velocidade do carro'}</div>
+              <div className="flex items-baseline gap-3">
+                <span className="text-4xl font-black tabular-nums leading-none">{fastestStop.stopS === null ? '≈ ' : ''}{(stopOf(fastestStop) as number).toFixed(1)}<span className="text-lg text-gray-300"> s</span></span>
+                <span className="text-sm"><b className="text-base">{fastestStop.code}</b>{fastestStop.team ? <span className="text-gray-300"> · {fastestStop.team}</span> : null}</span>
+              </div>
+              <div className="text-[11px] text-gray-400">volta {fastestStop.lap ?? '—'} · {fastestStop.stopS !== null ? 'tempo oficial parado na box' : 'estimado pela velocidade do carro'}</div>
             </div>
           </div>
         )}
