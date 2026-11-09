@@ -367,7 +367,7 @@
 
   <!-- ══ COVER ══════════════════════════════════════════════════════════════ -->
   <header class="cover">
-    <div class="cover-eyebrow">📋 Projecto Booklet · Outubro 2026</div>
+    <div class="cover-eyebrow">📋 Projecto Booklet · Novembro 2026</div>
     <h1 class="cover-title">Beira <span>F1</span> Fanatics<br>2026</h1>
     <p class="cover-sub">Plataforma de previsões e fantasy F1 da comunidade de Beira, Moçambique. Compila as três ligas da comunidade — F1 Play, F1 Fantasy e F1 Predict — numa só plataforma.</p>
     <div class="cover-stats">
@@ -586,6 +586,69 @@
         <div>
           <div class="feature-name">Telemetria — segue o calendário sozinha</div>
           <div class="feature-desc">Com "seguir sessões" activo, a transmissão muda sozinha quando cada sessão começa (treinos, qualificação, sprint, corrida) e quando começa um novo Grande Prémio: liga o GP do F1 Play, define o total de voltas pelo historial (México = 71) e limpa a alocação de pneus. Entre sessões fica a última, com um aviso da <strong>próxima sessão</strong>. <strong>Faixa grande no topo</strong> em bandeira vermelha, Safety Car e VSC; os botões "AO VIVO" e estado da pista estão à esquerda, por cima do nome do GP, e o relógio da sessão à direita (mostra "⏸ BANDEIRA VERMELHA" quando parada). Mesa de controlo: 4 pilotos em destaque (os de outra sessão podem ser retirados) e novo painel de limites da pista.</div>
+        </div>
+      </div>
+      <div class="feature-row">
+        <div class="feature-icon">📘</div>
+        <div>
+          <div class="feature-name">Telemetria — guia de leitura (PDF + vídeo)</div>
+          <div class="feature-desc">Cartão amarelo no topo de <code>/telemetria</code> com o <strong>guia em PDF (11 páginas)</strong> e o <strong>vídeo de 5 min com legendas</strong> que explicam cada painel e como o usar durante a corrida (exemplo real do Brasil incluído). Mostra a data da última actualização e <strong>os dois ficheiros actualizam-se sempre juntos</strong>, a cada fim-de-semana de GP (<code>node scripts/guia/build.mjs</code>, instruções em <code>scripts/guia/README.md</code>; versão em <code>GUIA_VERSION</code>). A página <code>/telemetria</code> deixou de vir da cache da app para ninguém ver uma versão antiga.</div>
+        </div>
+      </div>
+      <div class="feature-row">
+        <div class="feature-icon">🪟</div>
+        <div>
+          <div class="feature-name">Telemetria — janelas individuais para o admin</div>
+          <div class="feature-desc">Página <code>/admin/janelas</code>: 32 janelas independentes (estado da pista, alerta de bandeira em ecrã inteiro, torre grande, sectores, velocidade máxima, ganhos e perdas, campeonato, F1 Play, janela de paragem, stints, undercut, boxes, mapa, ultrapassagens, comparar pilotos, ficha do piloto, meteorologia, rádios…) para ver a corrida em vários ecrãs. Sem barra nem bordas do Windows (script PowerShell gerado pelo lançador), com zoom, cabeçalho opcional e fundo preto à escolha.</div>
+        </div>
+      </div>
+      <div class="feature-row">
+        <div class="feature-icon">📻</div>
+        <div>
+          <div class="feature-name">Telemetria — rádios de todos os pilotos</div>
+          <div class="feature-desc">Os rádios do OpenF1 são transcritos (inglês) e traduzidos para português, <strong>de todos os pilotos</strong> (antes só Mercedes, Red Bull, Ferrari e McLaren). Fica desligado por omissão (usa as chaves da API do servidor) e liga-se na mesa de controlo.</div>
+        </div>
+      </div>
+      <div class="feature-row">
+        <div class="feature-icon">🆕</div>
+        <div>
+          <div class="feature-name">Telemetria — pneus novos para a corrida e modo pré-corrida</div>
+          <div class="feature-desc">A folha da Pirelli com os <strong>sets novos de cada composto</strong> é colada na mesa de controlo antes da corrida; durante a corrida cada paragem risca um set novo. <strong>3 horas antes da corrida</strong> a página deixa de mostrar a qualificação e passa ao <strong>modo pré-corrida</strong>: contagem decrescente, meteorologia, a <strong>grelha de partida oficial</strong> (imagem enviada para o GP) e os sets novos. Muda sozinha para a corrida quando começa.</div>
+        </div>
+      </div>
+      <div class="feature-row">
+        <div class="feature-icon">🗺️</div>
+        <div>
+          <div class="feature-name">Telemetria — mapa com curvas e pit lane</div>
+          <div class="feature-desc">O mapa da pista mostra agora os <strong>números das curvas</strong>, a <strong>pit lane</strong> (traçado medido a partir das passagens reais dos carros) e as etiquetas dos pilotos afastam-se umas das outras para não se taparem.</div>
+        </div>
+      </div>
+      <div class="feature-row">
+        <div class="feature-icon">🌦️</div>
+        <div>
+          <div class="feature-name">Telemetria — meteorologia com tendência, gráfico e chuva %</div>
+          <div class="feature-desc">Mosaicos grandes (ar, pista, humidade, vento, chuva) com <strong>seta de tendência</strong> da temperatura nos últimos 10 min (▲ vermelha / ▼ azul / ▬ estável), <strong>gráfico da temperatura da pista desde o início da sessão</strong> com eixo ajustado à variação, linha de tendência e mín/máx. A chuva mostra a <strong>probabilidade em %</strong> (previsão do Open-Meteo para esta hora e as 3 seguintes), além do "a chover agora / sem chuva agora" vindo do cronometrista.</div>
+        </div>
+      </div>
+      <div class="feature-row">
+        <div class="feature-icon">⏱️</div>
+        <div>
+          <div class="feature-name">Telemetria — paragens nas boxes e pit stop mais rápido</div>
+          <div class="feature-desc">Tabela que ganha uma linha a cada paragem, com a <strong>troca de pneus (tempo parado)</strong> e o tempo na pit lane. Enquanto o OpenF1 não publica o valor oficial, o tempo parado é <strong>estimado pela velocidade do carro</strong> (≈, ±0.3 s), calculado uma só vez por paragem e guardado (tabela <code>pit_stop_times</code>). Cartão do <strong>pit stop mais rápido do dia</strong> com foto do piloto, selo DHL e imagem da equipa.</div>
+        </div>
+      </div>
+      <div class="feature-row">
+        <div class="feature-icon">🧪</div>
+        <div>
+          <div class="feature-name">Telemetria — simulações dos treinos livres</div>
+          <div class="feature-desc">Em FP1/FP2/FP3: <strong>simulação de qualificação</strong> (runs curtos, volta lançada, gap e composto) e <strong>simulação de corrida</strong> (stints de 5+ voltas por composto, ordenados pelo ritmo das primeiras 5 voltas, com degradação), mais a <strong>comparação lado a lado</strong> dos pilotos destacados. Só contam voltas completas: ficam de fora as de saída/entrada, as anuladas e as lentas.</div>
+        </div>
+      </div>
+      <div class="feature-row">
+        <div class="feature-icon">🏆</div>
+        <div>
+          <div class="feature-name">Telemetria — Piloto do Dia</div>
+          <div class="feature-desc">Assim que a corrida arranca aparece <strong>no topo da página</strong> o botão para votar no site da F1. Depois de a votação fechar, o admin escreve o resultado na mesa de controlo (ex.: <code>VER 20.6, PER 18.6…</code>) e a página mostra o vencedor e o top 5 com barras.</div>
         </div>
       </div>
       <div class="feature-row">
@@ -883,6 +946,24 @@
       <div class="log-entry">
         <div class="log-dot"></div>
         <div class="log-body">
+          <div class="log-date">1–9 Novembro 2026 · R19 GP México → R20 GP Brasil</div>
+          <div class="log-title">Telemetria completa: pré-corrida, paragens, treinos, meteorologia, janelas e guia de leitura</div>
+          <ul class="log-items">
+            <li><strong>Janelas individuais</strong> para o admin (<code>/admin/janelas</code>), sem bordas, para ver a corrida em vários ecrãs; <strong>rádios de todos os pilotos</strong> (EN + PT); mapa com <strong>curvas e pit lane</strong></li>
+            <li><strong>Pneus novos para a corrida</strong> (folha da Pirelli, riscados a cada paragem) e <strong>modo pré-corrida</strong> 3 h antes da corrida (grelha oficial + sets novos)</li>
+            <li><strong>Paragens nas boxes</strong> com tempo de troca de pneus (oficial ou estimado), pit stop mais rápido do dia e <strong>ultrapassagens compactas</strong> com o pneu e as voltas dos dois pilotos</li>
+            <li><strong>Treinos livres:</strong> simulações de qualificação e de corrida por composto, com degradação e comparação lado a lado</li>
+            <li><strong>Meteorologia:</strong> mosaicos grandes, tendência, gráfico da pista e probabilidade de chuva; <strong>Piloto do Dia</strong> no topo da página e resultado depois de encerrada a votação</li>
+            <li><strong>Guia "Como ler a Telemetria"</strong> (PDF + vídeo) no topo de <code>/telemetria</code>, com data de actualização; a página deixou de vir da cache da app</li>
+            <li><strong>Correcções durante o México e o Brasil:</strong> a telemetria já não cai quando o OpenF1 envia campos vazios (cor ou equipa do piloto); com a corrida parada (bandeira vermelha) os pilotos já não passam todos a "desistentes" e os pontos do F1 Play mantêm-se; a bandeira vermelha da corrida (enviada como mensagem de texto) passa a contar na pergunta P14; os gaps e intervalos finais são reconstruídos a partir das voltas quando o OpenF1 deixa de os enviar após a bandeira de xadrez; a qualificação terminada deixou de dar erro</li>
+            <li><strong>Pilotos:</strong> Rafael Câmara (CAM, Haas) substitui Esteban Ocon a partir do GP do Brasil; Ocon e Hirakawa saem das escolhas das perguntas</li>
+            <li><strong>Resultados do México</strong> publicados (F1 Play, Fantasy e Predict) com o flyer Top 10 do Triatlo; Amarildo passa a liderar</li>
+          </ul>
+        </div>
+      </div>
+      <div class="log-entry">
+        <div class="log-dot"></div>
+        <div class="log-body">
           <div class="log-date">26–31 Outubro 2026 · R18 GP EUA → R19 GP México</div>
           <div class="log-title">Estratégia na telemetria, auto-seguir o calendário, rankings com setas e votação</div>
           <ul class="log-items">
@@ -1119,7 +1200,7 @@
 
   <!-- ══ FOOTER ══════════════════════════════════════════════════════════════ -->
   <footer class="footer">
-    <span>Beira F1 Fanatics 2026 · Booklet v1.8 · Outubro 2026</span>
+    <span>Beira F1 Fanatics 2026 · Booklet v1.9 · Novembro 2026</span>
     <span>Actualizado após cada GP</span>
   </footer>
 
